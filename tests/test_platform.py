@@ -152,6 +152,25 @@ class PlatformTests(unittest.TestCase):
         ):
             self.assertIn(phrase, manual)
 
+    def test_handoff_contract_is_present_and_explicit(self):
+        agents = (SOURCE / "AGENTS.md").read_text(encoding="utf-8")
+        handoff = (SOURCE / "HANDOFF.md").read_text(encoding="utf-8")
+        acceptance = (SOURCE / "docs" / "MODULE_ACCEPTANCE_TEMPLATE.md").read_text(encoding="utf-8")
+        validation = (SOURCE / "docs" / "LINUX_VALIDATION.md").read_text(encoding="utf-8")
+        for phrase in (
+            "Never cut corners on the field manual",
+            "AI is an optional tutor or debugger",
+            "Cleanup is fail-closed",
+        ):
+            self.assertIn(phrase, agents)
+        self.assertIn("Linux baseline for Modules 01-03", handoff)
+        self.assertIn("Modules 04-06", handoff)
+        self.assertIn("Modules 07-09", handoff)
+        self.assertIn("Modules 10-12", handoff)
+        self.assertIn("Every meaningful line", acceptance)
+        self.assertIn("Gate 5: reset scopes and cleanup containment", validation)
+        self.assertTrue(os.access(SOURCE / "scripts" / "linux-preflight", os.X_OK))
+
 
 if __name__ == "__main__":
     unittest.main()

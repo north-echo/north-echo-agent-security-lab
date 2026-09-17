@@ -68,11 +68,14 @@ The repository deliberately does not claim that chmod makes course content immut
 
 The complete v0.1 course manual is [docs/MANUAL_MODULES_01_03.md](docs/MANUAL_MODULES_01_03.md). It is self-contained: commands, complete guided source listings, line-by-line explanations, expected observations, troubleshooting, checkpoints, lab contracts, and reference material are included rather than delegated to external reading. Architecture and pedagogy are documented in [ARCHITECTURE.md](ARCHITECTURE.md) and [COURSE_DESIGN.md](COURSE_DESIGN.md).
 
+Development is moving to a Linux-backed Codex project for full kernel validation and Modules 04-12. Start with [HANDOFF.md](HANDOFF.md), use [CODEX_HANDOFF_PROMPT.md](CODEX_HANDOFF_PROMPT.md) to open the continuation task, and apply [docs/MODULE_ACCEPTANCE_TEMPLATE.md](docs/MODULE_ACCEPTANCE_TEMPLATE.md) and [docs/LINUX_VALIDATION.md](docs/LINUX_VALIDATION.md) at every gate. `AGENTS.md` makes the safety, replay, and field-manual standards persistent for future Codex tasks.
+
 ## Development and verification
 
 ```bash
 python3 -m unittest discover -s tests -v
 ./scripts/attest-course
+./scripts/linux-preflight
 ```
 
 Platform tests exercise start/resume, randomized replay, reset scopes, dry-run, integrity rejection, path safety, state retention, and grader failure behavior. Kernel exercises and Module 02/03 graders require Linux; a non-Linux host can test the control plane but cannot validate namespace or capability behavior.

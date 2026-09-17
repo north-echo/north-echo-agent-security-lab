@@ -1,0 +1,111 @@
+#!/bin/sh
+set -u
+
+pass=0
+fail=0
+
+ok() {
+    pass=$((pass + 1))
+    printf 'PASS  %s\n' "$1"
+}
+
+bad() {
+    fail=$((fail + 1))
+    printf 'FAIL  %s\n' "$1"
+}
+
+info() {
+    printf 'INFO  %s\n' "$1"
+}
+
+have() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+printf '%s\n' 'North Echo Linux preflight (non-destructive)'
+
+if [ "$(uname -s 2>/dev/null)" = Linux ]; then
+    ok 'Linux kernel detected'
+else
+    bad 'Linux kernel required for lessons and kernel validation'
+fi
+
+if [ "$(id -u)" -ne 0 ]; then
+    ok 'running as an ordinary non-root user'
+else
+    bad 'run the course as an ordinary non-root user'
+fi
+
+for tool in python3 cc strace unshare nsenter setpriv capsh getcap setcap ps; do
+    if have "$tool"; then
+        ok "required v0.1 tool available: $tool"
+    else
+        bad "missing required v0.1 tool: $tool"
+    fi
+done
+
+for path in /proc/self/status /proc/self/ns/user /proc/self/ns/uts /proc/self/ns/pid /proc/self/ns/mnt; do
+    if [ -e "$path" ]; then
+        ok "kernel interface available: $path"
+    else
+        bad "missing kernel interface: $path"
+    fi
+done
+
+if have unshare && unshare --user --map-root-user true >/dev/null 2>&1; then
+    ok 'unprivileged user namespace creation works'
+else
+    bad 'unprivileged user namespace creation failed'
+fi
+
+if [ -r /proc/self/status ] && grep -q '^NoNewPrivs:' /proc/self/status; then
+    ok 'NoNewPrivs state is exposed in /proc/self/status'
+else
+    bad 'NoNewPrivs state is not visible'
+fi
+
+if [ -r /proc/self/status ] && grep -q '^CapBnd:' /proc/self/status; then
+    ok 'capability state is exposed in /proc/self/status'
+else
+    bad 'capability state is not visible'
+fi
+
+printf '\n%s\n' 'Future-module readiness (informational until its tranche begins)'
+
+for tool in pkg-config ip nft systemd-run jq; do
+    if have "$tool"; then
+        info "available future tool: $tool"
+    else
+        info "future tool not installed yet: $tool"
+    fi
+done
+
+if [ -r /usr/include/linux/landlock.h ]; then
+    info 'Landlock userspace header is available'
+else
+    info 'Landlock header not found; Module 05 will need suitable Linux headers'
+fi
+
+if [ -r /usr/include/seccomp.h ]; then
+    info 'libseccomp development header is available'
+else
+    info 'libseccomp header not found; Module 06 will need libseccomp development files'
+fi
+
+if [ -r /sys/fs/cgroup/cgroup.controllers ]; then
+    info "cgroup v2 detected: $(tr '\n' ' ' < /sys/fs/cgroup/cgroup.controllers)"
+else
+    info 'cgroup v2 controller file not visible; Module 07 needs a delegated cgroup v2 environment'
+fi
+
+if [ -e /proc/self/ns/net ]; then
+    info 'network namespace interface is visible'
+else
+    info 'network namespace interface is not visible'
+fi
+
+printf '\nSUMMARY: %s required checks passed; %s required checks failed\n' "$pass" "$fail"
+
+if [ "$fail" -ne 0 ]; then
+    exit 1
+fi

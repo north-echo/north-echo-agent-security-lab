@@ -36,10 +36,13 @@ Reset first processes `.runtime/TARGET/resources.json`, then deletes the corresp
 
 - a PID is signaled only when `/proc/PID/cmdline` contains the exact target workspace path;
 - a mount is unmounted only when it is both registered and resolves under `.student`;
-- a cgroup is removed only below `/sys/fs/cgroup/north-echo-UID`;
+- a cgroup-bearing transient user service is stopped only when its unit name, exact workspace-bound description, and effective cgroup all prove ownership inside the invoking user's delegated systemd manager;
+- direct cgroup-path registry entries fail closed; Module 07 registers the owning transient user unit so systemd removes its subtree;
 - a temp path is removed only below that target's `.runtime` directory.
 
 Any failed containment proof aborts cleanup. `--dry-run` executes the same validation and prints intended actions. Modules 01-06 do not leave background resources; the registry exists so later cgroup/network/runtime modules inherit a safe contract.
+
+Module 07 uses transient services in the ordinary user's delegated systemd manager. Before launch, the internal `register-unit` transaction records a narrowly formatted unit name under the active target. Cleanup trusts neither that name nor the registry alone: the live unit must also have the exact workspace-bound description and an effective cgroup below `user-UID.slice/user@UID.service`, ending in that unit name. Direct cgroup-path entries are rejected so systemd, rather than recursive course code, owns subtree removal.
 
 ## Limits
 

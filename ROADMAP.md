@@ -25,6 +25,8 @@ Add grader isolation so evaluation probes run from a read-only copy and record k
 
 ## Tranche 2 / v0.3 - Modules 07-09
 
+**Progress:** Module 07's fail-closed transient-user-unit registry and delegated-cgroup cleanup foundation is implemented and Linux-exercised. Guided lessons, lab, grader, manual chapter, and full module acceptance remain in progress.
+
 - Module 07: cgroup v2 CPU, memory, and PID limits with pressure/OOM observations and delegated-subtree cleanup.
 - Module 08: network namespace, synthetic local services, direct-egress denial, mediated broker, DNS and redirect reauthorization.
 - Module 09: fake credential exposure, operation broker, audience/run binding, expiry, replay cache, confused-deputy variants.

@@ -9,7 +9,7 @@ from pathlib import Path
 
 from . import __version__
 from .catalog import CATALOG, SCAFFOLDS, course_dir_name, normalize_target, target_dir_name, targets_for_scope
-from .cleanup import cleanup_target
+from .cleanup import cleanup_target, register_user_unit
 from .fixtures import generate
 from .grading import fresh_evaluation_fixture, load_grader
 from .integrity import verify
@@ -209,6 +209,16 @@ def cmd_cleanup(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_register_unit(args: argparse.Namespace) -> int:
+    root = repo_root()
+    target = normalize_target(args.target)
+    if target not in CATALOG:
+        raise ValueError(f"unknown or not-yet-playable target: {args.target}")
+    path = register_user_unit(root, target, args.unit)
+    print(f"REGISTERED USER UNIT\n  target: {target}\n  unit: {args.unit}\n  registry: {path}")
+    return 0
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(prog="labctl")
     root.add_argument("--version", action="version", version=__version__)
@@ -235,6 +245,10 @@ def parser() -> argparse.ArgumentParser:
     cleanup.add_argument("--all", action="store_true")
     cleanup.add_argument("--dry-run", action="store_true")
     cleanup.set_defaults(func=cmd_cleanup)
+    register = sub.add_parser("register-unit", help=argparse.SUPPRESS)
+    register.add_argument("target")
+    register.add_argument("unit")
+    register.set_defaults(func=cmd_register_unit)
     return root
 
 

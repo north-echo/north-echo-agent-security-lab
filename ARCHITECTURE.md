@@ -44,6 +44,8 @@ Any failed containment proof aborts cleanup. `--dry-run` executes the same valid
 
 Module 07 uses transient services in the ordinary user's delegated systemd manager. Before launch, the internal `register-unit` transaction records a narrowly formatted unit name under the active target. Cleanup trusts neither that name nor the registry alone: the live unit must also have the exact workspace-bound description and an effective cgroup below `user-UID.slice/user@UID.service`, ending in that unit name. Direct cgroup-path entries are rejected so systemd, rather than recursive course code, owns subtree removal.
 
+Module 08 creates no persistent network object. Each `unshare --net` namespace exists only for its foreground client process; no veth, route, firewall rule, namespace pin, or DNS configuration is created. Synthetic services and brokers are started with exact saved PIDs under shell traps or by the external grader. Unix sockets and readiness files use exact paths inside disposable workspaces or grader temporary directories, and the completed broker removes its socket on clean termination. If a future module introduces a network object that can outlive its launching process, the runtime registry must gain a separately tested ownership proof before that object is created.
+
 ## Limits
 
 This platform is not itself a security boundary against a malicious local user who owns the repository. A student can read graders, edit platform code, or delete state. The threat model is accidental contamination and pedagogical answer leakage across honest replays, not hostile anti-cheat. The actual containment exercises must run inside a disposable VM because kernel configuration and implementation mistakes can affect the running system.

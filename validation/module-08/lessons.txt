@@ -1,0 +1,22 @@
+Module 08 guided lesson execution, Ubuntu 24.04.4 LTS arm64
+
+08.01 PASS
+- ordinary namespace reached the synthetic parent-loopback service
+- new user + network namespace reported a distinct net namespace and direct connection failed with network unreachable
+- enabling private loopback changed the failure to connection refused but did not expose parent loopback
+- exact service process and readiness file were removed
+
+08.02 PASS
+- direct TCP from the empty network namespace failed
+- the same isolated client reached the approved service through a filesystem Unix socket
+- structured run/host/port/path binding produced the expected synthetic body
+- one-request broker removed its socket and exact service PID was reaped
+
+08.03 PASS
+- mode-0600 broker socket observed
+- allowed same-origin redirect was reauthorized and completed with one redirect
+- redirect to the protected synthetic name was denied before protected contact
+- wrong run identity was denied
+- broker, service, socket, readiness file, and temporary workspace were removed
+
+Only synthetic 127.0.0.1 services were used. No veth, route, firewall, DNS, LAN, metadata, public, or production endpoint was touched.

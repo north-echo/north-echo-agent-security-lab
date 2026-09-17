@@ -192,7 +192,8 @@ def cmd_status(args: argparse.Namespace) -> int:
     print("05       Linux openat2 + Landlock ABI, Linux UAPI headers, static C toolchain")
     print("06       Linux seccomp filter mode, libseccomp development files, pkg-config, static C toolchain")
     print("07       unified cgroup v2 + delegated systemd user manager with cpu, memory, and pids")
-    print("\nModules 01-07: playable. Modules 08-12: scaffolded. Capstone: planned (--cold accepted as a concept check).")
+    print("08       Linux unprivileged user + network namespaces and filesystem Unix sockets")
+    print("\nModules 01-08: playable. Modules 09-12: scaffolded. Capstone: planned (--cold accepted as a concept check).")
     return 0
 
 

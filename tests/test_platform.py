@@ -141,7 +141,8 @@ if __name__ == "__main__":
         self.assertIn("Linux openat2 + Landlock ABI", status.stdout)
         self.assertIn("Linux seccomp filter mode", status.stdout)
         self.assertIn("delegated systemd user manager", status.stdout)
-        scaffold = self.run_cli("start", "08.03", expected=3)
+        self.assertIn("network namespaces and filesystem Unix sockets", status.stdout)
+        scaffold = self.run_cli("start", "09.03", expected=3)
         self.assertIn("scaffolded", scaffold.stdout)
         capstone = self.run_cli("start", "capstone", "--cold", expected=3)
         self.assertIn("not implemented", capstone.stdout)
@@ -197,8 +198,8 @@ if __name__ == "__main__":
         self.assertNotIn("Review:", run.stdout)
 
     def test_every_guided_lesson_has_local_line_explanations(self):
-        lessons = sorted((SOURCE / "course").glob("module-0[1-7]-*/lesson-*/README.md"))
-        self.assertEqual(len(lessons), 21)
+        lessons = sorted((SOURCE / "course").glob("module-0[1-8]-*/lesson-*/README.md"))
+        self.assertEqual(len(lessons), 24)
         for lesson in lessons:
             text = lesson.read_text(encoding="utf-8")
             self.assertIn("### Line by line", text, str(lesson))
@@ -248,6 +249,10 @@ if __name__ == "__main__":
         module_seven = (SOURCE / "docs" / "MANUAL_MODULE_07.md").read_text(encoding="utf-8")
         for phrase in ("Observe an effective CPU quota", "Bound memory and observe OOM", "Bound process-tree growth", "Module 07 independent lab"):
             self.assertIn(phrase, module_seven)
+
+        module_eight = (SOURCE / "docs" / "MANUAL_MODULE_08.md").read_text(encoding="utf-8")
+        for phrase in ("Remove the inherited IP network", "Reach one service through a Unix-socket broker", "Reauthorize names, ports, redirects, and runs", "Module 08 independent lab"):
+            self.assertIn(phrase, module_eight)
 
     def test_handoff_contract_is_present_and_explicit(self):
         agents = (SOURCE / "AGENTS.md").read_text(encoding="utf-8")

@@ -36,11 +36,11 @@ else
     bad 'run the course as an ordinary non-root user'
 fi
 
-for tool in python3 cc strace unshare nsenter setpriv capsh getcap setcap ps pkg-config; do
+for tool in python3 cc strace unshare nsenter setpriv capsh getcap setcap ps pkg-config ip systemd-run systemctl; do
     if have "$tool"; then
-        ok "required v0.2 tool available: $tool"
+        ok "required course tool available: $tool"
     else
-        bad "missing required v0.2 tool: $tool"
+        bad "missing required course tool: $tool"
     fi
 done
 
@@ -56,7 +56,7 @@ else
     bad 'Module 06 requires libseccomp development files discoverable by pkg-config'
 fi
 
-for path in /proc/self/status /proc/self/ns/user /proc/self/ns/uts /proc/self/ns/pid /proc/self/ns/mnt; do
+for path in /proc/self/status /proc/self/ns/user /proc/self/ns/uts /proc/self/ns/pid /proc/self/ns/mnt /proc/self/ns/net; do
     if [ -e "$path" ]; then
         ok "kernel interface available: $path"
     else
@@ -68,6 +68,12 @@ if have unshare && unshare --user --map-root-user true >/dev/null 2>&1; then
     ok 'unprivileged user namespace creation works'
 else
     bad 'unprivileged user namespace creation failed'
+fi
+
+if have unshare && unshare --user --map-root-user --net true >/dev/null 2>&1; then
+    ok 'unprivileged network namespace creation works'
+else
+    bad 'Module 08 requires unprivileged user plus network namespace creation'
 fi
 
 if [ -r /proc/self/status ] && grep -q '^NoNewPrivs:' /proc/self/status; then
@@ -82,9 +88,9 @@ else
     bad 'capability state is not visible'
 fi
 
-printf '\n%s\n' 'Future-module readiness (informational until its tranche begins)'
+printf '\n%s\n' 'Additional environment readiness (informational)'
 
-for tool in ip nft systemd-run jq; do
+for tool in nft jq; do
     if have "$tool"; then
         info "available future tool: $tool"
     else
@@ -92,16 +98,16 @@ for tool in ip nft systemd-run jq; do
     fi
 done
 
-if [ -r /sys/fs/cgroup/cgroup.controllers ]; then
-    info "cgroup v2 detected: $(tr '\n' ' ' < /sys/fs/cgroup/cgroup.controllers)"
+if [ -r /sys/fs/cgroup/cgroup.controllers ] && grep -qw cpu /sys/fs/cgroup/cgroup.controllers && grep -qw memory /sys/fs/cgroup/cgroup.controllers && grep -qw pids /sys/fs/cgroup/cgroup.controllers; then
+    info 'Module 07 cgroup v2 controllers are visible'
 else
-    info 'cgroup v2 controller file not visible; Module 07 needs a delegated cgroup v2 environment'
+    info 'Module 07 requires cgroup v2 cpu, memory, and pids controllers'
 fi
 
-if [ -e /proc/self/ns/net ]; then
-    info 'network namespace interface is visible'
+if systemctl --user show-environment >/dev/null 2>&1; then
+    info 'Module 07 delegated systemd user manager is reachable'
 else
-    info 'network namespace interface is not visible'
+    info 'Module 07 delegated systemd user manager is not reachable in this session'
 fi
 
 printf '\nSUMMARY: %s required checks passed; %s required checks failed\n' "$pass" "$fail"

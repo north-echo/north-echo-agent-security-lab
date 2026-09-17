@@ -29,10 +29,13 @@ CATALOG = {
     "07.02": ("07", "Bound memory and observe OOM", True),
     "07.03": ("07", "Bound process-tree growth and collect it", True),
     "07.lab": ("07", "Independent lab: bounded transient runner", True),
+    "08.01": ("08", "Remove the inherited IP network", True),
+    "08.02": ("08", "Reach one service through a Unix-socket broker", True),
+    "08.03": ("08", "Reauthorize names, ports, redirects, and runs", True),
+    "08.lab": ("08", "Independent lab: policy-bound egress broker", True),
 }
 
 SCAFFOLDS = {
-    "08": "Network isolation and mediated egress",
     "09": "Credentials and capability brokering",
     "10": "Compose a complete agent runtime",
     "11": "Vulnerable variants and break/fix research",

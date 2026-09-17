@@ -1,6 +1,6 @@
 # North Echo Agent Security Lab
 
-North Echo is a hands-on, replayable Linux containment course for learning agent security by building, observing, breaking, fixing, and verifying. Modules 01-07 are fully implemented and Linux-validated on Ubuntu 24.04 arm64; Modules 08-12 remain design scaffolds.
+North Echo is a hands-on, replayable Linux containment course for learning agent security by building, observing, breaking, fixing, and verifying. Modules 01-08 are fully implemented and Linux-validated on Ubuntu 24.04 arm64; Modules 09-12 remain design scaffolds.
 
 This is an independent educational project. It contains no employer-internal material, production credentials, external targets, or instructions to test systems you do not own. Run it only in a disposable Linux VM with synthetic data.
 
@@ -60,15 +60,15 @@ The repository deliberately does not claim that chmod makes course content immut
 | 05 Filesystem/Landlock | Playable | Path resolution, descriptor-relative access, Landlock, and inherited-FD hygiene |
 | 06 seccomp | Playable | Measured syscall surface, failure actions, native default-deny filtering |
 | 07 cgroups | Playable | CPU, memory/OOM, PID controls, and safe transient-unit teardown |
-| 08 Network isolation | Scaffold | Mediated egress and redirect reauthorization |
+| 08 Network isolation | Playable | Empty network namespace, Unix-socket mediation, run binding, and redirect reauthorization |
 | 09 Credential brokering | Scaffold | Operation-scoped, fake capabilities |
 | 10 Complete runtime | Scaffold | Correctly ordered composed controls |
 | 11 Break/fix research | Scaffold | Seeded variants and hardened counterparts |
 | 12 Adaptive adversary | Scaffold | Calibrated agent studies and Boundary Atlas graduation |
 
-The v0.1 foundation manual is [docs/MANUAL_MODULES_01_03.md](docs/MANUAL_MODULES_01_03.md), followed by complete chapters for [Module 04](docs/MANUAL_MODULE_04.md), [Module 05](docs/MANUAL_MODULE_05.md), [Module 06](docs/MANUAL_MODULE_06.md), and [Module 07](docs/MANUAL_MODULE_07.md). They are self-contained: commands, complete guided source listings, line-by-line explanations, expected observations, troubleshooting, checkpoints, lab contracts, and reference material are included rather than delegated to external reading. Architecture and pedagogy are documented in [ARCHITECTURE.md](ARCHITECTURE.md) and [COURSE_DESIGN.md](COURSE_DESIGN.md).
+The v0.1 foundation manual is [docs/MANUAL_MODULES_01_03.md](docs/MANUAL_MODULES_01_03.md), followed by complete chapters for [Module 04](docs/MANUAL_MODULE_04.md), [Module 05](docs/MANUAL_MODULE_05.md), [Module 06](docs/MANUAL_MODULE_06.md), [Module 07](docs/MANUAL_MODULE_07.md), and [Module 08](docs/MANUAL_MODULE_08.md). They are self-contained: commands, complete guided source listings, line-by-line explanations, expected observations, troubleshooting, checkpoints, lab contracts, and reference material are included rather than delegated to external reading. Architecture and pedagogy are documented in [ARCHITECTURE.md](ARCHITECTURE.md) and [COURSE_DESIGN.md](COURSE_DESIGN.md).
 
-Gate A Linux validation is recorded in [validation/RESULTS.md](validation/RESULTS.md); module records are under `validation/module-NN/`, and the v0.2 gate is under `validation/tranche-01/`. Development now proceeds to Modules 07-12 in the gated tranches defined by [ROADMAP.md](ROADMAP.md). Apply [docs/MODULE_ACCEPTANCE_TEMPLATE.md](docs/MODULE_ACCEPTANCE_TEMPLATE.md) at every module and tranche boundary. `AGENTS.md` keeps the safety, replay, and field-manual standards persistent for future tasks.
+Gate A Linux validation is recorded in [validation/RESULTS.md](validation/RESULTS.md); module records are under `validation/module-NN/`, and the v0.2 gate is under `validation/tranche-01/`. Development now proceeds to Modules 09-12 in the gated tranches defined by [ROADMAP.md](ROADMAP.md). Apply [docs/MODULE_ACCEPTANCE_TEMPLATE.md](docs/MODULE_ACCEPTANCE_TEMPLATE.md) at every module and tranche boundary. `AGENTS.md` keeps the safety, replay, and field-manual standards persistent for future tasks.
 
 ## Development and verification
 

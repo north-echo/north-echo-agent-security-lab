@@ -1,0 +1,24 @@
+Module 08 independent lab grading, Ubuntu 24.04.4 LTS arm64
+
+Starter / practice: NOT PASSED as required.
+- 2/11 environment/fail-closed properties passed
+- functional mediation and authorization properties failed
+- no permissive fallback or direct network access occurred
+
+Completed implementation / practice: PASSED, 11/11.
+Completed implementation / exam: PASSED, 11/11.
+
+Properties passed:
+1. Broker creates a private Unix socket.
+2. Approved synthetic request succeeds.
+3. Request is bound to the authorized run.
+4. Unapproved name is denied.
+5. Unapproved port is denied.
+6. Approved same-origin redirect succeeds.
+7. Redirect name and literal-address escapes are denied before contact.
+8. Extra authority-bearing fields fail closed.
+9. Policy cannot authorize a non-loopback address.
+10. Isolated client has no direct IP path.
+11. Broker exits cleanly and removes its socket.
+
+The grader evaluated a read-only source copy with fresh synthetic names, ports, run ID, and bodies. No completed student source was retained.

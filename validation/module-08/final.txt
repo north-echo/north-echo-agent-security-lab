@@ -1,0 +1,9 @@
+Final Module 08 inspection, Ubuntu 24.04.4 LTS arm64
+
+Course attestation: PASS
+find .student .fixtures .runtime -mindepth 1 ! -name .gitkeep -print: no output
+find .student .runtime -type s -print: no output
+Module 08 helper-process query: no output
+/tmp/north-echo-08-* directory query: no output
+
+No student solution, generated fixture, Unix socket, readiness file, service process, broker process, network namespace helper, or temporary validation directory remained.

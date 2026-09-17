@@ -169,6 +169,16 @@ if __name__ == "__main__":
         self.assertIn("outside lab root", run.stderr)
         self.assertEqual(marker.read_text(), "keep")
 
+    def test_user_unit_registration_is_scoped_to_active_target(self):
+        self.run_cli("start", "06.01")
+        unit = f"north-echo-{os.getuid()}-06-01-a1b2c3d4.service"
+        registered = self.run_cli("register-unit", "06.01", unit)
+        self.assertIn(unit, registered.stdout)
+        registry = json.loads((self.root / ".runtime/06.01/resources.json").read_text())
+        self.assertEqual(registry["user_units"], [unit])
+        rejected = self.run_cli("register-unit", "06.01", "ssh.service", expected=2)
+        self.assertIn("refusing unrelated user unit", rejected.stderr)
+
     def test_reset_preserves_pass_metadata(self):
         self.run_cli("start", "01.01")
         progress_path = self.root / ".state" / "progress.json"

@@ -1,0 +1,14 @@
+Command: ./scripts/linux-preflight
+Environment: Ubuntu 24.04.4 LTS arm64
+Result: PASS
+Required checks: 28 passed, 0 failed
+
+Relevant Module 08 checks:
+- ip tool available
+- /proc/self/ns/net visible
+- unprivileged user namespace creation works
+- unprivileged user plus network namespace creation works
+
+Module 07's cgroup v2 controllers and delegated systemd user manager were also reported available as informational prerequisite checks.
+
+No host security control was disabled. The VM retains its global unprivileged-user-namespace restriction; only the previously documented narrow /usr/bin/unshare AppArmor profile is present.

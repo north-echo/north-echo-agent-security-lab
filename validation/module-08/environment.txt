@@ -1,0 +1,12 @@
+Module 08 validation environment
+Date: 2026-09-17
+Distribution: Ubuntu 24.04.4 LTS
+Kernel: Linux 6.8.0-134-generic
+Architecture: aarch64
+Python: 3.12.3
+util-linux unshare: 2.39.3
+iproute2: 6.1.0
+systemd: 255 (255.4-1ubuntu8.16)
+cgroup filesystem: cgroup2fs
+Controllers: cpuset cpu io memory hugetlb pids rdma misc
+Execution: disposable Lima VM, ordinary non-root user

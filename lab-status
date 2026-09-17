@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+PYTHON_BIN=${NORTH_ECHO_PYTHON:-python3}
+exec "$PYTHON_BIN" "$ROOT/scripts/labctl.py" status "$@"

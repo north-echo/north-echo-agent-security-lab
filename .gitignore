@@ -1,0 +1,13 @@
+.student/*
+!.student/.gitkeep
+.fixtures/*
+!.fixtures/.gitkeep
+.runtime/*
+!.runtime/.gitkeep
+.state/*
+!.state/.gitkeep
+__pycache__/
+*.pyc
+*.o
+*.out
+.DS_Store

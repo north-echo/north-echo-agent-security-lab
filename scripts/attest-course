@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+PYTHON_BIN=${NORTH_ECHO_PYTHON:-python3}
+PYTHONPATH="$ROOT/scripts" "$PYTHON_BIN" - "$ROOT" <<'PY'
+import sys
+from pathlib import Path
+from northecho.integrity import verify
+
+problems = verify(Path(sys.argv[1]))
+if problems:
+    print("COURSE ATTESTATION: FAIL")
+    for problem in problems:
+        print(" -", problem)
+    raise SystemExit(1)
+print("COURSE ATTESTATION: PASS")
+PY

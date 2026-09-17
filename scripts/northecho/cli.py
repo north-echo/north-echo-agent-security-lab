@@ -193,7 +193,8 @@ def cmd_status(args: argparse.Namespace) -> int:
     print("06       Linux seccomp filter mode, libseccomp development files, pkg-config, static C toolchain")
     print("07       unified cgroup v2 + delegated systemd user manager with cpu, memory, and pids")
     print("08       Linux unprivileged user + network namespaces and filesystem Unix sockets")
-    print("\nModules 01-08: playable. Modules 09-12: scaffolded. Capstone: planned (--cold accepted as a concept check).")
+    print("09       Python 3 cryptographic standard library + filesystem Unix sockets; fake credentials only")
+    print("\nModules 01-09: playable. Modules 10-12: scaffolded. Capstone: planned (--cold accepted as a concept check).")
     return 0
 
 

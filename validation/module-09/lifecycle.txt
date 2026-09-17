@@ -1,0 +1,13 @@
+Module 09 lifecycle validation, Ubuntu 24.04.4 LTS arm64
+
+- clean starts for 09.01, 09.02, 09.03, and 09.lab: PASS
+- canonical integrity checked before every start: PASS
+- module reset dry-run listed only four Module 09 workspace/fixture pairs: PASS
+- dry-run changed no state: PASS
+- module reset removed all four workspace/fixture pairs: PASS
+- pass and attempt metadata persisted: PASS
+- replayed 09.01 advanced from attempt 1 to attempt 2: PASS
+- replay fixture ID differed from the first run: PASS
+- lesson reset removed the replay workspace and fixture: PASS
+
+Generated fixture identifiers, fake credentials, signing material, bearer tokens, and canaries are intentionally omitted from this retained record.

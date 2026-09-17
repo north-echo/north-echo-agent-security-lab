@@ -142,7 +142,8 @@ if __name__ == "__main__":
         self.assertIn("Linux seccomp filter mode", status.stdout)
         self.assertIn("delegated systemd user manager", status.stdout)
         self.assertIn("network namespaces and filesystem Unix sockets", status.stdout)
-        scaffold = self.run_cli("start", "09.03", expected=3)
+        self.assertIn("fake credentials only", status.stdout)
+        scaffold = self.run_cli("start", "10.03", expected=3)
         self.assertIn("scaffolded", scaffold.stdout)
         capstone = self.run_cli("start", "capstone", "--cold", expected=3)
         self.assertIn("not implemented", capstone.stdout)
@@ -198,8 +199,8 @@ if __name__ == "__main__":
         self.assertNotIn("Review:", run.stdout)
 
     def test_every_guided_lesson_has_local_line_explanations(self):
-        lessons = sorted((SOURCE / "course").glob("module-0[1-8]-*/lesson-*/README.md"))
-        self.assertEqual(len(lessons), 24)
+        lessons = sorted((SOURCE / "course").glob("module-0[1-9]-*/lesson-*/README.md"))
+        self.assertEqual(len(lessons), 27)
         for lesson in lessons:
             text = lesson.read_text(encoding="utf-8")
             self.assertIn("### Line by line", text, str(lesson))
@@ -253,6 +254,10 @@ if __name__ == "__main__":
         module_eight = (SOURCE / "docs" / "MANUAL_MODULE_08.md").read_text(encoding="utf-8")
         for phrase in ("Remove the inherited IP network", "Reach one service through a Unix-socket broker", "Reauthorize names, ports, redirects, and runs", "Module 08 independent lab"):
             self.assertIn(phrase, module_eight)
+
+        module_nine = (SOURCE / "docs" / "MANUAL_MODULE_09.md").read_text(encoding="utf-8")
+        for phrase in ("Remove ambient credential authority", "Bind a signed operation capability", "Deny replay and confused-deputy substitution", "Module 09 independent lab"):
+            self.assertIn(phrase, module_nine)
 
     def test_handoff_contract_is_present_and_explicit(self):
         agents = (SOURCE / "AGENTS.md").read_text(encoding="utf-8")

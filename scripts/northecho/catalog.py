@@ -33,10 +33,13 @@ CATALOG = {
     "08.02": ("08", "Reach one service through a Unix-socket broker", True),
     "08.03": ("08", "Reauthorize names, ports, redirects, and runs", True),
     "08.lab": ("08", "Independent lab: policy-bound egress broker", True),
+    "09.01": ("09", "Remove ambient credential authority", True),
+    "09.02": ("09", "Bind a signed operation capability", True),
+    "09.03": ("09", "Deny replay and confused-deputy substitution", True),
+    "09.lab": ("09", "Independent lab: capability-bound credential broker", True),
 }
 
 SCAFFOLDS = {
-    "09": "Credentials and capability brokering",
     "10": "Compose a complete agent runtime",
     "11": "Vulnerable variants and break/fix research",
     "12": "Adaptive adversary and Boundary Atlas graduation",

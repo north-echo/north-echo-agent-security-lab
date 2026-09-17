@@ -1,0 +1,11 @@
+Command: python3 -m unittest discover -s tests -v
+Environment: Ubuntu 24.04.4 LTS arm64
+Result: PASS
+Tests run: 33
+Failures: 0
+Errors: 0
+Skips: 0
+
+Module 09 focused results:
+- runnable fail-closed starter does not pass capability properties: PASS
+- guided capability broker passes all lab properties: PASS

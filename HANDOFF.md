@@ -11,19 +11,21 @@ The next task should work in this repository rather than regenerate it from a sp
 ## Current checkpoint
 
 - Project: **North Echo Agent Security Lab**
-- Source checkpoint: the Module 08 feature commit based on `39a9947`; use Git history for its final content hash
-- Modules 01-08: fully authored and Linux-validated, with twenty-four guided lessons and eight independent labs
-- Modules 09-12: design scaffolds only; a scaffold is a reserved direction, not a playable module
+- Source checkpoint: the Module 09 feature commit based on `33f2980`; use Git history for its final content hash
+- Modules 01-09: fully authored and Linux-validated, with twenty-seven guided lessons and nine independent labs
+- Modules 10-12: design scaffolds only; a scaffold is a reserved direction, not a playable module
 - Platform lifecycle: start, status, grade, lesson/module/all reset, dry-run cleanup, randomized fixtures, practice/exam modes, and metadata-only progress are implemented
-- Field manual: Modules 01-08 have synchronized, self-contained chapters with complete guided source, local explanations, expected observations, troubleshooting, labs, and security models
-- Current automated result: 31 tests passing and course attestation passing on Ubuntu 24.04.4 LTS arm64
+- Field manual: Modules 01-09 have synchronized, self-contained chapters with complete guided source, local explanations, expected observations, troubleshooting, labs, and security models
+- Current automated result: 33 tests passing and course attestation passing on Ubuntu 24.04.4 LTS arm64
 - Gate A record: `validation/RESULTS.md`; no required Gate A step was skipped
 - Module 04 record: `validation/module-04/RESULTS.md`; all module acceptance items passed
 - Module 05 record: `validation/module-05/RESULTS.md`; all module acceptance items passed
 - Module 06 record: `validation/module-06/RESULTS.md`; all module acceptance items passed
 - Module 07 record: `validation/module-07/RESULTS.md`; all module acceptance items passed
 - Module 08 record: `validation/module-08/RESULTS.md`; all module acceptance items passed
+- Module 09 record: `validation/module-09/RESULTS.md`; all module acceptance items passed
 - Tranche 1 / v0.2 record: `validation/tranche-01/RESULTS.md`; end-to-end replay and teardown passed
+- Tranche 2 / v0.3 record: `validation/tranche-02/RESULTS.md`; Modules 07-09 replay and teardown passed
 
 The current source was assembled on macOS and kernel-validated in a disposable Ubuntu 24.04.4 LTS arm64 Lima VM. macOS results prove only control-plane behavior; the retained Module 08 record distinguishes Linux evidence.
 
@@ -31,7 +33,7 @@ The current source was assembled on macOS and kernel-validated in a disposable U
 
 Gate A passed on Ubuntu 24.04.4 LTS arm64. The run covered the non-destructive preflight, automated tests, attestation, all nine guided lessons, all three independent labs in practice and exam modes, randomized replay, every reset scope, cleanup containment, and final empty-state inspection. Focused fixes corrected Lesson 03.02's post-mapping `setgroups(2)` assumption and Module 02's namespace-local `NSpid` grading assumption.
 
-The next task is Module 09 credential brokering. Preserve Module 08's design constraint: it uses process-lifetime network namespaces, exact-PID synthetic services, and workspace Unix sockets, so it needs no persistent veth, firewall, DNS, or namespace helper. Extend the runtime registry first if Module 09 introduces any resource that can outlive its launching process.
+The next task is Module 10 complete-runtime composition. Preserve the security-correct ordering and cleanup contracts learned in Modules 01-09. Extend the runtime registry first if composition introduces any resource that can outlive its launching process.
 
 Do not start by rewriting the platform. Preserve working behavior and add focused tests for every corrected defect.
 

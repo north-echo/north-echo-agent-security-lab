@@ -8,7 +8,7 @@
 
 static int allow_name(scmp_filter_ctx context, const char *name) {
     int number = seccomp_syscall_resolve_name(name);
-    return number == __NR_SCMP_ERROR ? -1 : seccomp_rule_add(context, SCMP_ACT_ALLOW, number, 0);
+    return number == __NR_SCMP_ERROR ? 0 : seccomp_rule_add(context, SCMP_ACT_ALLOW, number, 0);
 }
 
 int main(int argc, char **argv) {
@@ -18,8 +18,9 @@ int main(int argc, char **argv) {
     }
     const char *allowed[] = {
         "execve", "read", "write", "close", "openat", "brk", "mmap", "mprotect",
-        "munmap", "set_tid_address", "set_robust_list", "prlimit64", "readlinkat",
-        "getrandom", "rseq", "exit", "exit_group"
+        "munmap", "set_tid_address", "set_robust_list", "prlimit64", "readlink", "readlinkat",
+        "getrandom", "rseq", "arch_prctl", "fstat", "newfstatat", "faccessat",
+        "exit", "exit_group"
     };
     scmp_filter_ctx context = seccomp_init(SCMP_ACT_ERRNO(EPERM));
     uint32_t native = seccomp_arch_native();

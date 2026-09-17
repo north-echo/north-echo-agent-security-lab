@@ -1,0 +1,11 @@
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 02 INDEPENDENT LAB - PRACTICE MODE
+[1/6] Approved child command still executes ........... PASS
+[2/6] Child has a distinct UTS namespace .............. PASS
+[3/6] Child uses the randomized synthetic hostname .... PASS
+[4/6] Child has a distinct PID namespace .............. PASS
+[5/6] Child has a distinct mount namespace ............ PASS
+[6/6] /proc reflects the child PID namespace .......... PASS
+
+RESULT: PASSED

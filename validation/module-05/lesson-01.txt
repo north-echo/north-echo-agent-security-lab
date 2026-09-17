@@ -1,0 +1,17 @@
+NORTH ECHO AGENT SECURITY LAB
+
+START 05.01 - Break pathname string checks
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/05.01
+Mode: practice
+Attempt: 1
+Open README.md in the workspace and begin with Exercise 1.
+allowed
+prefix-secret
+symlink-secret
+DENIED: resolved object is outside root
+DENIED: resolved object is outside root

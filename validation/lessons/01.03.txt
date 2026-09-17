@@ -1,0 +1,22 @@
+manifest=<repo>/.fixtures/01.03/manifest.json
+fd=0 target=pipe:[24824]
+fd=1 target=pipe:[20449]
+fd=2 target=pipe:[20449]
+fd=3 target=<repo>/.fixtures/01.03/manifest.json
+{
+  "attempt": 1,
+  "canary": "<<synthetic-secret>nary>",
+  "fixture_id": "528e0aeb",
+  "hostname": "ne-528e0aeb",
+  "port": 41109,
+  "schema": 1,
+  "synthetic_user": "amber-otter-886",
+  "target": "01.03"
+}
+
+
+REPAIRED CLOSE-ON-EXEC
+FD_CLOEXEC=yes
+fd=0 target=pipe:[23136]
+fd=1 target=pipe:[24182]
+fd=2 target=pipe:[24182]

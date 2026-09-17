@@ -1,0 +1,41 @@
+<repo>/course/.course-manifest.json
+NORTH ECHO AGENT SECURITY LAB
+
+START 05.lab - Independent lab: filesystem guard
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/05.lab
+Mode: practice
+Attempt: 1
+Open README.md in the workspace and begin with Exercise 1.
+Traceback (most recent call last):
+  File "<repo>/scripts/labctl.py", line 6, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "<repo>/scripts/northecho/cli.py", line 241, in main
+    return args.func(args)
+           ^^^^^^^^^^^^^^^
+  File "<repo>/scripts/northecho/cli.py", line 156, in cmd_grade
+    checks = grader.grade(workspace, fixture)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>/graders/module_05.py", line 54, in grade
+    protected = evaluation / f"protected-{fixture['fixture_id']}"
+                                          ~~~~~~~^^^^^^^^^^^^^^
+KeyError: 'fixture_id'
+Traceback (most recent call last):
+  File "<repo>/scripts/labctl.py", line 6, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "<repo>/scripts/northecho/cli.py", line 241, in main
+    return args.func(args)
+           ^^^^^^^^^^^^^^^
+  File "<repo>/scripts/northecho/cli.py", line 156, in cmd_grade
+    checks = grader.grade(workspace, fixture)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>/graders/module_05.py", line 54, in grade
+    protected = evaluation / f"protected-{fixture['fixture_id']}"
+                                          ~~~~~~~^^^^^^^^^^^^^^
+KeyError: 'fixture_id'

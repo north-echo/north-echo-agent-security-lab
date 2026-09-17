@@ -1,0 +1,28 @@
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 06 INDEPENDENT LAB - PRACTICE MODE
+[1/9] The seccomp launcher builds ..................... PASS
+[2/9] Filter mode is active inside the executed child .. PASS
+[3/9] no_new_privs is active inside the child ......... PASS
+[4/9] The stated file-read workload still succeeds .... PASS
+[5/9] Direct socket creation returns EPERM ............ PASS
+[6/9] Alternate socket-pair creation returns EPERM .... PASS
+[7/9] ptrace returns EPERM ............................ PASS
+[8/9] An unlisted harmless syscall returns EPERM ...... PASS
+[9/9] Malformed invocation fails closed ............... PASS
+
+RESULT: PASSED
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 06 INDEPENDENT LAB - EXAM MODE
+[1/9] The seccomp launcher builds ..................... PASS
+[2/9] Filter mode is active inside the executed child .. PASS
+[3/9] no_new_privs is active inside the child ......... PASS
+[4/9] The stated file-read workload still succeeds .... PASS
+[5/9] Direct socket creation returns EPERM ............ PASS
+[6/9] Alternate socket-pair creation returns EPERM .... PASS
+[7/9] ptrace returns EPERM ............................ PASS
+[8/9] An unlisted harmless syscall returns EPERM ...... PASS
+[9/9] Malformed invocation fails closed ............... PASS
+
+RESULT: PASSED

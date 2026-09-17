@@ -1,0 +1,64 @@
+NORTH ECHO AGENT SECURITY LAB
+
+START 06.lab - Independent lab: default-deny syscall launcher
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/06.lab
+Mode: practice
+Attempt: 1
+Open README.md in the workspace and begin with Exercise 1.
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 06 INDEPENDENT LAB - PRACTICE MODE
+[1/9] The seccomp launcher builds ..................... PASS
+[2/9] Filter mode is active inside the executed child .. FAIL
+[3/9] no_new_privs is active inside the child ......... FAIL
+[4/9] The stated file-read workload still succeeds .... PASS
+[5/9] Direct socket creation returns EPERM ............ FAIL
+[6/9] Alternate socket-pair creation returns EPERM .... FAIL
+[7/9] ptrace returns EPERM ............................ FAIL
+[8/9] An unlisted harmless syscall returns EPERM ...... FAIL
+[9/9] Malformed invocation fails closed ............... PASS
+
+RESULT: NOT PASSED
+
+Failed security properties:
+  - Filter mode is active inside the executed child
+    Review: Module 06 lesson 03
+  - no_new_privs is active inside the child
+    Review: Module 06 lesson 03
+  - Direct socket creation returns EPERM
+    Review: Module 06 lessons 02-03
+  - Alternate socket-pair creation returns EPERM
+    Review: Module 06 lessons 02-03
+  - ptrace returns EPERM
+    Review: Module 06 lesson 03
+  - An unlisted harmless syscall returns EPERM
+    Review: Module 06 lesson 03: default deny
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 06 INDEPENDENT LAB - EXAM MODE
+[1/9] The seccomp launcher builds ..................... PASS
+[2/9] Filter mode is active inside the executed child .. FAIL
+[3/9] no_new_privs is active inside the child ......... FAIL
+[4/9] The stated file-read workload still succeeds .... PASS
+[5/9] Direct socket creation returns EPERM ............ FAIL
+[6/9] Alternate socket-pair creation returns EPERM .... FAIL
+[7/9] ptrace returns EPERM ............................ FAIL
+[8/9] An unlisted harmless syscall returns EPERM ...... FAIL
+[9/9] Malformed invocation fails closed ............... PASS
+
+RESULT: NOT PASSED
+
+Failed security properties:
+  - Filter mode is active inside the executed child
+  - no_new_privs is active inside the child
+  - Direct socket creation returns EPERM
+  - Alternate socket-pair creation returns EPERM
+  - ptrace returns EPERM
+  - An unlisted harmless syscall returns EPERM
+
+Exam mode withholds lesson references and implementation hints.

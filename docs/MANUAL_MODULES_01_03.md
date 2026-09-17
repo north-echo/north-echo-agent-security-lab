@@ -1140,8 +1140,7 @@ unshare --user --map-root-user setpriv \
   --bounding-set=-all \
   --inh-caps=-all \
   --ambient-caps=-all \
-  --clear-groups \
-  sh -c 'grep -E "^Cap(Inh|Prm|Eff|Bnd|Amb):" /proc/self/status'
+  sh -c 'grep -E "^(Groups|Cap(Inh|Prm|Eff|Bnd|Amb)):" /proc/self/status'
 ```
 
 ### What each line does
@@ -1152,8 +1151,7 @@ unshare --user --map-root-user setpriv \
 - `--bounding-set=-all` subtracts every named capability from the bounding set.
 - `--inh-caps=-all` clears the inheritable set.
 - `--ambient-caps=-all` clears the ambient set.
-- `--clear-groups` removes supplementary groups.
-- The final shell runs the procfs observation after the transitions.
+- The final shell runs the procfs observation after the transitions and reports supplementary groups separately from capability state.
 
 Expected:
 
@@ -1166,6 +1164,8 @@ CapAmb: 0000000000000000
 ```
 
 `setpriv` and the kernel perform linked capability calculations during execution, which is why the resulting permitted and effective sets are also observed rather than assumed.
+
+The `Groups` line need not be empty. `--map-root-user` uses the kernel's safe single-ID mapping path, which disables later `setgroups(2)` calls before writing the GID map. Adding `setpriv --clear-groups` after that transition therefore fails with `Operation not permitted` on current Ubuntu kernels. Group reduction is a separate launcher responsibility that must happen at a boundary where the caller has authority to change its supplementary groups; this exercise isolates capability-set behavior instead of pretending the two controls are interchangeable.
 
 ### Exercise 3 - Make the partial fix
 

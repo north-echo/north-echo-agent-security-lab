@@ -1,0 +1,26 @@
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 04 INDEPENDENT LAB - EXAM MODE
+[1/9] Approved deterministic task completes ........... PASS
+[2/9] Trace has one ordered typed record per action ... FAIL
+[3/9] read_file reports the observed content .......... FAIL
+[4/9] write_file performs and records the exact write .. FAIL
+[5/9] run_argv preserves the literal argument vector .. FAIL
+[6/9] Shell metacharacters are not interpreted ........ FAIL
+[7/9] Synthetic ambient environment authority is absent .. FAIL
+[8/9] Nonzero tool status is recorded and propagated .. FAIL
+[9/9] Unknown tools fail closed with a trace record ... FAIL
+
+RESULT: NOT PASSED
+
+Failed security properties:
+  - Trace has one ordered typed record per action
+  - read_file reports the observed content
+  - write_file performs and records the exact write
+  - run_argv preserves the literal argument vector
+  - Shell metacharacters are not interpreted
+  - Synthetic ambient environment authority is absent
+  - Nonzero tool status is recorded and propagated
+  - Unknown tools fail closed with a trace record
+
+Exam mode withholds lesson references and implementation hints.

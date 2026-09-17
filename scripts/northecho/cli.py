@@ -188,7 +188,10 @@ def cmd_status(args: argparse.Namespace) -> int:
         active = (root / ".student" / target).exists()
         state = "PASSED" if record.get("passed") else "ACTIVE" if active else "READY"
         print(f"{target:8} {state:11} {record.get('starts', 0):6}  {record.get('grade_attempts', 0):6}  {record.get('mode', '-'):8}  {CATALOG[target][1]}")
-    print("\nModules 04-12: scaffolded. Capstone: planned (--cold accepted as a concept check).")
+    print("\nPLAYABLE KERNEL/TOOLING PREREQUISITES")
+    print("05       Linux openat2 + Landlock ABI, Linux UAPI headers, static C toolchain")
+    print("06       Linux seccomp filter mode, libseccomp development files, pkg-config, static C toolchain")
+    print("\nModules 01-06: playable. Modules 07-12: scaffolded. Capstone: planned (--cold accepted as a concept check).")
     return 0
 
 

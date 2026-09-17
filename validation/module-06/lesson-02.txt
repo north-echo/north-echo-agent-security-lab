@@ -1,0 +1,16 @@
+NORTH ECHO AGENT SECURITY LAB
+
+START 06.02 - Compare errno, kill, and blacklist bypass
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/06.02
+Mode: practice
+Attempt: 1
+Open README.md in the workspace and begin with Exercise 1.
+result=-1 errno=1
+kill_status=159
+bash: line 1:  6759 Bad system call         (core dumped) ./deny-socket kill ./socket-probe socket
+result=-1 errno=1

@@ -1,0 +1,26 @@
+NORTH ECHO AGENT SECURITY LAB
+
+START 05.01 - Break pathname string checks
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/05.01
+Mode: practice
+Attempt: 2
+Open README.md in the workspace and begin with Exercise 1.
+NORTH ECHO AGENT SECURITY LAB
+
+DRY RUN
+  remove <repo>/.student/05.01
+  remove <repo>/.fixtures/05.01
+
+Attempt/pass metadata was preserved; student source and fixtures were not.
+NORTH ECHO AGENT SECURITY LAB
+
+RESET COMPLETE
+  remove <repo>/.student/05.01
+  remove <repo>/.fixtures/05.01
+
+Attempt/pass metadata was preserved; student source and fixtures were not.

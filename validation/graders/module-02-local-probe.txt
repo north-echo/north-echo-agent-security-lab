@@ -1,0 +1,4 @@
+pid=1 host=ne-local-check
+    PID    PPID COMMAND
+      1       0 sh
+      4       1 ps

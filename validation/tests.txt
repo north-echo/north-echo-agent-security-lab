@@ -1,0 +1,18 @@
+test_canonical_change_blocks_start (test_platform.PlatformTests.test_canonical_change_blocks_start) ... ok
+test_cleanup_registry_dry_run_and_removal (test_platform.PlatformTests.test_cleanup_registry_dry_run_and_removal) ... ok
+test_cleanup_registry_rejects_external_path (test_platform.PlatformTests.test_cleanup_registry_rejects_external_path) ... ok
+test_every_guided_lesson_has_local_line_explanations (test_platform.PlatformTests.test_every_guided_lesson_has_local_line_explanations) ... ok
+test_exam_mode_withholds_lesson_references (test_platform.PlatformTests.test_exam_mode_withholds_lesson_references) ... ok
+test_field_manual_is_self_contained_and_substantial (test_platform.PlatformTests.test_field_manual_is_self_contained_and_substantial) ... ok
+test_handoff_contract_is_present_and_explicit (test_platform.PlatformTests.test_handoff_contract_is_present_and_explicit) ... ok
+test_module_scope_and_dry_run (test_platform.PlatformTests.test_module_scope_and_dry_run) ... ok
+test_replay_rotates_fixture_and_preserves_only_metadata (test_platform.PlatformTests.test_replay_rotates_fixture_and_preserves_only_metadata) ... ok
+test_reset_preserves_pass_metadata (test_platform.PlatformTests.test_reset_preserves_pass_metadata) ... ok
+test_starter_module_one_fails_security_properties (test_platform.PlatformTests.test_starter_module_one_fails_security_properties) ... ok
+test_status_and_scaffold_messages (test_platform.PlatformTests.test_status_and_scaffold_messages) ... ok
+test_symlink_escape_is_rejected (test_platform.PlatformTests.test_symlink_escape_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 1.723s
+
+OK

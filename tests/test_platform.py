@@ -82,10 +82,65 @@ class PlatformTests(unittest.TestCase):
             run.stdout,
         )
 
+    def test_module_four_starter_fails_then_reference_runner_passes(self):
+        self.run_cli("start", "module-04")
+        starter = self.run_cli("grade", "module-04", expected=1)
+        self.assertIn("RESULT: NOT PASSED", starter.stdout)
+
+        source = self.root / ".student" / "04.lab" / "agent.py"
+        source.write_text(
+            '''#!/usr/bin/env python3
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+def field_result(action):
+    tool = action["tool"]
+    if tool == "read_file":
+        return {"content": Path(action["path"]).read_text(encoding="utf-8")}
+    if tool == "write_file":
+        content = action["content"]
+        Path(action["path"]).write_text(content, encoding="utf-8")
+        return {"bytes_written": len(content.encode())}
+    if tool == "run_argv":
+        run = subprocess.run(action["argv"], shell=False, env={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8"}, text=True, capture_output=True, check=False)
+        return {"status": run.returncode, "stdout": run.stdout, "stderr": run.stderr}
+    raise ValueError("unknown tool")
+
+def main():
+    task = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+    failed = False
+    with Path(sys.argv[2]).open("w", encoding="utf-8") as trace:
+        for action in task["actions"]:
+            record = {"id": action["id"], "tool": action["tool"]}
+            try:
+                result = field_result(action)
+                ok = result.get("status", 0) == 0
+                record.update({"ok": ok, "result": result})
+            except Exception as error:
+                record.update({"ok": False, "error": str(error)})
+            failed = failed or not record["ok"]
+            trace.write(json.dumps(record, sort_keys=True) + "\\n")
+            trace.flush()
+    return 1 if failed else 0
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+''',
+            encoding="utf-8",
+        )
+        passed = self.run_cli("grade", "module-04")
+        self.assertIn("RESULT: PASSED", passed.stdout)
+        self.run_cli("reset", "module-04", "--yes")
+        self.assertFalse((self.root / ".student" / "04.lab").exists())
+
     def test_status_and_scaffold_messages(self):
         status = self.run_cli("status")
         self.assertIn("01.01", status.stdout)
-        scaffold = self.run_cli("start", "05.03", expected=3)
+        self.assertIn("Linux openat2 + Landlock ABI", status.stdout)
+        self.assertIn("Linux seccomp filter mode", status.stdout)
+        scaffold = self.run_cli("start", "07.03", expected=3)
         self.assertIn("scaffolded", scaffold.stdout)
         capstone = self.run_cli("start", "capstone", "--cold", expected=3)
         self.assertIn("not implemented", capstone.stdout)
@@ -131,8 +186,8 @@ class PlatformTests(unittest.TestCase):
         self.assertNotIn("Review:", run.stdout)
 
     def test_every_guided_lesson_has_local_line_explanations(self):
-        lessons = sorted((SOURCE / "course").glob("module-0[1-3]-*/lesson-*/README.md"))
-        self.assertEqual(len(lessons), 9)
+        lessons = sorted((SOURCE / "course").glob("module-0[1-6]-*/lesson-*/README.md"))
+        self.assertEqual(len(lessons), 18)
         for lesson in lessons:
             text = lesson.read_text(encoding="utf-8")
             self.assertIn("### Line by line", text, str(lesson))
@@ -152,6 +207,33 @@ class PlatformTests(unittest.TestCase):
         ):
             self.assertIn(phrase, manual)
 
+        module_four = (SOURCE / "docs" / "MANUAL_MODULE_04.md").read_text(encoding="utf-8")
+        for phrase in (
+            "Run a deterministic tool loop and record every action",
+            "Preserve argv boundaries and handle tool failure",
+            "Inventory and remove ambient launcher authority",
+            "Module 04 independent lab",
+        ):
+            self.assertIn(phrase, module_four)
+
+        module_five = (SOURCE / "docs" / "MANUAL_MODULE_05.md").read_text(encoding="utf-8")
+        for phrase in (
+            "Break pathname string checks",
+            "Make lookup descriptor-relative with `openat2`",
+            "Restrict a child with Landlock",
+            "Module 05 independent lab",
+        ):
+            self.assertIn(phrase, module_five)
+
+        module_six = (SOURCE / "docs" / "MANUAL_MODULE_06.md").read_text(encoding="utf-8")
+        for phrase in (
+            "Measure the workload before filtering",
+            "Compare errno, kill, and blacklist bypass",
+            "Launch with a native default-deny filter",
+            "Module 06 independent lab",
+        ):
+            self.assertIn(phrase, module_six)
+
     def test_handoff_contract_is_present_and_explicit(self):
         agents = (SOURCE / "AGENTS.md").read_text(encoding="utf-8")
         handoff = (SOURCE / "HANDOFF.md").read_text(encoding="utf-8")
@@ -170,6 +252,47 @@ class PlatformTests(unittest.TestCase):
         self.assertIn("Every meaningful line", acceptance)
         self.assertIn("Gate 5: reset scopes and cleanup containment", validation)
         self.assertTrue(os.access(SOURCE / "scripts" / "linux-preflight", os.X_OK))
+
+
+class LinuxLessonRegressionTests(unittest.TestCase):
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
+    def test_module_03_capability_floor_works_after_map_root_user(self):
+        probe = subprocess.run(
+            ["unshare", "--user", "--map-root-user", "true"],
+            text=True,
+            capture_output=True,
+        )
+        if probe.returncode != 0:
+            self.skipTest("unprivileged user namespaces are unavailable")
+
+        run = subprocess.run(
+            [
+                "unshare",
+                "--user",
+                "--map-root-user",
+                "setpriv",
+                "--bounding-set=-all",
+                "--inh-caps=-all",
+                "--ambient-caps=-all",
+                "sh",
+                "-c",
+                'grep -E "^Cap(Inh|Prm|Eff|Bnd|Amb):" /proc/self/status',
+            ],
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+        fields = dict(line.split(":", 1) for line in run.stdout.splitlines())
+        self.assertEqual(
+            fields,
+            {
+                "CapInh": "\t0000000000000000",
+                "CapPrm": "\t0000000000000000",
+                "CapEff": "\t0000000000000000",
+                "CapBnd": "\t0000000000000000",
+                "CapAmb": "\t0000000000000000",
+            },
+        )
 
 
 if __name__ == "__main__":

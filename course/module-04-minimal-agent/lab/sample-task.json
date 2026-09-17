@@ -1,0 +1,9 @@
+{
+  "actions": [
+    {
+      "id": "sample-run",
+      "tool": "run_argv",
+      "argv": ["python3", "-c", "print('sample agent run')"]
+    }
+  ]
+}

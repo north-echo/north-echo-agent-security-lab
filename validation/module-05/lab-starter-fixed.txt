@@ -1,0 +1,46 @@
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 05 INDEPENDENT LAB - PRACTICE MODE
+[1/9] The filesystem guard builds ..................... PASS
+[2/9] Descriptor-relative read preserves allowed access .. PASS
+[3/9] Descriptor-relative write preserves exact content .. PASS
+[4/9] Traversal and absolute-path escapes are denied .. FAIL
+[5/9] Symlink escape is denied ........................ FAIL
+[6/9] A static child inside the allowed tree executes .. PASS
+[7/9] Landlock denies the child a new outside open .... FAIL
+[8/9] Pre-opened protected descriptors are closed on exec .. FAIL
+[9/9] Unknown operations fail closed .................. PASS
+
+RESULT: NOT PASSED
+
+Failed security properties:
+  - Traversal and absolute-path escapes are denied
+    Review: Module 05 lessons 01-02
+  - Symlink escape is denied
+    Review: Module 05 lessons 01-02
+  - Landlock denies the child a new outside open
+    Review: Module 05 lesson 03
+  - Pre-opened protected descriptors are closed on exec
+    Review: Module 05 lesson 03 and Module 01 lesson 03
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 05 INDEPENDENT LAB - EXAM MODE
+[1/9] The filesystem guard builds ..................... PASS
+[2/9] Descriptor-relative read preserves allowed access .. PASS
+[3/9] Descriptor-relative write preserves exact content .. PASS
+[4/9] Traversal and absolute-path escapes are denied .. FAIL
+[5/9] Symlink escape is denied ........................ FAIL
+[6/9] A static child inside the allowed tree executes .. PASS
+[7/9] Landlock denies the child a new outside open .... FAIL
+[8/9] Pre-opened protected descriptors are closed on exec .. FAIL
+[9/9] Unknown operations fail closed .................. PASS
+
+RESULT: NOT PASSED
+
+Failed security properties:
+  - Traversal and absolute-path escapes are denied
+  - Symlink escape is denied
+  - Landlock denies the child a new outside open
+  - Pre-opened protected descriptors are closed on exec
+
+Exam mode withholds lesson references and implementation hints.

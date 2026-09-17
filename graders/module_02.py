@@ -12,6 +12,16 @@ def _inode(namespace: str) -> int:
     return os.stat(f"/proc/self/ns/{namespace}").st_ino
 
 
+def _pid_namespace_isolated(payload: dict, grader_pid_inode: int) -> bool:
+    nspid = payload.get("nspid", [])
+    return (
+        payload.get("pid_inode") != grader_pid_inode
+        and isinstance(nspid, list)
+        and bool(nspid)
+        and nspid[-1] == 1
+    )
+
+
 def grade(workspace: Path, fixture: dict) -> list[Check]:
     launcher = workspace / "sandbox.sh"
     if not Path("/proc/self/ns").exists():
@@ -45,12 +55,11 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
             Check("The probe executes inside the launcher", False, "Module 02 lab: preserve the command interface"),
             Check("Namespace setup succeeds on this VM", False, "Check unprivileged user-namespace prerequisites in README.md"),
         ]
-    nspid = payload.get("nspid", [])
     return [
         Check("Approved child command still executes", run.returncode == 0, "Module 02 lesson 01"),
         Check("Child has a distinct UTS namespace", payload.get("uts_inode") != _inode("uts"), "Module 02 lesson 02"),
         Check("Child uses the randomized synthetic hostname", payload.get("hostname") == fixture["hostname"], "Module 02 lesson 02"),
-        Check("Child has a distinct PID namespace", payload.get("pid_inode") != _inode("pid") and len(nspid) >= 2 and nspid[-1] == 1, "Module 02 lesson 03"),
+        Check("Child has a distinct PID namespace", _pid_namespace_isolated(payload, _inode("pid")), "Module 02 lesson 03"),
         Check("Child has a distinct mount namespace", payload.get("mnt_inode") != _inode("mnt"), "Module 02 lesson 03"),
         Check("/proc reflects the child PID namespace", payload.get("proc_one_is_self") is True, "Module 02 lesson 03"),
     ]

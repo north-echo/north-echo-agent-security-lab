@@ -4,6 +4,8 @@ v0.1 proves the lifecycle and completes the first three foundations. The remaini
 
 ## Gate A - Linux baseline for v0.1
 
+**Status: complete on Ubuntu 24.04.4 LTS arm64.** The full record is in `validation/RESULTS.md`. Debian 12 and x86-64 remain additional baselines rather than prerequisites for starting Tranche 1.
+
 - Run `docs/LINUX_VALIDATION.md` for all nine guided lessons and three independent labs.
 - Exercise practice and exam grading, randomized replay, every reset scope, integrity rejection, and cleanup containment.
 - Fix Linux portability defects with regression tests.
@@ -12,6 +14,8 @@ v0.1 proves the lifecycle and completes the first three foundations. The remaini
 Do not begin Module 04 until this gate is complete.
 
 ## Tranche 1 / v0.2 - Modules 04-06
+
+**Status: complete on Ubuntu 24.04.4 LTS arm64.** Modules 04-06 passed their module gates and the end-to-end tranche record is in `validation/tranche-01/RESULTS.md`. Module 07 is next.
 
 - Module 04: local deterministic tool-using agent, structured tool calls, full action trace, intentionally ambient authority.
 - Module 05: traversal and symlink failures, `openat2` resolution, descriptor-relative policy, Landlock ABI detection, pre-opened-FD variant.

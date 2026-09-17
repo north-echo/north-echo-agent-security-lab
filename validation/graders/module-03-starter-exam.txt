@@ -1,0 +1,17 @@
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 03 INDEPENDENT LAB - EXAM MODE
+[1/7] Approved child command still executes ........... PASS
+[2/7] no_new_privs is active before exec .............. FAIL
+[3/7] Effective capabilities are empty ................ PASS
+[4/7] Permitted capabilities are empty ................ PASS
+[5/7] Inheritable capabilities are empty .............. PASS
+[6/7] Ambient capabilities are empty .................. PASS
+[7/7] Launcher preserves the invoking UID ............. PASS
+
+RESULT: NOT PASSED
+
+Failed security properties:
+  - no_new_privs is active before exec
+
+Exam mode withholds lesson references and implementation hints.

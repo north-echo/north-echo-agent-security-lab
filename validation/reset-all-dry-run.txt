@@ -1,0 +1,13 @@
+NORTH ECHO AGENT SECURITY LAB
+
+DRY RUN
+  remove <repo>/.student/02.01
+  remove <repo>/.fixtures/02.01
+  remove <repo>/.student/02.lab
+  remove <repo>/.fixtures/02.lab
+  remove <repo>/.student/03.01
+  remove <repo>/.fixtures/03.01
+  remove <repo>/.student/03.lab
+  remove <repo>/.fixtures/03.lab
+
+Attempt/pass metadata was preserved; student source and fixtures were not.

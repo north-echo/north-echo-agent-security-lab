@@ -1,0 +1,53 @@
+NORTH ECHO AGENT SECURITY LAB
+
+DRY RUN
+  remove <repo>/.student/06.01
+  remove <repo>/.fixtures/06.01
+  remove <repo>/.student/06.02
+  remove <repo>/.fixtures/06.02
+  remove <repo>/.student/06.03
+  remove <repo>/.fixtures/06.03
+  remove <repo>/.student/06.lab
+  remove <repo>/.fixtures/06.lab
+
+Attempt/pass metadata was preserved; student source and fixtures were not.
+NORTH ECHO AGENT SECURITY LAB
+
+RESET COMPLETE
+  remove <repo>/.student/06.01
+  remove <repo>/.fixtures/06.01
+  remove <repo>/.student/06.02
+  remove <repo>/.fixtures/06.02
+  remove <repo>/.student/06.03
+  remove <repo>/.fixtures/06.03
+  remove <repo>/.student/06.lab
+  remove <repo>/.fixtures/06.lab
+
+Attempt/pass metadata was preserved; student source and fixtures were not.
+NORTH ECHO AGENT SECURITY LAB
+
+START 06.lab - Independent lab: default-deny syscall launcher
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/06.lab
+Mode: practice
+Attempt: 2
+Open README.md in the workspace and begin with Exercise 1.
+fixture_rotated=yes
+NORTH ECHO AGENT SECURITY LAB
+
+DRY RUN
+  remove <repo>/.student/06.lab
+  remove <repo>/.fixtures/06.lab
+
+Attempt/pass metadata was preserved; student source and fixtures were not.
+NORTH ECHO AGENT SECURITY LAB
+
+RESET COMPLETE
+  remove <repo>/.student/06.lab
+  remove <repo>/.fixtures/06.lab
+
+Attempt/pass metadata was preserved; student source and fixtures were not.

@@ -1,0 +1,47 @@
+<repo>/.student/01.01
+shell pid=4340 parent=1732
+    PID    PPID USER     STAT COMMAND         COMMAND
+   1732    1683 lima     R    sshd            sshd: lima@notty
+   4340    1732 lima     Ss   sh              sh -lc cd "<repo>" && mkdir -p validation/lessons && ./lab-reset 01.01 --yes && ./lab-start 01.01 && cd .student/01.01 && { pwd; printf "shell pid=%s parent=%s\n" "$$" "$PPID"; ps -o pid,ppid,user,stat,comm,args -p $$ -p $PPID; readlink /proc/$$/exe; ls -l /proc/$$/ns; sed -n "1,200p" hello-syscall.c; cc -std=c11 -Wall -Wextra -O2 hello-syscall.c -o hello-syscall; ./hello-syscall; strace -f -e trace=execve,write,exit_group ./hello-syscall 2>&1; strace -e trace=write ./hello-syscall 2>&1 | grep write; } 2>&1 | tee ../../validation/lessons/01.01.txt
+/usr/bin/dash
+total 0
+lrwxrwxrwx 1 lima lima 0 Sep 17 07:28 cgroup -> cgroup:[4026531835]
+lrwxrwxrwx 1 lima lima 0 Sep 17 07:28 ipc -> ipc:[4026531839]
+lrwxrwxrwx 1 lima lima 0 Sep 17 07:28 mnt -> mnt:[4026531841]
+lrwxrwxrwx 1 lima lima 0 Sep 17 07:28 net -> net:[4026531840]
+lrwxrwxrwx 1 lima lima 0 Sep 17 07:28 pid -> pid:[4026531836]
+lrwxrwxrwx 1 lima lima 0 Sep 17 07:28 pid_for_children -> pid:[4026531836]
+lrwxrwxrwx 1 lima lima 0 Sep 17 07:28 time -> time:[4026531834]
+lrwxrwxrwx 1 lima lima 0 Sep 17 07:28 time_for_children -> time:[4026531834]
+lrwxrwxrwx 1 lima lima 0 Sep 17 07:28 user -> user:[4026531837]
+lrwxrwxrwx 1 lima lima 0 Sep 17 07:28 uts -> uts:[4026531838]
+#include <stdio.h>
+#include <unistd.h>
+
+int main(void) {
+    setvbuf(stdout, NULL, _IONBF, 0);
+    puts("userspace: about to write");
+    const char message[] = "kernel-visible write\n";
+    if (write(STDOUT_FILENO, message, sizeof(message) - 1) < 0) {
+        perror("write");
+        return 1;
+    }
+    return 0;
+}
+userspace: about to write
+kernel-visible write
+execve("./hello-syscall", ["./hello-syscall"], 0xffffe9ea3e18 /* 18 vars */) = 0
+write(1, "userspace: about to write", 25userspace: about to write) = 25
+write(1, "\n", 1
+)                       = 1
+write(1, "kernel-visible write\n", 21kernel-visible write
+)  = 21
+exit_group(0)                           = ?
++++ exited with 0 +++
+write(1, "userspace: about to write", 25userspace: about to write) = 25
+write(1, "\n", 1
+write(1, "kernel-visible write\n", 21kernel-visible write
+
+INTENTIONAL BUFFERING VARIANT
+write(1, "kernel-visible write\n", 21kernel-visible write
+write(1, "userspace: about to write\n", 26userspace: about to write

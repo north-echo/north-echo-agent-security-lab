@@ -1,0 +1,28 @@
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 05 INDEPENDENT LAB - PRACTICE MODE
+[1/9] The filesystem guard builds ..................... PASS
+[2/9] Descriptor-relative read preserves allowed access .. PASS
+[3/9] Descriptor-relative write preserves exact content .. PASS
+[4/9] Traversal and absolute-path escapes are denied .. PASS
+[5/9] Symlink escape is denied ........................ PASS
+[6/9] A static child inside the allowed tree executes .. PASS
+[7/9] Landlock denies the child a new outside open .... PASS
+[8/9] Pre-opened protected descriptors are closed on exec .. PASS
+[9/9] Unknown operations fail closed .................. PASS
+
+RESULT: PASSED
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 05 INDEPENDENT LAB - EXAM MODE
+[1/9] The filesystem guard builds ..................... PASS
+[2/9] Descriptor-relative read preserves allowed access .. PASS
+[3/9] Descriptor-relative write preserves exact content .. PASS
+[4/9] Traversal and absolute-path escapes are denied .. PASS
+[5/9] Symlink escape is denied ........................ PASS
+[6/9] A static child inside the allowed tree executes .. PASS
+[7/9] Landlock denies the child a new outside open .... PASS
+[8/9] Pre-opened protected descriptors are closed on exec .. PASS
+[9/9] Unknown operations fail closed .................. PASS
+
+RESULT: PASSED

@@ -1,0 +1,49 @@
+NORTH ECHO AGENT SECURITY LAB
+
+START 06.01 - Measure the workload before filtering
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/06.01
+Mode: practice
+Attempt: 1
+Open README.md in the workspace and begin with Exercise 1.
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+  0.00    0.000000           0         1         1 faccessat
+  0.00    0.000000           0         4           openat
+  0.00    0.000000           0         4           close
+  0.00    0.000000           0         3           read
+  0.00    0.000000           0         1           write
+  0.00    0.000000           0         2           fstat
+  0.00    0.000000           0         1           set_tid_address
+  0.00    0.000000           0         1           set_robust_list
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         2           munmap
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         6           mmap
+  0.00    0.000000           0         4           mprotect
+  0.00    0.000000           0         1           prlimit64
+  0.00    0.000000           0         1           rseq
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000000           0        33         1 total
+brk
+close
+execve
+exit_group
+faccessat
+fstat
+mmap
+mprotect
+munmap
+openat
+prlimit64
+read
+rseq
+set_robust_list
+set_tid_address
+write
+1
+0

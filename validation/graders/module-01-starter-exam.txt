@@ -1,0 +1,16 @@
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 01 INDEPENDENT LAB - EXAM MODE
+[1/4] Approved child command still executes ........... PASS
+[2/4] Synthetic parent environment authority is not inherited .. FAIL
+[3/4] Pre-opened protected descriptor is not inherited .. FAIL
+[4/4] The launcher reports no internal secret material .. FAIL
+
+RESULT: NOT PASSED
+
+Failed security properties:
+  - Synthetic parent environment authority is not inherited
+  - Pre-opened protected descriptor is not inherited
+  - The launcher reports no internal secret material
+
+Exam mode withholds lesson references and implementation hints.

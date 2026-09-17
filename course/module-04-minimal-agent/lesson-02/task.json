@@ -1,0 +1,3 @@
+{
+  "argv": ["python3", "show_argv.py", "hello world", "$(touch SHELL_MARKER)"]
+}

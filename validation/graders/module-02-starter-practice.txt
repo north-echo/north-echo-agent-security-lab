@@ -1,0 +1,13 @@
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 02 INDEPENDENT LAB - PRACTICE MODE
+[1/2] The probe executes inside the launcher .......... FAIL
+[2/2] Namespace setup succeeds on this VM ............. FAIL
+
+RESULT: NOT PASSED
+
+Failed security properties:
+  - The probe executes inside the launcher
+    Review: Module 02 lab: preserve the command interface
+  - Namespace setup succeeds on this VM
+    Review: Check unprivileged user-namespace prerequisites in README.md

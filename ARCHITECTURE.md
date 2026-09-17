@@ -39,7 +39,7 @@ Reset first processes `.runtime/TARGET/resources.json`, then deletes the corresp
 - a cgroup is removed only below `/sys/fs/cgroup/north-echo-UID`;
 - a temp path is removed only below that target's `.runtime` directory.
 
-Any failed containment proof aborts cleanup. `--dry-run` executes the same validation and prints intended actions. v0.1 lessons do not leave background resources; the registry exists so later cgroup/network/runtime modules inherit a safe contract.
+Any failed containment proof aborts cleanup. `--dry-run` executes the same validation and prints intended actions. Modules 01-06 do not leave background resources; the registry exists so later cgroup/network/runtime modules inherit a safe contract.
 
 ## Limits
 

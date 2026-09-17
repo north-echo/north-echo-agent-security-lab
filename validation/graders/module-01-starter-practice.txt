@@ -1,0 +1,17 @@
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 01 INDEPENDENT LAB - PRACTICE MODE
+[1/4] Approved child command still executes ........... PASS
+[2/4] Synthetic parent environment authority is not inherited .. FAIL
+[3/4] Pre-opened protected descriptor is not inherited .. FAIL
+[4/4] The launcher reports no internal secret material .. FAIL
+
+RESULT: NOT PASSED
+
+Failed security properties:
+  - Synthetic parent environment authority is not inherited
+    Review: Module 01 lesson 02
+  - Pre-opened protected descriptor is not inherited
+    Review: Module 01 lesson 03
+  - The launcher reports no internal secret material
+    Review: Module 01 lessons 02-03

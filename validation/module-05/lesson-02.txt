@@ -1,0 +1,16 @@
+NORTH ECHO AGENT SECURITY LAB
+
+START 05.02 - Make lookup descriptor-relative with openat2
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/05.02
+Mode: practice
+Attempt: 1
+Open README.md in the workspace and begin with Exercise 1.
+DENIED: Invalid cross-device link
+DENIED: Too many levels of symbolic links
+DENIED: Invalid cross-device link
+DENIED: Too many levels of symbolic links

@@ -1,0 +1,25 @@
+INCOMPLETE PID/PROC COMPOSITION
+shell says pid=1
+    PID    PPID COMMAND
+   1264       1 systemd
+   1276    1264 (sd-pam)
+   1732    1683 sshd
+   4695    1732 sh
+   4709    4695 sh
+   4710    4695 tee
+   4711    4709 unshare
+   4712    4711 sh
+   4713    4712 ps
+
+REPAIRED PID/MOUNT/PROC COMPOSITION
+shell says pid=1
+    PID    PPID COMMAND
+      1       0 sh
+      2       1 ps
+pid namespace=pid:[4026532358]
+mount namespace=mnt:[4026532357]
+
+PID 1 REAPING OBSERVATION
+    PID    PPID STAT COMMAND
+      1       0 S    sh
+      4       1 R    ps

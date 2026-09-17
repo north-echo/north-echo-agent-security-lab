@@ -1,0 +1,6 @@
+{
+  "actions": [
+    {"id": "read-1", "tool": "read_file", "path": "input.txt"},
+    {"id": "write-1", "tool": "write_file", "path": "output.txt", "content": "synthetic result\n"}
+  ]
+}

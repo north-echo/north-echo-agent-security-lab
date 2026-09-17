@@ -1,0 +1,18 @@
+NORTH ECHO AGENT SECURITY LAB
+
+START 05.03 - Restrict a child with Landlock
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/05.03
+Mode: practice
+Attempt: 1
+Open README.md in the workspace and begin with Exercise 1.
+DENIED: Bad file descriptor
+DENIED: Bad file descriptor
+unsafe_launch.c:39:12: error: ‘close_inherited’ defined but not used [-Werror=unused-function]
+   39 | static int close_inherited(void) {
+      |            ^~~~~~~~~~~~~~~
+cc1: all warnings being treated as errors

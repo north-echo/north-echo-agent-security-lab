@@ -1,0 +1,40 @@
+Nothing to reset in that scope. Persistent attempt metadata is unchanged.
+NORTH ECHO AGENT SECURITY LAB
+
+START 01.01 - Processes are the boundary you actually launched
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/01.01
+Mode: practice
+Attempt: 4
+Open README.md in the workspace and begin with Exercise 1.
+NORTH ECHO AGENT SECURITY LAB
+
+RESET COMPLETE
+  remove <repo>/.student/01.01
+  remove <repo>/.fixtures/01.01
+
+Attempt/pass metadata was preserved; student source and fixtures were not.
+NORTH ECHO AGENT SECURITY LAB
+
+START 01.01 - Processes are the boundary you actually launched
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/01.01
+Mode: practice
+Attempt: 5
+Open README.md in the workspace and begin with Exercise 1.
+REPLAY AND METADATA: PASS
+NORTH ECHO AGENT SECURITY LAB
+
+RESET COMPLETE
+  remove <repo>/.student/01.01
+  remove <repo>/.fixtures/01.01
+
+Attempt/pass metadata was preserved; student source and fixtures were not.

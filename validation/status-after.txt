@@ -1,0 +1,18 @@
+NORTH ECHO AGENT SECURITY LAB
+
+v0.1.0 COURSE STATUS
+TARGET   STATE       STARTS  GRADES  MODE      TITLE
+01.01    READY            3       0  practice  Processes are the boundary you actually launched
+01.02    READY            2       0  practice  Environment inheritance is authority
+01.03    READY            1       0  practice  File descriptors cross exec
+01.lab   PASSED           1       4  practice  Independent lab: hygienic launcher
+02.01    READY            2       0  practice  Read namespace identity
+02.02    READY            1       0  practice  Change UTS state without changing the host
+02.03    READY            1       0  practice  PID namespaces and the /proc mistake
+02.lab   PASSED           1       6  practice  Independent lab: namespace launcher
+03.01    READY            2       0  practice  UIDs are not the whole privilege story
+03.02    READY            2       0  practice  Drop capability sets deliberately
+03.03    READY            1       0  practice  Make privilege non-gainable
+03.lab   PASSED           1       4  practice  Independent lab: privilege floor
+
+Modules 04-12: scaffolded. Capstone: planned (--cold accepted as a concept check).

@@ -1,0 +1,30 @@
+{
+  "actions": [
+    {"id": "read-1", "tool": "read_file", "path": "input.txt"},
+    {"id": "write-1", "tool": "write_file", "path": "output.txt", "content": "synthetic result\n"}
+  ]
+}
+{
+    "actions": [
+        {
+            "id": "read-1",
+            "tool": "read_file",
+            "path": "input.txt"
+        },
+        {
+            "id": "write-1",
+            "tool": "write_file",
+            "path": "output.txt",
+            "content": "synthetic result\n"
+        }
+    ]
+}
+synthetic result
+{'id': 'read-1', 'ok': True, 'result': {'content': 'local synthetic input\n'}, 'tool': 'read_file'}
+{'id': 'write-1', 'ok': True, 'result': {'bytes_written': 17}, 'tool': 'write_file'}
+
+INTENTIONAL EVIDENCE GAP
+0 trace.jsonl
+
+RESTORED TRACE CHECKPOINT
+TRACE CHECKPOINT: PASS

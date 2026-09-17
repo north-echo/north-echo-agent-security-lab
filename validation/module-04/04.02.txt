@@ -1,0 +1,30 @@
+{
+    "argv": [
+        "python3",
+        "show_argv.py",
+        "hello world",
+        "$(touch SHELL_MARKER)"
+    ],
+    "status": 0,
+    "stderr": "",
+    "stdout": "[\"hello world\", \"$(touch SHELL_MARKER)\"]\n"
+}
+{
+    "argv": [
+        "sh",
+        "-c",
+        "printf failure-message >&2; exit 7"
+    ],
+    "status": 7,
+    "stderr": "failure-message",
+    "stdout": ""
+}
+runner status=1
+
+INTENTIONAL SHELL REPARSE
+{"argv": ["python3", "show_argv.py", "hello world", "$(touch SHELL_MARKER)"], "status": 0, "stderr": "", "stdout": "[\"hello\", \"world\"]\n"}
+SHELL REPARSE CREATED MARKER
+
+RESTORED STRUCTURED ARGV
+{"argv": ["python3", "show_argv.py", "hello world", "$(touch SHELL_MARKER)"], "status": 0, "stderr": "", "stdout": "[\"hello world\", \"$(touch SHELL_MARKER)\"]\n"}
+STRUCTURED ARGV CHECKPOINT: PASS

@@ -11,25 +11,25 @@ The next task should work in this repository rather than regenerate it from a sp
 ## Current checkpoint
 
 - Project: **North Echo Agent Security Lab**
-- Source checkpoint: commit `8ba68bb` plus the hand-off commit that contains this file
-- Modules 01-03: fully authored in v0.1, with nine guided lessons and three independent labs
-- Modules 04-12: design scaffolds only; a scaffold is a reserved direction, not a playable module
+- Source checkpoint: commit `08d1712` plus the current working-tree course changes
+- Modules 01-06: fully authored and Linux-validated, with eighteen guided lessons and six independent labs
+- Modules 07-12: design scaffolds only; a scaffold is a reserved direction, not a playable module
 - Platform lifecycle: start, status, grade, lesson/module/all reset, dry-run cleanup, randomized fixtures, practice/exam modes, and metadata-only progress are implemented
 - Field manual: Modules 01-03 have a self-contained manual with complete guided source, line-by-line explanations, expected observations, troubleshooting, labs, integrated model, and glossary
-- Existing automated control-plane result before hand-off: 12 tests passing and course attestation passing
-- Remaining baseline work: run and record the actual namespace, capability, cleanup, and grader matrix on the target Linux VM
+- Current automated result: 22 tests passing and course attestation passing on Ubuntu 24.04.4 LTS arm64
+- Gate A record: `validation/RESULTS.md`; no required Gate A step was skipped
+- Module 04 record: `validation/module-04/RESULTS.md`; all module acceptance items passed
+- Module 05 record: `validation/module-05/RESULTS.md`; all module acceptance items passed
+- Module 06 record: `validation/module-06/RESULTS.md`; all module acceptance items passed
+- Tranche 1 / v0.2 record: `validation/tranche-01/RESULTS.md`; end-to-end replay and teardown passed
 
 The current source was assembled and control-plane tested on macOS. That proves repository logic, not Linux kernel behavior. Linux validation is the first hand-off gate.
 
-## First task in the Linux project
+## Completed Linux baseline
 
-1. Read `AGENTS.md` and the documents it lists.
-2. Run `./scripts/linux-preflight` as an ordinary non-root user.
-3. Run `python3 -m unittest discover -s tests -v` and `./scripts/attest-course`.
-4. Execute `docs/LINUX_VALIDATION.md` for Modules 01-03, including replay and cleanup checks.
-5. Fix genuine portability or kernel-behavior defects without weakening safety checks.
-6. Record the distribution, kernel, architecture, tool versions, results, and any unavailable feature.
-7. Only after the v0.1 Linux gate passes, begin Module 04.
+Gate A passed on Ubuntu 24.04.4 LTS arm64. The run covered the non-destructive preflight, automated tests, attestation, all nine guided lessons, all three independent labs in practice and exam modes, randomized replay, every reset scope, cleanup containment, and final empty-state inspection. Focused fixes corrected Lesson 03.02's post-mapping `setgroups(2)` assumption and Module 02's namespace-local `NSpid` grading assumption.
+
+The next task is Module 07. Extend the runtime registry for delegated cgroup resources before lessons can create them, then finish the module against `docs/MODULE_ACCEPTANCE_TEMPLATE.md` before beginning Module 08.
 
 Do not start by rewriting the platform. Preserve working behavior and add focused tests for every corrected defect.
 

@@ -1,0 +1,16 @@
+TYPE     HANDLE
+user     user:[4026531837]
+uts      uts:[4026531838]
+pid      pid:[4026531836]
+mnt      mnt:[4026531841]
+net      net:[4026531840]
+ipc      ipc:[4026531839]
+cgroup   cgroup:[4026531835]
+inside uid=0
+user:[4026532342]
+         0        501          1
+
+EXPECTED HOST-ROOT DENIAL
+uid=0(root) gid=0(root) groups=0(root),65534(nogroup)
+touch: cannot touch '/root/north-echo-test': Permission denied
+denial status=1

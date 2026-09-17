@@ -36,13 +36,25 @@ else
     bad 'run the course as an ordinary non-root user'
 fi
 
-for tool in python3 cc strace unshare nsenter setpriv capsh getcap setcap ps; do
+for tool in python3 cc strace unshare nsenter setpriv capsh getcap setcap ps pkg-config; do
     if have "$tool"; then
-        ok "required v0.1 tool available: $tool"
+        ok "required v0.2 tool available: $tool"
     else
-        bad "missing required v0.1 tool: $tool"
+        bad "missing required v0.2 tool: $tool"
     fi
 done
+
+if [ -r /usr/include/linux/landlock.h ] && [ -r /usr/include/linux/openat2.h ]; then
+    ok 'openat2 and Landlock userspace headers are available'
+else
+    bad 'Module 05 requires Linux openat2 and Landlock userspace headers'
+fi
+
+if [ -r /usr/include/seccomp.h ] && pkg-config --exists libseccomp 2>/dev/null; then
+    ok "libseccomp development files available: $(pkg-config --modversion libseccomp)"
+else
+    bad 'Module 06 requires libseccomp development files discoverable by pkg-config'
+fi
 
 for path in /proc/self/status /proc/self/ns/user /proc/self/ns/uts /proc/self/ns/pid /proc/self/ns/mnt; do
     if [ -e "$path" ]; then
@@ -72,25 +84,13 @@ fi
 
 printf '\n%s\n' 'Future-module readiness (informational until its tranche begins)'
 
-for tool in pkg-config ip nft systemd-run jq; do
+for tool in ip nft systemd-run jq; do
     if have "$tool"; then
         info "available future tool: $tool"
     else
         info "future tool not installed yet: $tool"
     fi
 done
-
-if [ -r /usr/include/linux/landlock.h ]; then
-    info 'Landlock userspace header is available'
-else
-    info 'Landlock header not found; Module 05 will need suitable Linux headers'
-fi
-
-if [ -r /usr/include/seccomp.h ]; then
-    info 'libseccomp development header is available'
-else
-    info 'libseccomp header not found; Module 06 will need libseccomp development files'
-fi
 
 if [ -r /sys/fs/cgroup/cgroup.controllers ]; then
     info "cgroup v2 detected: $(tr '\n' ' ' < /sys/fs/cgroup/cgroup.controllers)"

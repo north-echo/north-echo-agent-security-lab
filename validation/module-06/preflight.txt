@@ -1,0 +1,34 @@
+North Echo Linux preflight (non-destructive)
+PASS  Linux kernel detected
+PASS  running as an ordinary non-root user
+PASS  required v0.2 tool available: python3
+PASS  required v0.2 tool available: cc
+PASS  required v0.2 tool available: strace
+PASS  required v0.2 tool available: unshare
+PASS  required v0.2 tool available: nsenter
+PASS  required v0.2 tool available: setpriv
+PASS  required v0.2 tool available: capsh
+PASS  required v0.2 tool available: getcap
+PASS  required v0.2 tool available: setcap
+PASS  required v0.2 tool available: ps
+PASS  required v0.2 tool available: pkg-config
+PASS  openat2 and Landlock userspace headers are available
+PASS  libseccomp development files available: 2.5.5
+PASS  kernel interface available: /proc/self/status
+PASS  kernel interface available: /proc/self/ns/user
+PASS  kernel interface available: /proc/self/ns/uts
+PASS  kernel interface available: /proc/self/ns/pid
+PASS  kernel interface available: /proc/self/ns/mnt
+PASS  unprivileged user namespace creation works
+PASS  NoNewPrivs state is exposed in /proc/self/status
+PASS  capability state is exposed in /proc/self/status
+
+Future-module readiness (informational until its tranche begins)
+INFO  available future tool: ip
+INFO  available future tool: nft
+INFO  available future tool: systemd-run
+INFO  available future tool: jq
+INFO  cgroup v2 detected: cpuset cpu io memory hugetlb pids rdma misc 
+INFO  network namespace interface is visible
+
+SUMMARY: 23 required checks passed; 0 required checks failed

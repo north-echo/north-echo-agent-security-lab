@@ -1,0 +1,15 @@
+host before=lima-north-echo-gate-a
+inside before=lima-north-echo-gate-a
+inside after=north-echo-lab
+uts:[4026532344]
+host after=lima-north-echo-gate-a
+
+EXPECTED INCOMPLETE-SETUP FAILURE
+unshare: unshare failed: Operation not permitted
+failure status=1
+
+LIVE NAMESPACE INSPECTION
+held pid=4687
+uts:[4026532356]
+uts:[4026531838]
+host final=lima-north-echo-gate-a

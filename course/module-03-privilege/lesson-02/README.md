@@ -36,8 +36,7 @@ unshare --user --map-root-user setpriv \
   --bounding-set=-all \
   --inh-caps=-all \
   --ambient-caps=-all \
-  --clear-groups \
-  sh -c 'grep -E "^Cap(Inh|Prm|Eff|Bnd|Amb):" /proc/self/status'
+  sh -c 'grep -E "^(Groups|Cap(Inh|Prm|Eff|Bnd|Amb)):" /proc/self/status'
 ```
 
 ### Line by line
@@ -47,10 +46,11 @@ unshare --user --map-root-user setpriv \
 - `setpriv` changes process privilege attributes before executing the command that follows.
 - `--bounding-set=-all` removes every capability from the bounding set; `-all` means subtract the named set `all`.
 - `--inh-caps=-all` and `--ambient-caps=-all` clear the inheritable and ambient sets.
-- `--clear-groups` removes supplementary groups.
-- `sh -c 'grep ...'` executes the observation after the requested transitions.
+- `sh -c 'grep ...'` executes the observation after the requested transitions and reports supplementary groups separately from capability state.
 
-Expected: every displayed mask is `0000000000000000`.
+Expected: every displayed capability mask is `0000000000000000`. The `Groups` line is a separate authority channel and need not be empty in this namespace exercise.
+
+`--map-root-user` uses the kernel's safe single-ID mapping path, which disables later `setgroups(2)` calls before writing the GID map. Adding `setpriv --clear-groups` after that transition therefore fails with `Operation not permitted` on current Ubuntu kernels. That failure does not mean capability removal failed; it means group handling must be designed at an earlier launcher boundary rather than conflated with this capability-set exercise.
 
 ## Exercise 3 - Make the intentional partial fix
 

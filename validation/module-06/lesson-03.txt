@@ -1,0 +1,13 @@
+NORTH ECHO AGENT SECURITY LAB
+
+START 06.03 - Launch with a native default-deny filter
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/06.03
+Mode: practice
+Attempt: 1
+Open README.md in the workspace and begin with Exercise 1.
+result=6849 errno=0

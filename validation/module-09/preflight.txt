@@ -1,0 +1,6 @@
+Command: ./scripts/linux-preflight
+Environment: Ubuntu 24.04.4 LTS arm64
+Result: PASS
+Required checks: 28 passed, 0 failed
+
+Module 09 adds no package, kernel, network, or privileged prerequisite beyond Python 3 and filesystem Unix sockets already present in the supported Linux baseline.

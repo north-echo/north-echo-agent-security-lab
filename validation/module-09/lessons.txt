@@ -1,0 +1,24 @@
+Module 09 guided lesson execution, Ubuntu 24.04.4 LTS arm64
+
+09.01 PASS
+- fake environment credential crossed exec and was visible to the child
+- deliberate synthetic leak reproduced ambient authority
+- exact-argv minimal-environment launcher removed the credential from both normal and leak modes
+- parent retained the fake value until explicit unset
+
+09.02 PASS
+- signed capability minted and verified for exact operation/resource/audience/run/input
+- payload was readable but contained neither signing key nor service credential
+- resource and operation substitutions returned nonzero
+- one-second token expired and was denied
+- fake key and token files were removed
+
+09.03 PASS
+- broker and upstream created mode-0600 Unix sockets
+- authorized operation returned the synthetic record value
+- response did not contain the fake upstream credential
+- replay of the consumed nonce was denied
+- substitution to another policy-allowed resource was denied by token binding
+- exact processes exited and both sockets plus fake secret files were removed
+
+No real credential, network endpoint, account, key store, or production resource was used.

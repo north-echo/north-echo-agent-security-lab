@@ -25,13 +25,13 @@ Add grader isolation so evaluation probes run from a read-only copy and record k
 
 ## Tranche 2 / v0.3 - Modules 07-09
 
-**Progress:** Modules 07 and 08 are complete and Linux-validated. Module 07 includes fail-closed transient-unit ownership and cleanup. Module 08 uses ephemeral network namespaces and exact-PID foreground helpers, so it creates no persistent network object requiring registry expansion. Records are in `validation/module-07/RESULTS.md` and `validation/module-08/RESULTS.md`. Module 09 is next; Tranche 2 remains incomplete.
+**Status: complete on Ubuntu 24.04.4 LTS arm64.** Modules 07-09 passed their module gates and the end-to-end tranche record is in `validation/tranche-02/RESULTS.md`. Module 07 includes fail-closed transient-unit ownership and cleanup. Modules 08-09 use ephemeral namespaces, exact-PID foreground helpers, and workspace Unix sockets, so they create no persistent network or broker object requiring registry expansion. Module 10 is next.
 
 - Module 07: cgroup v2 CPU, memory, and PID limits with pressure/OOM observations and delegated-subtree cleanup.
 - Module 08: empty network namespace, synthetic loopback services, direct-egress denial, Unix-socket broker, explicit synthetic resolution, run binding, and redirect reauthorization.
 - Module 09: fake credential exposure, operation broker, audience/run binding, expiry, replay cache, confused-deputy variants.
 
-Extend the runtime registry before any later lesson creates a persistent network link, firewall object, service, or delegated cgroup. Module 08 deliberately needs none: all namespace state dies with its foreground process, services use exact-PID traps, and sockets live in disposable workspaces. Gate the tranche with complete manual chapters and proof that teardown leaves no owned resource behind.
+Extend the runtime registry before any later lesson creates a persistent network link, firewall object, service, credential helper, or delegated cgroup. Modules 08-09 deliberately need no extension: namespace and replay state die with foreground processes, services use exact-PID traps, and sockets plus fake secret files live in disposable workspaces. The tranche gate includes complete manual chapters and proof that teardown leaves no owned resource behind.
 
 ## Tranche 3 / v0.4 - Modules 10-12
 

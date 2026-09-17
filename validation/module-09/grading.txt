@@ -1,0 +1,25 @@
+Module 09 independent lab grading, Ubuntu 24.04.4 LTS arm64
+
+Starter / practice: NOT PASSED as required.
+- runnable private Unix server denied every request
+- valid capability never reached upstream
+- fake credential was never used or disclosed
+
+Completed implementation / practice: PASSED, 12/12.
+Completed implementation / exam: PASSED, 12/12.
+
+Properties passed:
+1. Broker creates a private Unix socket.
+2. Valid operation capability reaches the synthetic upstream.
+3. Broker uses the fake credential only upstream.
+4. Fake credential and signing key are never disclosed.
+5. A consumed capability cannot be replayed.
+6. A modified token is denied before upstream contact.
+7. Audience and run identity are both bound.
+8. Expired, future, and overlong capabilities are denied.
+9. Operation, resource, and input cannot be substituted.
+10. Policy and request shape deny extra authority.
+11. Insecure secret-file permissions fail before listen.
+12. Broker exits cleanly and removes its socket.
+
+The grader evaluated a read-only source copy with fresh fake secrets, identities, resources, values, times, and nonces. It counted upstream contact so denied variants could not pass through a confused deputy.

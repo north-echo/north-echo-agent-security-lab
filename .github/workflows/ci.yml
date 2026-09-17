@@ -1,0 +1,61 @@
+name: Course validation
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: course-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux-validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out course
+        uses: actions/checkout@v4
+
+      - name: Install documented prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            apparmor \
+            build-essential \
+            libcap2-bin \
+            libseccomp-dev \
+            linux-libc-dev \
+            pkg-config \
+            procps \
+            python3 \
+            strace \
+            util-linux
+
+      - name: Permit unshare in this disposable runner when required
+        run: |
+          if ! unshare --user --map-root-user true 2>/dev/null; then
+            sudo install -m 0644 validation/apparmor-north-echo-unshare \
+              /etc/apparmor.d/north-echo-unshare
+            sudo apparmor_parser -r /etc/apparmor.d/north-echo-unshare
+          fi
+          unshare --user --map-root-user true
+
+      - name: Run automated tests
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Verify canonical course integrity
+        run: ./scripts/attest-course
+
+      - name: Run Linux preflight
+        run: ./scripts/linux-preflight
+
+      - name: Require an empty managed runtime
+        run: |
+          test -z "$(find .student .fixtures .runtime -mindepth 1 ! -name .gitkeep -print)"

@@ -36,7 +36,7 @@ unshare --user --map-root-user true
 
 All three should exit 0. On distributions that intentionally disable unprivileged user namespaces, change that setting only in this disposable VM according to the distribution's documentation. Do not weaken a work machine or shared server.
 
-The platform itself needs Python 3.9+ and standard Unix tools. Module 01 needs a C compiler and `strace`; Module 02 needs `unshare`, procfs, and enabled user namespaces; Module 03 needs `capsh` and `setpriv`; Module 05 needs Linux `openat2` and Landlock UAPI headers plus kernel support; Module 06 needs `pkg-config`, libseccomp development files, seccomp filter mode, and a static C toolchain. Later modules add explicit prerequisites only as they become playable.
+The platform itself needs Python 3.9+ and standard Unix tools. Module 01 needs a C compiler and `strace`; Module 02 needs `unshare`, procfs, and enabled user namespaces; Module 03 needs `capsh` and `setpriv`; Module 05 needs Linux `openat2` and Landlock UAPI headers plus kernel support; Module 06 needs `pkg-config`, libseccomp development files, seccomp filter mode, and a static C toolchain; Module 07 needs unified cgroup v2 and a delegated systemd user manager exposing the `cpu`, `memory`, and `pids` controllers. Later modules add explicit prerequisites only as they become playable.
 
 Before opening the continuation task, run:
 

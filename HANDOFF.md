@@ -12,11 +12,11 @@ The next task should work in this repository rather than regenerate it from a sp
 
 - Project: **North Echo Agent Security Lab**
 - Source checkpoint: commit `08d1712` plus the current working-tree course changes
-- Modules 01-06: fully authored and Linux-validated, with eighteen guided lessons and six independent labs
-- Modules 07-12: design scaffolds only; a scaffold is a reserved direction, not a playable module
+- Modules 01-07: fully authored and Linux-validated, with twenty-one guided lessons and seven independent labs
+- Modules 08-12: design scaffolds only; a scaffold is a reserved direction, not a playable module
 - Platform lifecycle: start, status, grade, lesson/module/all reset, dry-run cleanup, randomized fixtures, practice/exam modes, and metadata-only progress are implemented
 - Field manual: Modules 01-03 have a self-contained manual with complete guided source, line-by-line explanations, expected observations, troubleshooting, labs, integrated model, and glossary
-- Current automated result: 27 tests passing and course attestation passing on Ubuntu 24.04.4 LTS arm64
+- Current automated result: 29 tests passing and course attestation passing on Ubuntu 24.04.4 LTS arm64
 - Gate A record: `validation/RESULTS.md`; no required Gate A step was skipped
 - Module 04 record: `validation/module-04/RESULTS.md`; all module acceptance items passed
 - Module 05 record: `validation/module-05/RESULTS.md`; all module acceptance items passed
@@ -29,7 +29,7 @@ The current source was assembled and control-plane tested on macOS. That proves 
 
 Gate A passed on Ubuntu 24.04.4 LTS arm64. The run covered the non-destructive preflight, automated tests, attestation, all nine guided lessons, all three independent labs in practice and exam modes, randomized replay, every reset scope, cleanup containment, and final empty-state inspection. Focused fixes corrected Lesson 03.02's post-mapping `setgroups(2)` assumption and Module 02's namespace-local `NSpid` grading assumption.
 
-The next task is to author Module 07's guided lessons, independent lab, grader, and manual chapter on top of the completed transient-user-unit registry. The registry validates exact unit naming, workspace-bound descriptions, and delegated cgroup paths before systemd-owned cleanup. Finish the module against `docs/MODULE_ACCEPTANCE_TEMPLATE.md` before beginning Module 08.
+The next task is Module 08. Extend the runtime registry for owned user services and network-namespace helpers before creating persistent network objects, then finish mediated-egress lessons, lab, grader, manual, and Linux acceptance before Module 09.
 
 Do not start by rewriting the platform. Preserve working behavior and add focused tests for every corrected defect.
 

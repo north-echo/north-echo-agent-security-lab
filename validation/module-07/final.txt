@@ -1,0 +1,77 @@
+----------------------------------------------------------------------
+Ran 29 tests in 3.845s
+
+OK
+COURSE ATTESTATION: PASS
+North Echo Linux preflight (non-destructive)
+PASS  Linux kernel detected
+PASS  running as an ordinary non-root user
+PASS  required v0.2 tool available: python3
+PASS  required v0.2 tool available: cc
+PASS  required v0.2 tool available: strace
+PASS  required v0.2 tool available: unshare
+PASS  required v0.2 tool available: nsenter
+PASS  required v0.2 tool available: setpriv
+PASS  required v0.2 tool available: capsh
+PASS  required v0.2 tool available: getcap
+PASS  required v0.2 tool available: setcap
+PASS  required v0.2 tool available: ps
+PASS  required v0.2 tool available: pkg-config
+PASS  openat2 and Landlock userspace headers are available
+PASS  libseccomp development files available: 2.5.5
+PASS  kernel interface available: /proc/self/status
+PASS  kernel interface available: /proc/self/ns/user
+PASS  kernel interface available: /proc/self/ns/uts
+PASS  kernel interface available: /proc/self/ns/pid
+PASS  kernel interface available: /proc/self/ns/mnt
+PASS  unprivileged user namespace creation works
+PASS  NoNewPrivs state is exposed in /proc/self/status
+PASS  capability state is exposed in /proc/self/status
+
+Future-module readiness (informational until its tranche begins)
+INFO  available future tool: ip
+INFO  available future tool: nft
+INFO  available future tool: systemd-run
+INFO  available future tool: jq
+INFO  cgroup v2 detected: cpuset cpu io memory hugetlb pids rdma misc 
+INFO  network namespace interface is visible
+
+SUMMARY: 23 required checks passed; 0 required checks failed
+NORTH ECHO AGENT SECURITY LAB
+
+v0.2.0 COURSE STATUS
+TARGET   STATE       STARTS  GRADES  MODE      TITLE
+01.01    READY            5       0  practice  Processes are the boundary you actually launched
+01.02    READY            2       0  practice  Environment inheritance is authority
+01.03    READY            1       0  practice  File descriptors cross exec
+01.lab   PASSED           1       4  practice  Independent lab: hygienic launcher
+02.01    READY            2       0  practice  Read namespace identity
+02.02    READY            1       0  practice  Change UTS state without changing the host
+02.03    READY            1       0  practice  PID namespaces and the /proc mistake
+02.lab   PASSED           1       6  practice  Independent lab: namespace launcher
+03.01    READY            2       0  practice  UIDs are not the whole privilege story
+03.02    READY            2       0  practice  Drop capability sets deliberately
+03.03    READY            1       0  practice  Make privilege non-gainable
+03.lab   PASSED           1       4  practice  Independent lab: privilege floor
+04.01    READY            2       0  practice  Run a deterministic tool loop and record every action
+04.02    READY            2       0  practice  Preserve argv boundaries and handle tool failure
+04.03    READY            2       0  practice  Inventory and remove ambient launcher authority
+04.lab   PASSED           2       4  practice  Independent lab: auditable local tool runner
+05.01    READY            2       0  practice  Break pathname string checks
+05.02    READY            1       0  practice  Make lookup descriptor-relative with openat2
+05.03    READY            1       0  practice  Restrict a child with Landlock
+05.lab   PASSED           2       4  practice  Independent lab: filesystem guard
+06.01    READY            2       0  practice  Measure the workload before filtering
+06.02    READY            1       0  practice  Compare errno, kill, and blacklist bypass
+06.03    READY            1       0  practice  Launch with a native default-deny filter
+06.lab   PASSED           2       4  practice  Independent lab: default-deny syscall launcher
+07.01    READY            1       0  practice  Observe an effective CPU quota
+07.02    READY            1       0  practice  Bound memory and observe OOM
+07.03    READY            1       0  practice  Bound process-tree growth and collect it
+07.lab   PASSED           2       4  practice  Independent lab: bounded transient runner
+
+PLAYABLE KERNEL/TOOLING PREREQUISITES
+05       Linux openat2 + Landlock ABI, Linux UAPI headers, static C toolchain
+06       Linux seccomp filter mode, libseccomp development files, pkg-config, static C toolchain
+
+Modules 01-07: playable. Modules 08-12: scaffolded. Capstone: planned (--cold accepted as a concept check).

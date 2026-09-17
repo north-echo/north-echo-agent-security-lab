@@ -1,0 +1,45 @@
+NORTH ECHO AGENT SECURITY LAB
+
+DRY RUN
+  remove <repo>/.student/07.01
+  remove <repo>/.fixtures/07.01
+  remove <repo>/.student/07.02
+  remove <repo>/.fixtures/07.02
+  remove <repo>/.student/07.03
+  remove <repo>/.fixtures/07.03
+  remove <repo>/.student/07.lab
+  remove <repo>/.fixtures/07.lab
+
+Attempt/pass metadata was preserved; student source and fixtures were not.
+NORTH ECHO AGENT SECURITY LAB
+
+RESET COMPLETE
+  remove <repo>/.student/07.01
+  remove <repo>/.fixtures/07.01
+  remove <repo>/.student/07.02
+  remove <repo>/.fixtures/07.02
+  remove <repo>/.student/07.03
+  remove <repo>/.fixtures/07.03
+  remove <repo>/.student/07.lab
+  remove <repo>/.fixtures/07.lab
+
+Attempt/pass metadata was preserved; student source and fixtures were not.
+NORTH ECHO AGENT SECURITY LAB
+
+START 07.lab - Independent lab: bounded transient runner
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/07.lab
+Mode: practice
+Attempt: 2
+Open README.md in the workspace and begin with Exercise 1.
+NORTH ECHO AGENT SECURITY LAB
+
+RESET COMPLETE
+  remove <repo>/.student/07.lab
+  remove <repo>/.fixtures/07.lab
+
+Attempt/pass metadata was preserved; student source and fixtures were not.

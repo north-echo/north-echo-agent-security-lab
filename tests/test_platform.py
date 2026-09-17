@@ -140,7 +140,8 @@ if __name__ == "__main__":
         self.assertIn("01.01", status.stdout)
         self.assertIn("Linux openat2 + Landlock ABI", status.stdout)
         self.assertIn("Linux seccomp filter mode", status.stdout)
-        scaffold = self.run_cli("start", "07.03", expected=3)
+        self.assertIn("delegated systemd user manager", status.stdout)
+        scaffold = self.run_cli("start", "08.03", expected=3)
         self.assertIn("scaffolded", scaffold.stdout)
         capstone = self.run_cli("start", "capstone", "--cold", expected=3)
         self.assertIn("not implemented", capstone.stdout)
@@ -196,8 +197,8 @@ if __name__ == "__main__":
         self.assertNotIn("Review:", run.stdout)
 
     def test_every_guided_lesson_has_local_line_explanations(self):
-        lessons = sorted((SOURCE / "course").glob("module-0[1-6]-*/lesson-*/README.md"))
-        self.assertEqual(len(lessons), 18)
+        lessons = sorted((SOURCE / "course").glob("module-0[1-7]-*/lesson-*/README.md"))
+        self.assertEqual(len(lessons), 21)
         for lesson in lessons:
             text = lesson.read_text(encoding="utf-8")
             self.assertIn("### Line by line", text, str(lesson))
@@ -243,6 +244,10 @@ if __name__ == "__main__":
             "Module 06 independent lab",
         ):
             self.assertIn(phrase, module_six)
+
+        module_seven = (SOURCE / "docs" / "MANUAL_MODULE_07.md").read_text(encoding="utf-8")
+        for phrase in ("Observe an effective CPU quota", "Bound memory and observe OOM", "Bound process-tree growth", "Module 07 independent lab"):
+            self.assertIn(phrase, module_seven)
 
     def test_handoff_contract_is_present_and_explicit(self):
         agents = (SOURCE / "AGENTS.md").read_text(encoding="utf-8")

@@ -1,0 +1,43 @@
+NORTH ECHO AGENT SECURITY LAB
+
+START 07.01 - Observe an effective CPU quota
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/07.01
+Mode: practice
+Attempt: 1
+Open README.md in the workspace and begin with Exercise 1.
+{"cgroup": "/user.slice/user-501.slice/session-4.scope", "cpu_max": "max 100000", "iterations": 19597151, "cpu_stat_before": "usage_usec 40294380\nuser_usec 28664395\nsystem_usec 11629984\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"}
+NORTH ECHO AGENT SECURITY LAB
+
+START 07.02 - Bound memory and observe OOM
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/07.02
+Mode: practice
+Attempt: 1
+Open README.md in the workspace and begin with Exercise 1.
+allocated_mb=1
+allocated_mb=9
+allocated_mb=1
+allocated_mb=9
+allocated_mb=17
+allocated_mb=25
+NORTH ECHO AGENT SECURITY LAB
+
+START 07.03 - Bound process-tree growth and collect it
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/07.03
+Mode: practice
+Attempt: 1
+Open README.md in the workspace and begin with Exercise 1.

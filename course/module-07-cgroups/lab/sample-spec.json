@@ -1,0 +1,1 @@
+{"command":["/bin/echo","bounded sample"],"memory_max":33554432,"tasks_max":16,"cpu_percent":50}

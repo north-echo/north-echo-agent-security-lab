@@ -25,10 +25,13 @@ CATALOG = {
     "06.02": ("06", "Compare errno, kill, and blacklist bypass", True),
     "06.03": ("06", "Launch with a native default-deny filter", True),
     "06.lab": ("06", "Independent lab: default-deny syscall launcher", True),
+    "07.01": ("07", "Observe an effective CPU quota", True),
+    "07.02": ("07", "Bound memory and observe OOM", True),
+    "07.03": ("07", "Bound process-tree growth and collect it", True),
+    "07.lab": ("07", "Independent lab: bounded transient runner", True),
 }
 
 SCAFFOLDS = {
-    "07": "cgroups and resource containment",
     "08": "Network isolation and mediated egress",
     "09": "Credentials and capability brokering",
     "10": "Compose a complete agent runtime",

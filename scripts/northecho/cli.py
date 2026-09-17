@@ -191,7 +191,8 @@ def cmd_status(args: argparse.Namespace) -> int:
     print("\nPLAYABLE KERNEL/TOOLING PREREQUISITES")
     print("05       Linux openat2 + Landlock ABI, Linux UAPI headers, static C toolchain")
     print("06       Linux seccomp filter mode, libseccomp development files, pkg-config, static C toolchain")
-    print("\nModules 01-06: playable. Modules 07-12: scaffolded. Capstone: planned (--cold accepted as a concept check).")
+    print("07       unified cgroup v2 + delegated systemd user manager with cpu, memory, and pids")
+    print("\nModules 01-07: playable. Modules 08-12: scaffolded. Capstone: planned (--cold accepted as a concept check).")
     return 0
 
 

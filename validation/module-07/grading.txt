@@ -1,0 +1,75 @@
+NORTH ECHO AGENT SECURITY LAB
+
+START 07.lab - Independent lab: bounded transient runner
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <repo>/.student/07.lab
+Mode: practice
+Attempt: 1
+Open README.md in the workspace and begin with Exercise 1.
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 07 INDEPENDENT LAB - PRACTICE MODE
+[1/7] Approved workload completes with valid result ... PASS
+[2/7] Effective CPU, memory, swap, and PID limits match .. FAIL
+[3/7] Literal argv is preserved without a shell ....... PASS
+[4/7] PID pressure is bounded and recorded ............ FAIL
+[5/7] Nonzero workload status and stderr propagate .... PASS
+[6/7] Invalid or unbounded limits fail closed ......... FAIL
+[7/7] Transient units are collected after evaluation .. PASS
+
+RESULT: NOT PASSED
+
+Failed security properties:
+  - Effective CPU, memory, swap, and PID limits match
+    Review: Module 07 lessons 01-03
+  - PID pressure is bounded and recorded
+    Review: Module 07 lesson 03
+  - Invalid or unbounded limits fail closed
+    Review: Module 07 lab contract
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 07 INDEPENDENT LAB - EXAM MODE
+[1/7] Approved workload completes with valid result ... PASS
+[2/7] Effective CPU, memory, swap, and PID limits match .. FAIL
+[3/7] Literal argv is preserved without a shell ....... PASS
+[4/7] PID pressure is bounded and recorded ............ FAIL
+[5/7] Nonzero workload status and stderr propagate .... PASS
+[6/7] Invalid or unbounded limits fail closed ......... FAIL
+[7/7] Transient units are collected after evaluation .. PASS
+
+RESULT: NOT PASSED
+
+Failed security properties:
+  - Effective CPU, memory, swap, and PID limits match
+  - PID pressure is bounded and recorded
+  - Invalid or unbounded limits fail closed
+
+Exam mode withholds lesson references and implementation hints.
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 07 INDEPENDENT LAB - PRACTICE MODE
+[1/7] Approved workload completes with valid result ... PASS
+[2/7] Effective CPU, memory, swap, and PID limits match .. PASS
+[3/7] Literal argv is preserved without a shell ....... PASS
+[4/7] PID pressure is bounded and recorded ............ PASS
+[5/7] Nonzero workload status and stderr propagate .... PASS
+[6/7] Invalid or unbounded limits fail closed ......... PASS
+[7/7] Transient units are collected after evaluation .. PASS
+
+RESULT: PASSED
+NORTH ECHO AGENT SECURITY LAB
+
+MODULE 07 INDEPENDENT LAB - EXAM MODE
+[1/7] Approved workload completes with valid result ... PASS
+[2/7] Effective CPU, memory, swap, and PID limits match .. PASS
+[3/7] Literal argv is preserved without a shell ....... PASS
+[4/7] PID pressure is bounded and recorded ............ PASS
+[5/7] Nonzero workload status and stderr propagate .... PASS
+[6/7] Invalid or unbounded limits fail closed ......... PASS
+[7/7] Transient units are collected after evaluation .. PASS
+
+RESULT: PASSED

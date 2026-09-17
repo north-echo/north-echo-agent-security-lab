@@ -5,11 +5,14 @@ North Echo borrows the useful rhythm of an RHCSA/RH199 lab course: exact command
 Every guided lesson follows this loop:
 
 1. Run an exact command or compile a small program.
-2. Predict and observe a kernel-visible fact.
-3. Read the explanation immediately after the observation.
-4. Trigger an intentional failure or incomplete control.
-5. Correct it with an interface already in view.
-6. Verify resulting state rather than trusting command intent.
+2. Read a line-by-line explanation of the command, its important flags, and its shell syntax.
+3. Predict and observe a kernel-visible fact.
+4. Read the security explanation immediately after the observation.
+5. Trigger an intentional failure or incomplete control.
+6. Correct it with an interface already in view.
+7. Verify resulting state rather than trusting command intent.
+
+Line-by-line commentary is intentionally local: it follows the block it explains instead of becoming a detached glossary. It explains mechanics and security meaning without turning an independent practical into a solution transcript.
 
 End labs state functional and security properties but omit complete solutions. Graders rotate synthetic details, observe from outside the submitted program, and report the failed property. Practice diagnostics identify relevant lessons. Exam diagnostics name only the property.
 

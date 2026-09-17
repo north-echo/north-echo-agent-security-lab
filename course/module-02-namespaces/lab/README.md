@@ -28,3 +28,11 @@ chmod +x sandbox.sh
 ./sandbox.sh sh -c 'echo "pid=$$ host=$(hostname)"; ps -o pid,ppid,comm'
 ../../lab-grade module-02
 ```
+
+### Test commands, line by line
+
+- `chmod +x sandbox.sh` adds the executable permission needed for the kernel to launch the script directly.
+- `./sandbox.sh sh -c '...'` supplies `sh` as the arbitrary command under test; the quoted program observes namespace-local PID, hostname, and procfs state.
+- `$$` and `$(hostname)` are intentionally inside single quotes, so the outer shell does not expand them before the sandbox runs.
+- `../../lab-grade module-02` invokes the external randomized property grader from the generated workspace.
+- The starter's `exec "$@"` preserves the caller's argument vector but creates no namespaces. `$@` is quoted so each original argument stays separate.

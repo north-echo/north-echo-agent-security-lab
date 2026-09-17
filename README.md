@@ -39,6 +39,10 @@ Ubuntu 24.04 or Debian 12 with a recent kernel is the recommended baseline. Use 
 
 `module-01` is shorthand for the independent target `01.lab`. Guided lessons are not graded; their job is to make you touch and observe the primitives. Each end-of-module lab uses only interfaces practiced earlier and does not disclose a complete solution.
 
+### How command blocks are taught
+
+Guided lessons do not leave a command block unexplained. Immediately after a meaningful block, a **Line by line** section explains each command, important argument, shell operator, variable expansion, and expected state change. Guided source files also contain comments at the security-sensitive lines. Independent module labs still withhold complete solutions, but their interface and test commands are explained without revealing the implementation.
+
 ## What replay means here
 
 Canonical material lives under `course/` and is checked against `course/.course-manifest.json` before a workspace is created. Student work lives only under `.student/`; randomized manifests and canaries live under `.fixtures/`. A reset deletes both, then the next start generates new IDs, names, ports, hostnames, and canaries. `.state/progress.json` retains only starts, resets, grade attempts, mode, pass state, and timestamps - never student source or generated secrets.

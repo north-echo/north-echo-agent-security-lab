@@ -130,6 +130,13 @@ class PlatformTests(unittest.TestCase):
         self.assertIn("EXAM MODE", run.stdout)
         self.assertNotIn("Review:", run.stdout)
 
+    def test_every_guided_lesson_has_local_line_explanations(self):
+        lessons = sorted((SOURCE / "course").glob("module-0[1-3]-*/lesson-*/README.md"))
+        self.assertEqual(len(lessons), 9)
+        for lesson in lessons:
+            text = lesson.read_text(encoding="utf-8")
+            self.assertIn("### Line by line", text, str(lesson))
+
 
 if __name__ == "__main__":
     unittest.main()

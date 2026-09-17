@@ -28,6 +28,13 @@ cc -std=c11 -Wall -Wextra -O2 launcher.c -o launcher
 ../../lab-grade module-01
 ```
 
+### Test commands, line by line
+
+- `cc` compiles only your current `launcher.c`; the warning flags help catch interface mistakes before grading.
+- `./launcher /usr/bin/printf ...` checks the required `COMMAND [ARG ...]` interface with an absolute, harmless command.
+- `../../lab-grade module-01` moves no files: the relative path simply reaches the repository's grader from `.student/01.lab`.
+- The starter's `execvp(argv[1], &argv[1])` preserves argument boundaries and demonstrates basic execution, but intentionally performs no authority hygiene. The guided lessons contain the required concepts; this lab does not state their complete implementation.
+
 Run the final command from the repository root instead if your shell is not in this workspace:
 
 ```bash
@@ -39,3 +46,5 @@ Practice mode names failed properties and points back to practiced lessons. Exam
 ```bash
 ./lab-grade module-01 --mode exam
 ```
+
+- `--mode exam` changes diagnostic detail only. It does not weaken or replace any property check.

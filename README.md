@@ -66,7 +66,7 @@ The repository deliberately does not claim that chmod makes course content immut
 | 11 Break/fix research | Scaffold | Seeded variants and hardened counterparts |
 | 12 Adaptive adversary | Scaffold | Calibrated agent studies and Boundary Atlas graduation |
 
-The complete v0.1 course manual is [docs/MANUAL_MODULES_01_03.md](docs/MANUAL_MODULES_01_03.md). Architecture and pedagogy are documented in [ARCHITECTURE.md](ARCHITECTURE.md) and [COURSE_DESIGN.md](COURSE_DESIGN.md).
+The complete v0.1 course manual is [docs/MANUAL_MODULES_01_03.md](docs/MANUAL_MODULES_01_03.md). It is self-contained: commands, complete guided source listings, line-by-line explanations, expected observations, troubleshooting, checkpoints, lab contracts, and reference material are included rather than delegated to external reading. Architecture and pedagogy are documented in [ARCHITECTURE.md](ARCHITECTURE.md) and [COURSE_DESIGN.md](COURSE_DESIGN.md).
 
 ## Development and verification
 

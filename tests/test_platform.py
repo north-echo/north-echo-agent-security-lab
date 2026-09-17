@@ -137,6 +137,21 @@ class PlatformTests(unittest.TestCase):
             text = lesson.read_text(encoding="utf-8")
             self.assertIn("### Line by line", text, str(lesson))
 
+    def test_field_manual_is_self_contained_and_substantial(self):
+        manual = (SOURCE / "docs" / "MANUAL_MODULES_01_03.md").read_text(encoding="utf-8")
+        self.assertGreaterEqual(len(manual.split()), 8000)
+        for phrase in (
+            "Reading command and code blocks",
+            "Complete source:",
+            "Troubleshooting and checkpoint",
+            "Module 01 independent practical",
+            "Module 02 independent practical",
+            "Module 03 independent practical",
+            "Integrated understanding",
+            "Glossary",
+        ):
+            self.assertIn(phrase, manual)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -61,9 +61,9 @@ def parse_markdown(markdown: str, styles: dict) -> list:
     for line in lines:
         if line.startswith("```"):
             if in_code:
-                story.append(Spacer(1, 4))
+                story.append(Spacer(1, 10))
                 story.append(KeepTogether([Preformatted("\n".join(code), styles["CodeBlock"])]))
-                story.append(Spacer(1, 7))
+                story.append(Spacer(1, 9))
                 code.clear()
                 in_code = False
             else:
@@ -90,6 +90,21 @@ def parse_markdown(markdown: str, styles: dict) -> list:
             flush_paragraph()
             flush_bullets()
             story.append(Paragraph(escape(line[3:]), styles["Heading2"]))
+            story.append(Spacer(1, 5))
+        elif line.startswith("### "):
+            flush_paragraph()
+            flush_bullets()
+            story.append(Paragraph(escape(line[4:]), styles["Heading3"]))
+            story.append(Spacer(1, 3))
+        elif line.startswith("#### "):
+            flush_paragraph()
+            flush_bullets()
+            story.append(Paragraph(escape(line[5:]), styles["Heading4"]))
+            story.append(Spacer(1, 2))
+        elif line.startswith("> "):
+            flush_paragraph()
+            flush_bullets()
+            story.append(Paragraph(inline_markup(line[2:]), styles["Callout"]))
             story.append(Spacer(1, 5))
         elif line.startswith("- "):
             flush_paragraph()
@@ -126,8 +141,11 @@ def main() -> int:
     styles = {
         "Title": ParagraphStyle("NE Title", parent=sample["Title"], fontName="Helvetica-Bold", fontSize=22, leading=26, textColor=colors.HexColor("#0f172a"), alignment=TA_LEFT, spaceAfter=10),
         "Heading2": ParagraphStyle("NE H2", parent=sample["Heading2"], fontName="Helvetica-Bold", fontSize=14, leading=17, textColor=colors.HexColor("#075985"), spaceBefore=10, keepWithNext=True),
+        "Heading3": ParagraphStyle("NE H3", parent=sample["Heading3"], fontName="Helvetica-Bold", fontSize=11.5, leading=14, textColor=colors.HexColor("#0f4c6e"), spaceBefore=8, keepWithNext=True),
+        "Heading4": ParagraphStyle("NE H4", parent=sample["Heading4"], fontName="Helvetica-Bold", fontSize=9.8, leading=12, textColor=colors.HexColor("#334155"), spaceBefore=6, keepWithNext=True),
         "BodyText": ParagraphStyle("NE Body", parent=sample["BodyText"], fontName="Helvetica", fontSize=9.4, leading=13.6, textColor=colors.HexColor("#1e293b")),
         "BulletText": ParagraphStyle("NE Bullet", parent=sample["BodyText"], fontName="Helvetica", fontSize=9.1, leading=13.2, textColor=colors.HexColor("#1e293b"), spaceAfter=2),
+        "Callout": ParagraphStyle("NE Callout", parent=sample["BodyText"], fontName="Helvetica", fontSize=9.1, leading=13.2, textColor=colors.HexColor("#0f172a"), backColor=colors.HexColor("#e0f2fe"), borderColor=colors.HexColor("#7dd3fc"), borderWidth=0.6, borderPadding=7, spaceBefore=3, spaceAfter=4),
         "CodeBlock": ParagraphStyle("NE Code", fontName="Courier", fontSize=7.5, leading=9.5, leftIndent=8, rightIndent=8, borderColor=colors.HexColor("#cbd5e1"), borderWidth=0.5, borderPadding=7, backColor=colors.HexColor("#f8fafc"), textColor=colors.HexColor("#0f172a")),
     }
     document = SimpleDocTemplate(

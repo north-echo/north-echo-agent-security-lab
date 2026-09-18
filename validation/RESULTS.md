@@ -14,6 +14,15 @@
 - Execution identity: ordinary user `lima` (UID 501); root was used only for package installation and the documented VM-local AppArmor profile.
 - Tool inventory: Python 3.12.3, GCC 13.3.0, strace 6.8, util-linux 2.39.3. See `environment.txt` for the complete captured inventory.
 
+## Continuous architecture baseline
+
+On 2026-09-18, GitHub Actions run `35387461715` passed the full automated suite, course attestation, Linux preflight, and empty-runtime check on both standard Ubuntu 24.04 runners:
+
+- x86-64: Ubuntu 24.04.5 LTS, kernel `6.17.0-1022-azure`, Debian architecture `amd64`;
+- arm64: Ubuntu 24.04.5 LTS, kernel `6.17.0-1022-azure`, Debian architecture `arm64`.
+
+This continuous matrix complements the original hands-on Gate A record below. Hosted CI validates the automated properties on both architectures; it does not replace the retained manual lesson observations from the disposable arm64 VM.
+
 ## Gate results
 
 | Gate | Result | Evidence |
@@ -36,7 +45,7 @@
 
 - No Gate A step was skipped.
 - Lesson 02.03's short-lived child was reaped before the snapshot, so no zombie row appeared. The namespace PID 1 and matching procfs properties still passed; exact transient process counts are intentionally not graded.
-- This record validates Ubuntu 24.04.4 LTS on arm64 only. Debian 12 and x86-64 remain unvalidated.
+- The original manual Gate A run is Ubuntu 24.04.4 LTS on arm64. Automated Ubuntu 24.04 validation now runs continuously on x86-64 and arm64. Debian 12 remains an additional baseline.
 - The AppArmor exception is VM-local and deliberately limited to the course's `unshare` executable. It is not a recommendation for a general-purpose workstation.
 
 ## Safety and retention confirmation

@@ -1,0 +1,15 @@
+starter practice result=NOT PASSED
+completed practice result=PASSED
+completed exam result=PASSED
+properties=11
+PASS structured effective-state attestation
+PASS exact CPU, memory, swap, and PID limits
+PASS private user/network namespaces and direct-IP denial
+PASS empty capabilities and no-new-privileges
+PASS Landlock and seccomp effects
+PASS broker-side fake credential use
+PASS workload credential non-possession and non-disclosure
+PASS literal argv without shell evaluation
+PASS failure status and stderr propagation
+PASS invalid spec rejection before result creation
+PASS transient service and socket cleanup

@@ -1,0 +1,7 @@
+PASS no .student/10.* workspace remains
+PASS no .fixtures/10.* fixture remains
+PASS no north-echo-*-10-lab-*.service remains
+PASS guided broker socket removed by exact path
+PASS native lesson binaries and /tmp lesson directory removed
+PASS no persistent network, firewall, mount, cgroup, helper, or credential object created
+PASS no real credential or external target used

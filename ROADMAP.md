@@ -25,7 +25,7 @@ Add grader isolation so evaluation probes run from a read-only copy and record k
 
 ## Tranche 2 / v0.3 - Modules 07-09
 
-**Status: complete on Ubuntu 24.04.4 LTS arm64.** Modules 07-09 passed their module gates and the end-to-end tranche record is in `validation/tranche-02/RESULTS.md`. Module 07 includes fail-closed transient-unit ownership and cleanup. Modules 08-09 use ephemeral namespaces, exact-PID foreground helpers, and workspace Unix sockets, so they create no persistent network or broker object requiring registry expansion. Module 10 is next.
+**Status: complete on Ubuntu 24.04.4 LTS arm64.** Modules 07-09 passed their module gates and the end-to-end tranche record is in `validation/tranche-02/RESULTS.md`. Module 07 includes fail-closed transient-unit ownership and cleanup. Modules 08-09 use ephemeral namespaces, exact-PID foreground helpers, and workspace Unix sockets, so they create no persistent network or broker object requiring registry expansion. Module 10 follows in Tranche 3.
 
 - Module 07: cgroup v2 CPU, memory, and PID limits with pressure/OOM observations and delegated-subtree cleanup.
 - Module 08: empty network namespace, synthetic loopback services, direct-egress denial, Unix-socket broker, explicit synthetic resolution, run binding, and redirect reauthorization.
@@ -35,7 +35,9 @@ Extend the runtime registry before any later lesson creates a persistent network
 
 ## Tranche 3 / v0.4 - Modules 10-12
 
-- Module 10: assemble all controls in a security-correct launch order and emit an attestation of effective state.
+**Status: in progress.** Module 10 is complete and Linux-validated on Ubuntu 24.04.4 LTS arm64; Modules 11-12 remain.
+
+- Module 10: **complete** - security-correct launch order, effective-state attestation, capability-mediated local operation, failure propagation, and deterministic transient-unit teardown.
 - Module 11: randomized deliberately vulnerable variants, reference probes, invariant identification, repair, hardened counterpart.
 - Module 12: bounded adaptive agent, scripted baseline comparison, calibrated interpretation, Boundary Atlas experiment package.
 

@@ -143,7 +143,9 @@ if __name__ == "__main__":
         self.assertIn("delegated systemd user manager", status.stdout)
         self.assertIn("network namespaces and filesystem Unix sockets", status.stdout)
         self.assertIn("fake credentials only", status.stdout)
-        scaffold = self.run_cli("start", "10.03", expected=3)
+        self.assertIn("10.03", status.stdout)
+        self.assertIn("static C toolchain", status.stdout)
+        scaffold = self.run_cli("start", "11.01", expected=3)
         self.assertIn("scaffolded", scaffold.stdout)
         capstone = self.run_cli("start", "capstone", "--cold", expected=3)
         self.assertIn("not implemented", capstone.stdout)
@@ -199,8 +201,8 @@ if __name__ == "__main__":
         self.assertNotIn("Review:", run.stdout)
 
     def test_every_guided_lesson_has_local_line_explanations(self):
-        lessons = sorted((SOURCE / "course").glob("module-0[1-9]-*/lesson-*/README.md"))
-        self.assertEqual(len(lessons), 27)
+        lessons = sorted((SOURCE / "course").glob("module-*/lesson-*/README.md"))
+        self.assertEqual(len(lessons), 30)
         for lesson in lessons:
             text = lesson.read_text(encoding="utf-8")
             self.assertIn("### Line by line", text, str(lesson))
@@ -258,6 +260,10 @@ if __name__ == "__main__":
         module_nine = (SOURCE / "docs" / "MANUAL_MODULE_09.md").read_text(encoding="utf-8")
         for phrase in ("Remove ambient credential authority", "Bind a signed operation capability", "Deny replay and confused-deputy substitution", "Module 09 independent lab"):
             self.assertIn(phrase, module_nine)
+
+        module_ten = (SOURCE / "docs" / "MANUAL_MODULE_10.md").read_text(encoding="utf-8")
+        for phrase in ("Order the complete runtime by dependency", "Seal filesystem and syscall policy before exec", "Launch, attest, and collect the complete runtime", "Module 10 independent lab"):
+            self.assertIn(phrase, module_ten)
 
     def test_handoff_contract_is_present_and_explicit(self):
         agents = (SOURCE / "AGENTS.md").read_text(encoding="utf-8")

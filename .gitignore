@@ -11,3 +11,4 @@ __pycache__/
 *.o
 *.out
 .DS_Store
+release/dist-*/

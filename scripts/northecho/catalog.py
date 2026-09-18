@@ -41,10 +41,13 @@ CATALOG = {
     "10.02": ("10", "Seal filesystem and syscall policy before exec", True),
     "10.03": ("10", "Launch, attest, and collect the complete runtime", True),
     "10.lab": ("10", "Independent lab: composed contained runtime", True),
+    "11.01": ("11", "Reproduce a seeded weakness without an agent", True),
+    "11.02": ("11", "Identify invariants from an evidence matrix", True),
+    "11.03": ("11", "Repair and prove the hardened counterpart", True),
+    "11.lab": ("11", "Independent lab: repair randomized runtime variants", True),
 }
 
 SCAFFOLDS = {
-    "11": "Vulnerable variants and break/fix research",
     "12": "Adaptive adversary and Boundary Atlas graduation",
 }
 

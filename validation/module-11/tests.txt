@@ -1,0 +1,7 @@
+PASS python3 -m unittest discover -s tests -v
+result=38 tests passed, 0 failed, 0 skipped
+PASS starter fails multi-weakness variants
+PASS guided repair passes all 11 properties
+PASS vulnerable filesystem mode reproduces protected read
+PASS ./scripts/attest-course
+PASS ./scripts/linux-preflight: 28 required checks, 0 failures

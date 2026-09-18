@@ -1,0 +1,7 @@
+11.01 PASS seeded plan generated and adverse effects reproduced
+11.01 PASS exact seed replay is deterministic and generated paths cleanly removed
+11.02 PASS mixed evidence maps to three independent invariants
+11.02 PASS functional success remains separate from security failures
+11.03 PASS all five adverse signals reproduced in vulnerable counterpart
+11.03 PASS hardened counterpart preserves allowed operation and clears adverse signals
+11.03 PASS second repair is byte-identical/idempotent

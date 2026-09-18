@@ -1,0 +1,7 @@
+PASS start 11.01, 11.02, 11.03, and module-11
+PASS starter diagnostic failure and completed practice/exam grading
+PASS module reset removes all workspaces and fixtures
+PASS reset/start rotates fixture_id
+PASS cleanup dry-run on empty ownership state
+PASS no .student/11.* or .fixtures/11.* remains
+PASS no marker, symlink, protected fixture, socket, process, or service remains

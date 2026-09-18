@@ -1,0 +1,7 @@
+starter practice result=NOT PASSED
+completed practice result=PASSED
+completed exam result=PASSED
+properties=11
+PASS valid repaired plan, identity/workload preservation, allowed operation
+PASS shell, credential, filesystem, network, and cleanup invariants
+PASS simultaneous weakness repair, idempotence, malformed-plan rejection

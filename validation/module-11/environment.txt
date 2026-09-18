@@ -1,0 +1,7 @@
+date=2026-09-17
+os=Ubuntu 24.04.4 LTS (Noble Numbat)
+kernel=6.8.0-134-generic
+architecture=aarch64
+python=3.12.3
+account=ordinary non-root uid 501
+scope=synthetic local files, fake environment value, unconnected socket only

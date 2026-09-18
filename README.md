@@ -1,6 +1,6 @@
 # North Echo Agent Security Lab
 
-North Echo is a hands-on, replayable Linux containment course for learning agent security by building, observing, breaking, fixing, and verifying. Modules 01-10 are fully implemented and Linux-validated on Ubuntu 24.04 arm64; Modules 11-12 remain design scaffolds.
+North Echo is a hands-on, replayable Linux containment course for learning agent security by building, observing, breaking, fixing, and verifying. Modules 01-11 are fully implemented and Linux-validated on Ubuntu 24.04 arm64; Module 12 remains a design scaffold.
 
 This is an independent educational project. It contains no employer-internal material, production credentials, external targets, or instructions to test systems you do not own. Run it only in a disposable Linux VM with synthetic data.
 
@@ -63,12 +63,12 @@ The repository deliberately does not claim that chmod makes course content immut
 | 08 Network isolation | Playable | Empty network namespace, Unix-socket mediation, run binding, and redirect reauthorization |
 | 09 Credential brokering | Playable | Fake ambient-credential repair, operation capabilities, lifetime, replay, and deputy binding |
 | 10 Complete runtime | Playable | Ordered cgroup, namespace, privilege, Landlock, seccomp, broker, attestation, and teardown composition |
-| 11 Break/fix research | Scaffold | Seeded variants and hardened counterparts |
+| 11 Break/fix research | Playable | Seeded variants, bounded evidence, invariant diagnosis, and hardened counterparts |
 | 12 Adaptive adversary | Scaffold | Calibrated agent studies and Boundary Atlas graduation |
 
-The v0.1 foundation manual is [docs/MANUAL_MODULES_01_03.md](docs/MANUAL_MODULES_01_03.md), followed by complete chapters for [Module 04](docs/MANUAL_MODULE_04.md), [Module 05](docs/MANUAL_MODULE_05.md), [Module 06](docs/MANUAL_MODULE_06.md), [Module 07](docs/MANUAL_MODULE_07.md), [Module 08](docs/MANUAL_MODULE_08.md), [Module 09](docs/MANUAL_MODULE_09.md), and [Module 10](docs/MANUAL_MODULE_10.md). They are self-contained: commands, complete guided source listings, line-by-line explanations, expected observations, troubleshooting, checkpoints, lab contracts, and reference material are included rather than delegated to external reading. Architecture and pedagogy are documented in [ARCHITECTURE.md](ARCHITECTURE.md) and [COURSE_DESIGN.md](COURSE_DESIGN.md).
+The v0.1 foundation manual is [docs/MANUAL_MODULES_01_03.md](docs/MANUAL_MODULES_01_03.md), followed by complete chapters for [Module 04](docs/MANUAL_MODULE_04.md), [Module 05](docs/MANUAL_MODULE_05.md), [Module 06](docs/MANUAL_MODULE_06.md), [Module 07](docs/MANUAL_MODULE_07.md), [Module 08](docs/MANUAL_MODULE_08.md), [Module 09](docs/MANUAL_MODULE_09.md), [Module 10](docs/MANUAL_MODULE_10.md), and [Module 11](docs/MANUAL_MODULE_11.md). They are self-contained: commands, complete guided source listings, line-by-line explanations, expected observations, troubleshooting, checkpoints, lab contracts, and reference material are included rather than delegated to external reading. Architecture and pedagogy are documented in [ARCHITECTURE.md](ARCHITECTURE.md) and [COURSE_DESIGN.md](COURSE_DESIGN.md).
 
-Gate A Linux validation is recorded in [validation/RESULTS.md](validation/RESULTS.md); module records are under `validation/module-NN/`, the v0.2 gate is under `validation/tranche-01/`, and the v0.3 gate is under `validation/tranche-02/`. Module 10 begins the v0.4 tranche; Modules 11-12 remain next. Apply [docs/MODULE_ACCEPTANCE_TEMPLATE.md](docs/MODULE_ACCEPTANCE_TEMPLATE.md) at every module and tranche boundary. `AGENTS.md` keeps the safety, replay, and field-manual standards persistent for future tasks.
+Gate A Linux validation is recorded in [validation/RESULTS.md](validation/RESULTS.md); module records are under `validation/module-NN/`, the v0.2 gate is under `validation/tranche-01/`, and the v0.3 gate is under `validation/tranche-02/`. Modules 10-11 are complete in the v0.4 tranche; Module 12 is next. Apply [docs/MODULE_ACCEPTANCE_TEMPLATE.md](docs/MODULE_ACCEPTANCE_TEMPLATE.md) at every module and tranche boundary. `AGENTS.md` keeps the safety, replay, and field-manual standards persistent for future tasks.
 
 ## Development and verification
 

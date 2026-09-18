@@ -35,10 +35,10 @@ Extend the runtime registry before any later lesson creates a persistent network
 
 ## Tranche 3 / v0.4 - Modules 10-12
 
-**Status: in progress.** Module 10 is complete and Linux-validated on Ubuntu 24.04.4 LTS arm64; Modules 11-12 remain.
+**Status: in progress.** Modules 10-11 are complete and Linux-validated on Ubuntu 24.04.4 LTS arm64; Module 12 remains.
 
 - Module 10: **complete** - security-correct launch order, effective-state attestation, capability-mediated local operation, failure propagation, and deterministic transient-unit teardown.
-- Module 11: randomized deliberately vulnerable variants, reference probes, invariant identification, repair, hardened counterpart.
+- Module 11: **complete** - randomized deliberately vulnerable variants, bounded non-agent probes, invariant identification, multi-weakness repair, and hardened counterpart.
 - Module 12: bounded adaptive agent, scripted baseline comparison, calibrated interpretation, Boundary Atlas experiment package.
 
 Gate the tranche with cross-layer bypass tests, complete manual chapters, and a full-course clean replay from a fresh VM snapshot.

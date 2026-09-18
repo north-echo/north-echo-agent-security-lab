@@ -20,6 +20,8 @@ BANNER = "NORTH ECHO AGENT SECURITY LAB"
 
 
 def _source(root: Path, target: str) -> Path:
+    if target == "capstone":
+        return root / "course" / "capstone" / "lab"
     module = target.split(".")[0]
     return root / "course" / course_dir_name(module) / target_dir_name(target)
 
@@ -34,11 +36,11 @@ def _print_integrity_failure(problems: list[str]) -> None:
 def cmd_start(args: argparse.Namespace) -> int:
     root = repo_root()
     if args.target == "capstone":
-        if args.cold:
-            print(f"{BANNER}\n\nCold-start capstone is scaffolded but not implemented in v{__version__}; no workspace was created.")
-            return 3
-        raise ValueError("use: ./lab-start capstone --cold")
-    target = normalize_target(args.target)
+        if not args.cold:
+            raise ValueError("use: ./lab-start capstone --cold")
+        target = "capstone"
+    else:
+        target = normalize_target(args.target)
     if target not in CATALOG:
         module = target.split(".")[0]
         if module in SCAFFOLDS:
@@ -143,7 +145,7 @@ def cmd_reset(args: argparse.Namespace) -> int:
 def cmd_grade(args: argparse.Namespace) -> int:
     root = repo_root()
     target = normalize_target(args.target)
-    if not target.endswith(".lab") or target not in CATALOG:
+    if target != "capstone" and (not target.endswith(".lab") or target not in CATALOG):
         raise ValueError("grade a playable module lab, for example: module-01")
     workspace = safe_child(root, ".student", target)
     if not workspace.exists():
@@ -161,7 +163,8 @@ def cmd_grade(args: argparse.Namespace) -> int:
         record["passed"] = True
         record["passed_at"] = now()
     save(root, progress)
-    print(f"{BANNER}\n\nMODULE {target.split('.')[0]} INDEPENDENT LAB - {mode.upper()} MODE")
+    heading = "COLD CAPSTONE" if target == "capstone" else f"MODULE {target.split('.')[0]} INDEPENDENT LAB"
+    print(f"{BANNER}\n\n{heading} - {mode.upper()} MODE")
     for index, check in enumerate(checks, 1):
         dots = "." * max(2, 48 - len(check.name))
         print(f"[{index}/{len(checks)}] {check.name} {dots} {'PASS' if check.passed else 'FAIL'}")
@@ -197,7 +200,7 @@ def cmd_status(args: argparse.Namespace) -> int:
     print("10       Modules 03-09 prerequisites plus static C toolchain, Landlock, seccomp, namespaces, and delegated cgroup v2")
     print("11       Python 3 standard library; synthetic local evidence harness only")
     print("12       Python 3 standard library; bounded local oracle only")
-    print("\nModules 01-12: playable. Capstone: planned (--cold accepted as a concept check).")
+    print("\nModules 01-12 and the cold capstone are playable.")
     return 0
 
 

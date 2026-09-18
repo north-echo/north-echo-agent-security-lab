@@ -147,8 +147,11 @@ if __name__ == "__main__":
         self.assertIn("static C toolchain", status.stdout)
         self.assertIn("11.03", status.stdout)
         self.assertIn("12.03", status.stdout)
-        capstone = self.run_cli("start", "capstone", "--cold", expected=3)
-        self.assertIn("not implemented", capstone.stdout)
+        capstone = self.run_cli("start", "capstone", "--cold")
+        self.assertIn("START capstone", capstone.stdout)
+        self.assertTrue((self.root / ".student/capstone/cold_runtime.py").is_file())
+        self.assertFalse((self.root / ".student/capstone" / "solution.py").exists())
+        self.run_cli("reset", "capstone", "--yes")
 
     def test_cleanup_registry_dry_run_and_removal(self):
         runtime = self.root / ".runtime" / "01.01"

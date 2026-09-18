@@ -11,11 +11,11 @@ The next task should work in this repository rather than regenerate it from a sp
 ## Current checkpoint
 
 - Project: **North Echo Agent Security Lab**
-- Source checkpoint: the Module 12 feature commit based on `4234b45`; use Git history for its final content hash
+- Source checkpoint: Gate D development based on the v0.4.0 main commit `57b422d`; use Git history for the v1.0.0 release hash
 - Modules 01-12: fully authored and Linux-validated, with thirty-six guided lessons and twelve independent labs
 - Platform lifecycle: start, status, grade, lesson/module/all reset, dry-run cleanup, randomized fixtures, practice/exam modes, and metadata-only progress are implemented
 - Field manual: Modules 01-12 have synchronized, self-contained chapters with complete guided source, local explanations, expected observations, troubleshooting, labs, and security models
-- Current automated result: 40 tests passing and course attestation passing on Ubuntu 24.04.4 LTS arm64
+- Current automated result: 41 tests passing and course attestation passing on Ubuntu 24.04.4 LTS arm64
 - Gate A record: `validation/RESULTS.md`; no required Gate A step was skipped
 - Module 04 record: `validation/module-04/RESULTS.md`; all module acceptance items passed
 - Module 05 record: `validation/module-05/RESULTS.md`; all module acceptance items passed
@@ -29,6 +29,7 @@ The next task should work in this repository rather than regenerate it from a sp
 - Tranche 3 / v0.4 record: `validation/tranche-03/RESULTS.md`; Modules 10-12 replay and teardown passed
 - Tranche 1 / v0.2 record: `validation/tranche-01/RESULTS.md`; end-to-end replay and teardown passed
 - Tranche 2 / v0.3 record: `validation/tranche-02/RESULTS.md`; Modules 07-09 replay and teardown passed
+- Gate D / v1.0 record: `validation/gate-d/RESULTS.md`; cold capstone replay, external grading, reset, manuals, and release workflow passed
 
 The current source was assembled on macOS and kernel-validated in a disposable Ubuntu 24.04.4 LTS arm64 Lima VM. macOS results prove only control-plane behavior; the retained Module 08 record distinguishes Linux evidence.
 
@@ -36,7 +37,7 @@ The current source was assembled on macOS and kernel-validated in a disposable U
 
 Gate A passed on Ubuntu 24.04.4 LTS arm64. The run covered the non-destructive preflight, automated tests, attestation, all nine guided lessons, all three independent labs in practice and exam modes, randomized replay, every reset scope, cleanup containment, and final empty-state inspection. Focused fixes corrected Lesson 03.02's post-mapping `setgroups(2)` assumption and Module 02's namespace-local `NSpid` grading assumption.
 
-The next task is the Gate D cold capstone and v1.0 release work. Module 12 completes the guided course with a scripted baseline, bounded adaptive runner, calibrated non-discovery, deterministic traces, and reproducible candidate packaging. It creates no persistent resource.
+Gate D is complete: the cold capstone, complete Markdown/PDF manuals, release notes, and reproducible release-artifact workflow are implemented and Linux-validated. Future work is maintenance, additional architecture baselines, or post-v1 course expansion rather than an unfinished core deliverable.
 
 Do not start by rewriting the platform. Preserve working behavior and add focused tests for every corrected defect.
 
@@ -70,7 +71,7 @@ Extend the runtime registry before lessons can leave any PID, mount, cgroup, nam
 
 ### Gate D: cold capstone and v1.0
 
-Implement `./lab-start capstone --cold` with a fresh unlabeled objective, randomized synthetic services and data, no guided solution material in the workspace, independent multi-layer grading, and complete reset. Every capstone variant must be solvable only with skills practiced in Modules 01-12.
+**Complete.** `./lab-start capstone --cold` creates a fresh unlabeled objective with randomized synthetic services and data, no guided solution material in the workspace, independent multi-layer grading, and complete reset. Every capstone variant is solvable with skills practiced in Modules 01-12.
 
 ## Per-module acceptance gate
 

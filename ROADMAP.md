@@ -45,6 +45,8 @@ Gate the tranche with cross-layer bypass tests, complete manual chapters, and a 
 
 ## Gate D / v1.0 - Cold capstone
 
+**Status: complete on Ubuntu 24.04.4 LTS arm64.** The acceptance record is in `validation/gate-d/RESULTS.md`.
+
 `./lab-start capstone --cold` creates a fresh unlabeled runtime objective, randomized synthetic services/data, no guided references in the workspace, and a multi-layer external grader. Reset removes every student artifact but preserves attempt/pass metadata. Capstone variants must be independently solvable from skills already practiced and must never require a production credential or external target.
 
-Release v1.0 only with a reproducible source archive, Git history bundle, checksums, release notes, full Markdown field manual, visually checked PDF manual, and supported-Linux validation records.
+The v1.0 release includes a reproducible source archive, Git history bundle, checksums, release notes, full Markdown field manual, visually checked PDF manual, and supported-Linux validation records.

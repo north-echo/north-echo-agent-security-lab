@@ -1,6 +1,6 @@
 # North Echo Agent Security Lab
 
-North Echo is a hands-on, replayable Linux containment course for learning agent security by building, observing, breaking, fixing, and verifying. Modules 01-12 are fully implemented and Linux-validated on Ubuntu 24.04 arm64.
+North Echo is a hands-on, replayable Linux containment course for learning agent security by building, observing, breaking, fixing, and verifying. Modules 01-12 and the cold capstone are fully implemented and Linux-validated on Ubuntu 24.04 arm64.
 
 This is an independent educational project. It contains no employer-internal material, production credentials, external targets, or instructions to test systems you do not own. Run it only in a disposable Linux VM with synthetic data.
 
@@ -34,7 +34,7 @@ Ubuntu 24.04 or Debian 12 with a recent kernel is the recommended baseline. Use 
 ./lab-reset module-01 --yes          # reset all Module 01 workspaces
 ./lab-reset --all --yes              # reset all disposable work
 ./lab-reset 01.01 --dry-run          # show cleanup without changing anything
-./lab-start capstone --cold           # concept exists; capstone is not implemented in v0.3
+./lab-start capstone --cold           # fresh unlabeled graduation workspace
 ```
 
 `module-01` is shorthand for the independent target `01.lab`. Guided lessons are not graded; their job is to make you touch and observe the primitives. Each end-of-module lab uses only interfaces practiced earlier and does not disclose a complete solution.
@@ -66,9 +66,9 @@ The repository deliberately does not claim that chmod makes course content immut
 | 11 Break/fix research | Playable | Seeded variants, bounded evidence, invariant diagnosis, and hardened counterparts |
 | 12 Adaptive adversary | Playable | Scripted baseline, bounded adaptation, calibrated interpretation, and experiment packaging |
 
-The v0.1 foundation manual is [docs/MANUAL_MODULES_01_03.md](docs/MANUAL_MODULES_01_03.md), followed by complete chapters for [Module 04](docs/MANUAL_MODULE_04.md), [Module 05](docs/MANUAL_MODULE_05.md), [Module 06](docs/MANUAL_MODULE_06.md), [Module 07](docs/MANUAL_MODULE_07.md), [Module 08](docs/MANUAL_MODULE_08.md), [Module 09](docs/MANUAL_MODULE_09.md), [Module 10](docs/MANUAL_MODULE_10.md), [Module 11](docs/MANUAL_MODULE_11.md), and [Module 12](docs/MANUAL_MODULE_12.md). They are self-contained: commands, complete guided source listings, line-by-line explanations, expected observations, troubleshooting, checkpoints, lab contracts, and reference material are included rather than delegated to external reading. Architecture and pedagogy are documented in [ARCHITECTURE.md](ARCHITECTURE.md) and [COURSE_DESIGN.md](COURSE_DESIGN.md).
+The complete v1.0 field manual is available as [Markdown](docs/FIELD_MANUAL.md) and a [print-ready PDF](output/pdf/north-echo-agent-security-lab-field-manual-v1.0.pdf). Its source chapters begin with [Modules 01-03](docs/MANUAL_MODULES_01_03.md) and continue through the individual Module 04-12 manuals. They are self-contained: commands, complete guided source listings, line-by-line explanations, expected observations, troubleshooting, checkpoints, lab contracts, and reference material are included rather than delegated to external reading. Architecture and pedagogy are documented in [ARCHITECTURE.md](ARCHITECTURE.md) and [COURSE_DESIGN.md](COURSE_DESIGN.md).
 
-Gate A Linux validation is recorded in [validation/RESULTS.md](validation/RESULTS.md); module records are under `validation/module-NN/`, and tranche records cover v0.2 through v0.4. Modules 01-12 are complete; the cold capstone is next. Apply [docs/MODULE_ACCEPTANCE_TEMPLATE.md](docs/MODULE_ACCEPTANCE_TEMPLATE.md) at every boundary. `AGENTS.md` keeps the safety, replay, and field-manual standards persistent for future tasks.
+Gate A Linux validation is recorded in [validation/RESULTS.md](validation/RESULTS.md); module records are under `validation/module-NN/`, tranche records cover v0.2 through v0.4, and [Gate D](validation/gate-d/RESULTS.md) records the cold capstone and v1.0 acceptance run. Apply [docs/MODULE_ACCEPTANCE_TEMPLATE.md](docs/MODULE_ACCEPTANCE_TEMPLATE.md) at every boundary. `AGENTS.md` keeps the safety, replay, and field-manual standards persistent for future tasks.
 
 ## Development and verification
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 CATALOG = {
+    "capstone": ("capstone", "Cold-start contained runtime", True),
     "01.01": ("01", "Processes are the boundary you actually launched", True),
     "01.02": ("01", "Environment inheritance is authority", True),
     "01.03": ("01", "File descriptors cross exec", True),
@@ -70,16 +71,22 @@ MODULE_SLUGS = {
 
 
 def course_dir_name(module: str) -> str:
+    if module == "capstone":
+        return "capstone"
     return f"module-{module}-{MODULE_SLUGS[module]}"
 
 
 def target_dir_name(target: str) -> str:
+    if target == "capstone":
+        return "lab"
     module, item = target.split(".")
     return "lab" if item == "lab" else f"lesson-{item}"
 
 
 def normalize_target(raw: str) -> str:
     value = raw.strip().lower()
+    if value == "capstone":
+        return value
     if value.startswith("module-"):
         module = value.removeprefix("module-").zfill(2)
         return f"{module}.lab"
@@ -91,6 +98,8 @@ def normalize_target(raw: str) -> str:
 
 def targets_for_scope(raw: str) -> list[str]:
     value = raw.strip().lower()
+    if value == "capstone":
+        return [value]
     if value == "--all":
         return sorted(CATALOG)
     if value.startswith("module-"):

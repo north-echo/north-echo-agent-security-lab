@@ -14,7 +14,7 @@ class Check:
 
 
 def load_grader(root: Path, module: str):
-    path = root / "graders" / f"module_{module}.py"
+    path = root / "graders" / ("capstone.py" if module == "capstone" else f"module_{module}.py")
     spec = importlib.util.spec_from_file_location(f"north_echo_grader_{module}", path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"cannot load grader: {path}")

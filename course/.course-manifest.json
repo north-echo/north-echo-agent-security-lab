@@ -125,5 +125,16 @@
   "course/module-11-break-fix-research/lesson-03/README.md": "9d79e148c2c7d7d75ccbd8cdac1746608fb1b41614dac7402870aeda2414f352",
   "course/module-11-break-fix-research/lesson-03/repair_variant.py": "7ad25863bf8ff4bc2e1ee26c24874f9941d8b01f250cfb78080fd3266b6f192a",
   "course/module-11-break-fix-research/lesson-03/vulnerable-plan.json": "28101cf51d9c7051be263cc00e7bb6af4323f5e25be28db38e8e01ae2d99653e",
-  "course/module-12-adaptive-adversary/README.md": "2e2bf50e37c05ea15d145bd3f46e66370ed42a503ef61132e1448e610cfe5ffc"
+  "course/module-12-adaptive-adversary/README.md": "b9ee8210c6ba90eb95a7f7b9fe30a5b0367688c651da914a82b14de37f40e166",
+  "course/module-12-adaptive-adversary/lab/README.md": "ef8f74391e399f570f6d07bc310d8ec5a092cb33332d0e584db6ecfaaea22b0d",
+  "course/module-12-adaptive-adversary/lab/adaptive_runner.py": "aac616596149bf00f683ed45222c901e562e9bde8842457af9a87550dad73e6f",
+  "course/module-12-adaptive-adversary/lesson-01/README.md": "1db0bb46f9d202e90e233da254b8d386402c5a3c2b1efd1778270fb44ab9eff4",
+  "course/module-12-adaptive-adversary/lesson-01/local_oracle.py": "4f3df42972721c0b3801903e08aa2664edff53c68d5c9ee74ca34c9897493680",
+  "course/module-12-adaptive-adversary/lesson-01/network-scenario.json": "825be3c6602effbda1d3b84f4bbab3759acef9bc6c6f89ba15348e6b24201759",
+  "course/module-12-adaptive-adversary/lesson-01/scripted_baseline.py": "7945eb465746c4b3405caf900ed6c59004ec48544ca091034756688c4f943324",
+  "course/module-12-adaptive-adversary/lesson-02/README.md": "de3a556bff2c6e71262a6d8896e4bc0e521d61614a62709bdb51b8b89243bd4e",
+  "course/module-12-adaptive-adversary/lesson-02/adaptive_runner.py": "28365823a39e6c787b3e51f1b2379b04d28c36d6ff80aef9575d9ec733182a0e",
+  "course/module-12-adaptive-adversary/lesson-02/network-spec.json": "898fcf24b2d8233c41d91b3bae3e20ba84b13565cc00ebec90fd4060642eb554",
+  "course/module-12-adaptive-adversary/lesson-03/README.md": "d098f4b1fd262b2a8e101ee4f67ffe08c6191542ba1ef02610f09377cf1efc14",
+  "course/module-12-adaptive-adversary/lesson-03/package_experiment.py": "4859bd970a1c114197253fb9dbaa14039c6da780069ee1ce2ef6f673127d972a"
 }

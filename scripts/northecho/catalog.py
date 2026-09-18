@@ -45,11 +45,13 @@ CATALOG = {
     "11.02": ("11", "Identify invariants from an evidence matrix", True),
     "11.03": ("11", "Repair and prove the hardened counterpart", True),
     "11.lab": ("11", "Independent lab: repair randomized runtime variants", True),
+    "12.01": ("12", "Establish a scripted baseline and its limits", True),
+    "12.02": ("12", "Adapt within an action budget", True),
+    "12.03": ("12", "Package a calibrated candidate experiment", True),
+    "12.lab": ("12", "Independent lab: bounded adaptive runner", True),
 }
 
-SCAFFOLDS = {
-    "12": "Adaptive adversary and Boundary Atlas graduation",
-}
+SCAFFOLDS = {}
 
 MODULE_SLUGS = {
     "01": "process-authority",

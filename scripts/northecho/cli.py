@@ -196,7 +196,8 @@ def cmd_status(args: argparse.Namespace) -> int:
     print("09       Python 3 cryptographic standard library + filesystem Unix sockets; fake credentials only")
     print("10       Modules 03-09 prerequisites plus static C toolchain, Landlock, seccomp, namespaces, and delegated cgroup v2")
     print("11       Python 3 standard library; synthetic local evidence harness only")
-    print("\nModules 01-11: playable. Module 12: scaffolded. Capstone: planned (--cold accepted as a concept check).")
+    print("12       Python 3 standard library; bounded local oracle only")
+    print("\nModules 01-12: playable. Capstone: planned (--cold accepted as a concept check).")
     return 0
 
 

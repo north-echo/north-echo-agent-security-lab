@@ -11,12 +11,11 @@ The next task should work in this repository rather than regenerate it from a sp
 ## Current checkpoint
 
 - Project: **North Echo Agent Security Lab**
-- Source checkpoint: the Module 11 feature commit based on `2b2e0c5`; use Git history for its final content hash
-- Modules 01-11: fully authored and Linux-validated, with thirty-three guided lessons and eleven independent labs
-- Module 12: design scaffold only; a scaffold is a reserved direction, not a playable module
+- Source checkpoint: the Module 12 feature commit based on `4234b45`; use Git history for its final content hash
+- Modules 01-12: fully authored and Linux-validated, with thirty-six guided lessons and twelve independent labs
 - Platform lifecycle: start, status, grade, lesson/module/all reset, dry-run cleanup, randomized fixtures, practice/exam modes, and metadata-only progress are implemented
-- Field manual: Modules 01-11 have synchronized, self-contained chapters with complete guided source, local explanations, expected observations, troubleshooting, labs, and security models
-- Current automated result: 38 tests passing and course attestation passing on Ubuntu 24.04.4 LTS arm64
+- Field manual: Modules 01-12 have synchronized, self-contained chapters with complete guided source, local explanations, expected observations, troubleshooting, labs, and security models
+- Current automated result: 40 tests passing and course attestation passing on Ubuntu 24.04.4 LTS arm64
 - Gate A record: `validation/RESULTS.md`; no required Gate A step was skipped
 - Module 04 record: `validation/module-04/RESULTS.md`; all module acceptance items passed
 - Module 05 record: `validation/module-05/RESULTS.md`; all module acceptance items passed
@@ -26,6 +25,8 @@ The next task should work in this repository rather than regenerate it from a sp
 - Module 09 record: `validation/module-09/RESULTS.md`; all module acceptance items passed
 - Module 10 record: `validation/module-10/RESULTS.md`; all module acceptance items passed
 - Module 11 record: `validation/module-11/RESULTS.md`; all module acceptance items passed
+- Module 12 record: `validation/module-12/RESULTS.md`; all module acceptance items passed
+- Tranche 3 / v0.4 record: `validation/tranche-03/RESULTS.md`; Modules 10-12 replay and teardown passed
 - Tranche 1 / v0.2 record: `validation/tranche-01/RESULTS.md`; end-to-end replay and teardown passed
 - Tranche 2 / v0.3 record: `validation/tranche-02/RESULTS.md`; Modules 07-09 replay and teardown passed
 
@@ -35,7 +36,7 @@ The current source was assembled on macOS and kernel-validated in a disposable U
 
 Gate A passed on Ubuntu 24.04.4 LTS arm64. The run covered the non-destructive preflight, automated tests, attestation, all nine guided lessons, all three independent labs in practice and exam modes, randomized replay, every reset scope, cleanup containment, and final empty-state inspection. Focused fixes corrected Lesson 03.02's post-mapping `setgroups(2)` assumption and Module 02's namespace-local `NSpid` grading assumption.
 
-The next task is Module 12 adaptive-adversary research. Module 11 adds replayable weakness generation, a bounded non-agent evidence harness, invariant classification, multi-layer repair, functional preservation, and hardened-counterpart comparison. Its harness creates only exact lesson-local files and unconnected sockets, so the runtime registry did not need a new resource type.
+The next task is the Gate D cold capstone and v1.0 release work. Module 12 completes the guided course with a scripted baseline, bounded adaptive runner, calibrated non-discovery, deterministic traces, and reproducible candidate packaging. It creates no persistent resource.
 
 Do not start by rewriting the platform. Preserve working behavior and add focused tests for every corrected defect.
 

@@ -1,0 +1,11 @@
+date=2026-09-17
+os=Ubuntu 24.04.4 LTS (Noble Numbat)
+kernel=6.8.0-134-generic
+architecture=aarch64
+python=3.12.3
+gcc=13.3.0
+libseccomp=2.5.5
+systemd=255.4-1ubuntu8.16
+util-linux=2.39.3
+account=ordinary non-root uid 501
+targets=synthetic local files and filesystem Unix sockets only

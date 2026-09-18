@@ -1,0 +1,10 @@
+[
+  "start_broker",
+  "enter_cgroup",
+  "enter_namespaces",
+  "drop_privilege",
+  "apply_seccomp",
+  "apply_landlock",
+  "exec_workload",
+  "collect_unit"
+]

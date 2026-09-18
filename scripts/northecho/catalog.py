@@ -37,10 +37,13 @@ CATALOG = {
     "09.02": ("09", "Bind a signed operation capability", True),
     "09.03": ("09", "Deny replay and confused-deputy substitution", True),
     "09.lab": ("09", "Independent lab: capability-bound credential broker", True),
+    "10.01": ("10", "Order the complete runtime by dependency", True),
+    "10.02": ("10", "Seal filesystem and syscall policy before exec", True),
+    "10.03": ("10", "Launch, attest, and collect the complete runtime", True),
+    "10.lab": ("10", "Independent lab: composed contained runtime", True),
 }
 
 SCAFFOLDS = {
-    "10": "Compose a complete agent runtime",
     "11": "Vulnerable variants and break/fix research",
     "12": "Adaptive adversary and Boundary Atlas graduation",
 }

@@ -1,0 +1,7 @@
+PASS python3 -m unittest discover -s tests -v
+result=35 tests passed, 0 failed, 0 skipped
+PASS focused starter fails composition properties
+PASS focused guided launcher passes all 11 properties
+PASS ./scripts/attest-course
+PASS ./scripts/linux-preflight
+preflight=28 required checks passed, 0 failed

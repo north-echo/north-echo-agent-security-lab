@@ -1,0 +1,10 @@
+10.01 PASS broken plan rejected: apply_landlock must precede apply_seccomp
+10.01 PASS repaired plan accepted with no dependency violations
+10.02 PASS static guard and probe compile with warning flags
+10.02 PASS allowed read remains available
+10.02 PASS protected read returns Permission denied
+10.02 PASS AF_INET socket returns Operation not permitted
+10.02 PASS post-exec NoNewPrivs=1 and Seccomp=2
+10.03 PASS Python launcher/broker compile and native runtime probe compiles
+10.03 PASS guided launcher exercised by the external property grader
+10.03 PASS effective cgroup, namespace, privilege, filesystem, syscall, broker, credential, telemetry, and cleanup properties

@@ -1,0 +1,11 @@
+PASS start 10.01
+PASS start 10.02
+PASS start 10.03
+PASS start module-10
+PASS starter grade failure is diagnostic
+PASS completed practice grade
+PASS completed exam grade with reduced hints
+PASS module reset removes all four Module 10 workspaces and fixtures
+PASS start after reset rotates fixture_id
+PASS module cleanup dry-run follows the empty ownership path
+PASS metadata-only progress retained; student implementation removed

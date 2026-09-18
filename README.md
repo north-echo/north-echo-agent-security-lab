@@ -1,8 +1,12 @@
 # North Echo Agent Security Lab
 
-North Echo is a hands-on, replayable Linux containment course for learning agent security by building, observing, breaking, fixing, and verifying. Modules 01-12 and the cold capstone are fully implemented and Linux-validated on Ubuntu 24.04 arm64.
+A hands-on, replayable Linux course on **runtime containment for agent workloads**: the kernel and userspace controls that bound what a tool-using process can touch, no matter what a model tells it to do. Twelve modules and a cold capstone cover process authority, namespaces, capabilities, Landlock, seccomp, cgroups, network and credential brokering, composed runtimes, and break/fix research.
 
-This is an independent educational project. It contains no employer-internal material, production credentials, external targets, or instructions to test systems you do not own. Run it only in a disposable Linux VM with synthetic data.
+**Scope.** This course teaches the *runtime* side of agent security - the boundary between an agent process and the host. It deliberately does not cover model-side attack surface such as prompt injection, tool-schema policy, or output handling. No LLM is required or invoked during the exercises. The "agent" in Modules 04 and 09-12 is a deterministic local action loop, so every observation is reproducible.
+
+**How it was built.** Course content and platform code were authored with AI coding agents - primarily OpenAI Codex, with a v1.0.1 review by Anthropic Claude/Fable - under Christopher Lusk's direction, then kernel-validated on disposable Ubuntu 24.04 systems. Validation records under `validation/` are from those runs.
+
+This is an independent educational project. It contains no employer-internal material, production credentials, external targets, or instructions to test systems you do not own. Run it only in a disposable Linux VM with synthetic data. Modules 01-12 and the cold capstone are validated on Ubuntu 24.04 on x86-64 and arm64.
 
 ## Start doing the work
 
@@ -11,7 +15,7 @@ On a supported Linux VM:
 ```bash
 sudo apt-get update
 sudo apt-get install -y build-essential python3 strace util-linux libcap2-bin procps
-git clone YOUR_COPY_OF_THIS_REPOSITORY north-echo-agent-security-lab
+git clone https://github.com/north-echo/north-echo-agent-security-lab.git
 cd north-echo-agent-security-lab
 ./scripts/attest-course
 ./lab-start 01.01
@@ -66,7 +70,7 @@ The repository deliberately does not claim that chmod makes course content immut
 | 11 Break/fix research | Playable | Seeded variants, bounded evidence, invariant diagnosis, and hardened counterparts |
 | 12 Adaptive adversary | Playable | Scripted baseline, bounded adaptation, calibrated interpretation, and experiment packaging |
 
-The complete v1.0 field manual is available as [Markdown](docs/FIELD_MANUAL.md) and a [print-ready PDF](output/pdf/north-echo-agent-security-lab-field-manual-v1.0.pdf). Its source chapters begin with [Modules 01-03](docs/MANUAL_MODULES_01_03.md) and continue through the individual Module 04-12 manuals. They are self-contained: commands, complete guided source listings, line-by-line explanations, expected observations, troubleshooting, checkpoints, lab contracts, and reference material are included rather than delegated to external reading. Architecture and pedagogy are documented in [ARCHITECTURE.md](ARCHITECTURE.md) and [COURSE_DESIGN.md](COURSE_DESIGN.md).
+The complete v1.0.1 field manual is available as [Markdown](docs/FIELD_MANUAL.md) and a [print-ready PDF release asset](https://github.com/north-echo/north-echo-agent-security-lab/releases/download/v1.0.1/FIELD_MANUAL.pdf). Its source chapters begin with [Modules 01-03](docs/MANUAL_MODULES_01_03.md) and continue through the individual Module 04-12 manuals. They are self-contained: commands, complete guided source listings, line-by-line explanations, expected observations, troubleshooting, checkpoints, lab contracts, and reference material are included rather than delegated to external reading. Architecture and pedagogy are documented in [ARCHITECTURE.md](ARCHITECTURE.md) and [COURSE_DESIGN.md](COURSE_DESIGN.md).
 
 Gate A Linux validation is recorded in [validation/RESULTS.md](validation/RESULTS.md); module records are under `validation/module-NN/`, tranche records cover v0.2 through v0.4, and [Gate D](validation/gate-d/RESULTS.md) records the cold capstone and v1.0 acceptance run. Apply [docs/MODULE_ACCEPTANCE_TEMPLATE.md](docs/MODULE_ACCEPTANCE_TEMPLATE.md) at every boundary. `AGENTS.md` keeps the safety, replay, and field-manual standards persistent for future tasks.
 

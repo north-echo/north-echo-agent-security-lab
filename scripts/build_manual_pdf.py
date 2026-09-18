@@ -126,7 +126,7 @@ def footer(canvas, document):
     canvas.line(0.72 * inch, 0.54 * inch, 7.78 * inch, 0.54 * inch)
     canvas.setFillColor(colors.HexColor("#475569"))
     canvas.setFont("Helvetica", 8)
-    canvas.drawString(0.72 * inch, 0.36 * inch, "North Echo Agent Security Lab - v1.0 field manual")
+    canvas.drawString(0.72 * inch, 0.36 * inch, "North Echo Agent Security Lab - v1.0.1 field manual")
     canvas.drawRightString(7.78 * inch, 0.36 * inch, f"{document.page}")
     canvas.restoreState()
 
@@ -151,7 +151,7 @@ def main() -> int:
     document = SimpleDocTemplate(
         str(output), pagesize=LETTER, leftMargin=0.72 * inch, rightMargin=0.72 * inch,
         topMargin=0.68 * inch, bottomMargin=0.72 * inch,
-        title="North Echo Agent Security Lab v1.0 Field Manual",
+        title="North Echo Agent Security Lab v1.0.1 Field Manual",
         author="North Echo",
         subject="Hands-on Linux containment training, Modules 01-12",
     )

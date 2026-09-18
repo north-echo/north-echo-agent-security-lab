@@ -146,8 +146,7 @@ if __name__ == "__main__":
         self.assertIn("10.03", status.stdout)
         self.assertIn("static C toolchain", status.stdout)
         self.assertIn("11.03", status.stdout)
-        scaffold = self.run_cli("start", "12.01", expected=3)
-        self.assertIn("scaffolded", scaffold.stdout)
+        self.assertIn("12.03", status.stdout)
         capstone = self.run_cli("start", "capstone", "--cold", expected=3)
         self.assertIn("not implemented", capstone.stdout)
 
@@ -203,7 +202,7 @@ if __name__ == "__main__":
 
     def test_every_guided_lesson_has_local_line_explanations(self):
         lessons = sorted((SOURCE / "course").glob("module-*/lesson-*/README.md"))
-        self.assertEqual(len(lessons), 33)
+        self.assertEqual(len(lessons), 36)
         for lesson in lessons:
             text = lesson.read_text(encoding="utf-8")
             self.assertIn("### Line by line", text, str(lesson))
@@ -269,6 +268,10 @@ if __name__ == "__main__":
         module_eleven = (SOURCE / "docs" / "MANUAL_MODULE_11.md").read_text(encoding="utf-8")
         for phrase in ("Reproduce a seeded weakness without an agent", "Identify invariants from an evidence matrix", "Repair and prove the hardened counterpart", "Module 11 independent lab"):
             self.assertIn(phrase, module_eleven)
+
+        module_twelve = (SOURCE / "docs" / "MANUAL_MODULE_12.md").read_text(encoding="utf-8")
+        for phrase in ("Establish a scripted baseline", "Adapt within an action budget", "Package a calibrated candidate experiment", "Module 12 independent lab"):
+            self.assertIn(phrase, module_twelve)
 
     def test_handoff_contract_is_present_and_explicit(self):
         agents = (SOURCE / "AGENTS.md").read_text(encoding="utf-8")

@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-version=${1:-v1.0.0}
+version=${1:-v1.0.1}
 destination=${2:-release/dist-${version}}
+release_notes="release/RELEASE_NOTES_${version}.md"
 test "$(git rev-parse --verify "refs/tags/$version^{commit}")" = "$(git rev-parse HEAD)"
 test -z "$(git status --porcelain)"
+test -f "$release_notes"
 mkdir -p "$destination"
 git archive --format=tar.gz --prefix="north-echo-agent-security-lab-${version}/" \
   -o "$destination/north-echo-agent-security-lab-${version}.tar.gz" "$version"
 git bundle create "$destination/north-echo-agent-security-lab-${version}.bundle" --all
 cp docs/FIELD_MANUAL.md "$destination/FIELD_MANUAL.md"
-cp output/pdf/north-echo-agent-security-lab-field-manual-v1.0.pdf "$destination/FIELD_MANUAL.pdf"
-cp release/RELEASE_NOTES_v1.0.0.md "$destination/RELEASE_NOTES.md"
+python3 scripts/build_manual_pdf.py docs/FIELD_MANUAL.md "$destination/FIELD_MANUAL.pdf"
+cp "$release_notes" "$destination/RELEASE_NOTES.md"
 (
   cd "$destination"
   shasum -a 256 FIELD_MANUAL.md FIELD_MANUAL.pdf RELEASE_NOTES.md \

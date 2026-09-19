@@ -25,4 +25,4 @@ The agent policy is a deterministic local teaching fixture, not an AI model. Mod
 
 ## Acceptance disposition
 
-All Module 04 requirements in `docs/MODULE_ACCEPTANCE_TEMPLATE.md` are satisfied. Tranche 1 remains incomplete until Modules 05 and 06 pass the same gate.
+All Module 04 requirements in `docs/dev/MODULE_ACCEPTANCE_TEMPLATE.md` are satisfied. Tranche 1 remains incomplete until Modules 05 and 06 pass the same gate.

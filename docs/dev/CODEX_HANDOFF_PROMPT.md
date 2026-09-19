@@ -4,11 +4,11 @@ Copy the text below into the first task created for this repository on the dispo
 
 ---
 
-Continue building the North Echo Agent Security Lab from this repository. Do not regenerate it from scratch. Read `AGENTS.md` and `HANDOFF.md` first, then follow their required reading order and acceptance gates.
+Continue building the North Echo Agent Security Lab from this repository. Do not regenerate it from scratch. Read `AGENTS.md` and `docs/dev/HANDOFF.md` first, then follow their required reading order and acceptance gates.
 
 Your first gate is to validate the existing v0.1 platform and fully authored Modules 01-03 on this Linux VM. Run the non-destructive preflight, automated tests, course attestation, and the complete matrix in `docs/LINUX_VALIDATION.md`. Fix real portability, safety, lesson, or grader defects with focused regression tests. Record the exact distribution, kernel, architecture, tool versions, results, and limitations. Do not claim Linux validation for anything that did not actually run.
 
-After Gate A passes, build the full course in the three tranches defined in `ROADMAP.md`: Modules 04-06, Modules 07-09, then Modules 10-12 and the cold capstone. Finish every module against `docs/MODULE_ACCEPTANCE_TEMPLATE.md` before calling it playable, and finish each tranche gate before starting the next tranche.
+After Gate A passes, build the full course in the three tranches defined in `ROADMAP.md`: Modules 04-06, Modules 07-09, then Modules 10-12 and the cold capstone. Finish every module against `docs/dev/MODULE_ACCEPTANCE_TEMPLATE.md` before calling it playable, and finish each tranche gate before starting the next tranche.
 
 The course must remain hands-on and independent of AI. Guided lessons need exact commands, complete small code listings, immediate line-by-line explanations, expected output patterns, intentional mistakes, repairs, checkpoints, and troubleshooting. Independent labs must use only practiced skills and must not reveal complete solutions. Practice graders should report failed security properties with useful references; exam graders should reduce hints. Maintain randomized synthetic fixtures, external evaluation fixtures, metadata-only history, safe lesson/module/all reset scopes, and fail-closed registered cleanup.
 

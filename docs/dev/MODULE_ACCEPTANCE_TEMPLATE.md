@@ -29,6 +29,7 @@ Copy this checklist into the validation record for every new module. A scaffold 
 - [ ] Every grading run creates fresh evaluation details independent of the start fixture.
 - [ ] The grader observes behavior or effective state rather than matching source text.
 - [ ] The grader covers functional success, intended denials, and at least one bypass variant.
+- [ ] Security properties that cannot be observed reliably by the external grader on the supported baseline are explicitly identified, justified, and validated through source review or a targeted higher-kernel run.
 - [ ] Practice output names failed properties and relevant lesson references.
 - [ ] Exam output names failed properties but suppresses repair-oriented hints.
 - [ ] Attempt count, last result, mode, and pass state persist; student source and generated secrets do not.
@@ -66,5 +67,5 @@ Copy this checklist into the validation record for every new module. A scaffold 
 
 - [ ] All applicable checks above pass.
 - [ ] Known limitations are precise and do not invalidate a learning objective or safety property.
-- [ ] `README.md`, `ROADMAP.md`, `HANDOFF.md`, and the field manual reflect the same completion state.
+- [ ] `README.md`, `ROADMAP.md`, `docs/dev/HANDOFF.md`, and the field manual reflect the same completion state.
 - [ ] The module status changes from **Scaffold** to **Playable** only now.

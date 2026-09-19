@@ -1,4 +1,4 @@
-# North Echo Agent Security Lab - Complete Field Manual v1.0
+# North Echo Agent Security Lab - Complete Field Manual v1.0.1
 
 This release manual combines the twelve validated module chapters. The cold capstone contract is in the repository and deliberately contains no guided solution.
 
@@ -1461,8 +1461,6 @@ Modules 04-12 are currently planned scaffolds, not automatically generated lesso
 
 The planned path moves from a minimal tool-using agent through filesystem and syscall confinement, resource controls, network mediation, credential brokering, a composed runtime, vulnerable break/fix variants, and an adaptive cold-start capstone.
 
-<!-- PAGEBREAK -->
-
 # Module 04 - Build a minimal tool-using agent
 
 Build a small deterministic agent loop with `read_file`, `write_file`, and argv-based command execution over synthetic tasks. Begin deliberately over-authorized, inventory inherited authority, then define and verify a narrow tool contract.
@@ -1888,8 +1886,6 @@ python3 agent.py sample-task.json trace.jsonl
 
 The lab intentionally does not provide a complete implementation. Plan the dispatcher, per-tool result fields, trace write point, failure aggregation, argv launch, and child environment before coding.
 
-<!-- PAGEBREAK -->
-
 # Module 05 - Confine filesystem access
 
 Turn a directory name into an enforced filesystem boundary. First break lexical path checks with traversal and symlinks. Then anchor lookup to a directory descriptor with `openat2(2)` and add Landlock so an entire child process is restricted. Finally confront Landlock's important pre-opened-file-descriptor limit.
@@ -2259,6 +2255,14 @@ static __u64 supported_rights(int abi) {
         rights |= LANDLOCK_ACCESS_FS_REFER;
     if (abi >= 3)
         rights |= LANDLOCK_ACCESS_FS_TRUNCATE;
+#ifdef LANDLOCK_ACCESS_FS_IOCTL_DEV
+    if (abi >= 5)
+        rights |= LANDLOCK_ACCESS_FS_IOCTL_DEV;
+#endif
+#ifdef LANDLOCK_ACCESS_FS_RESOLVE_UNIX
+    if (abi >= 9)
+        rights |= LANDLOCK_ACCESS_FS_RESOLVE_UNIX;
+#endif
     return rights;
 }
 
@@ -2286,6 +2290,7 @@ int main(int argc, char **argv) {
         perror("Landlock ABI");
         return 1;
     }
+    fprintf(stderr, "Landlock ABI %d\n", abi);
     __u64 rights = supported_rights(abi);
     struct landlock_ruleset_attr ruleset = {.handled_access_fs = rights};
     int ruleset_fd = create_ruleset(&ruleset, sizeof(ruleset), 0);
@@ -2321,14 +2326,30 @@ int main(int argc, char **argv) {
 ### Source, line by line
 
 - The three small syscall wrappers keep the argument ordering visible and return raw success or failure to the caller.
-- `supported_rights` builds the ABI-1 set first. The two version tests prevent a newer right from making ruleset creation fail on an older supported kernel.
+- `supported_rights` builds the ABI-1 set first, then adds rights introduced by ABI 2, 3, 5, and 9 only when both the build headers and the running kernel support them. The preprocessor guards keep the source buildable with older distribution headers.
 - `close_inherited` prefers the kernel's range operation. `CLOSE_RANGE_CLOEXEC` preserves descriptors until `exec` but guarantees the new program cannot inherit them.
 - The fallback queries the descriptor limit and adds `FD_CLOEXEC` only to descriptors that are actually open. Any mutation error fails the launch.
-- `main` queries the ABI before it creates policy. It never treats an unavailable Landlock interface as permission to continue.
+- `main` queries and prints the ABI before it creates policy. It never treats an unavailable Landlock interface as permission to continue.
 - The ruleset declares which operations Landlock will handle; the path-beneath rule grants that same set only under `root_fd`.
 - `PR_SET_NO_NEW_PRIVS` and `restrict_self` are joined by `||`: if either fails, `execv` is unreachable.
 - The policy and root descriptors are closed before inherited descriptors are marked. Standard input, output, and error remain available.
 - `execv(argv[2], &argv[2])` preserves the caller's structured argv. Returning from `execv` is always an error and is reported.
+
+### Unhandled means allowed
+
+Landlock restricts only the access rights listed in `handled_access_fs`. With the historical exception of `LANDLOCK_ACCESS_FS_REFER`, a filesystem right the running kernel supports but the ruleset does not handle stays allowed. A launcher that stops at ABI 3 therefore under-restricts on ABI 5, where `LANDLOCK_ACCESS_FS_IOCTL_DEV` can restrict device IOCTL operations, and on ABI 9, where `LANDLOCK_ACCESS_FS_RESOLVE_UNIX` can restrict pathname UNIX-socket resolution.
+
+Version-aware code can handle only rights known to its source and build headers. The guarded ABI 5 and ABI 9 additions make this source enforce the complete filesystem-right set it knows when the headers expose those constants and the running kernel supports them. If newer headers introduce another filesystem right, this source and its stated guarantee must be reviewed again; runtime ABI detection cannot invent a constant absent at build time.
+
+Checkpoint: print the ABI reported by the running kernel and compare it with the highest filesystem ABI explicitly handled by the source:
+
+```bash
+./landlock-launch demo/allowed /bin/true 2>&1 | head -1
+grep -n 'abi >=' landlock_launch.c
+```
+
+- The first command relies on the launcher's diagnostic and may later deny `/bin/true` because that executable is outside the allowed tree; only its first line is the ABI observation.
+- The second command lists the explicit ABI gates compiled into this source. A high runtime number is not by itself proof that every future right is handled.
 
 Build it:
 
@@ -2341,13 +2362,14 @@ cc -std=c11 -Wall -Wextra -Werror -O2 landlock_launch.c -o landlock-launch
 ### Line by line
 
 - The compiler flags reject warnings and create the lesson-local launcher.
+- Each launch first reports `Landlock ABI N` on standard error, where `N` depends on the running kernel.
 - The first launch grants filesystem rights beneath `demo/allowed`; the static probe executes and prints `allowed`.
 - The second launches the same child under the same policy but asks it to open a protected sibling. Expected: `DENIED` and the shell message.
 
 The source performs these security-sensitive steps in order:
 
 - `landlock_create_ruleset(..., LANDLOCK_CREATE_RULESET_VERSION)` queries the running kernel ABI. Failure is reported; the launcher never silently runs unconfined.
-- `supported_rights` begins with ABI-1 filesystem rights, adds cross-directory `REFER` only for ABI 2+, and adds `TRUNCATE` only for ABI 3+.
+- `supported_rights` begins with ABI-1 filesystem rights and conditionally adds `REFER` for ABI 2+, `TRUNCATE` for ABI 3+, device `IOCTL` for ABI 5+, and pathname UNIX-socket resolution for ABI 9+ when the build headers define those rights.
 - A ruleset handles those rights. A path-beneath rule grants them only under the already-open allowed-root descriptor.
 - The root descriptor is closed after the rule is added.
 - `PR_SET_NO_NEW_PRIVS` is set before `landlock_restrict_self`; unprivileged callers need this promise that `exec` cannot grant new privilege.
@@ -2437,10 +2459,12 @@ Required security properties:
 - `read` prints an allowed regular file and `write` creates or truncates an allowed regular file with exact content;
 - both operations resolve from an opened `ALLOWED_ROOT` descriptor in one kernel operation;
 - absolute paths, `..` traversal, magic links, and every symlink are denied rather than normalized and reopened;
-- `run` queries the Landlock ABI, handles only rights supported by it, grants the child filesystem access beneath `ALLOWED_ROOT`, sets `no_new_privs`, and restricts before `exec`;
+- `run` queries the Landlock ABI, handles every filesystem right known to its source and build headers that the detected ABI supports - including device IOCTL at ABI 5 and pathname UNIX-socket resolution at ABI 9 when those constants are available - grants the child filesystem access beneath `ALLOWED_ROOT`, sets `no_new_privs`, and restricts before `exec`;
 - an executable inside the allowed tree still runs, while that child cannot newly open a protected sibling;
 - inherited descriptors numbered 3 and above are closed on `exec`, preventing a pre-opened protected file from bypassing the pathname policy;
 - malformed or unknown modes fail closed with a nonzero status.
+
+The external grader observes the common path, traversal, symlink, execution, protected-open, and inherited-descriptor properties. ABI 5 device IOCTL and ABI 9 pathname UNIX-socket handling are stated source properties rather than externally graded properties on the Ubuntu 24.04 baseline: observing them safely requires matching newer headers plus controlled device or socket fixtures. Review the guarded rights table and the lesson's ABI checkpoint instead of treating a baseline grader pass as evidence for unavailable kernel features.
 
 The grader changes directory names, relative paths, contents, and synthetic canaries on every run. It compiles its observation child statically inside the allowed tree, creates a symlink to a protected sibling, passes a protected descriptor deliberately, and evaluates a read-only copy of your source.
 
@@ -2473,8 +2497,6 @@ test "$(cat sample-root/output.txt)" = sample-output
 The lab does not provide a completed implementation. Plan separate read/write and run paths, keep the root descriptor alive only as long as needed, make every setup failure stop the command, and preserve the required order: inspect ABI, create ruleset, add rule, set `no_new_privs`, restrict, close inherited authority, then `exec`.
 
 This is an unprivileged local exercise. Do not add `sudo`, mounts, external paths, network access, or real secrets.
-
-<!-- PAGEBREAK -->
 
 # Module 06 - Constrain syscalls with seccomp
 
@@ -2961,8 +2983,6 @@ cc -std=c11 -Wall -Wextra -Werror -O2 seccomp_guard.c -o seccomp-guard $(pkg-con
 
 The lab deliberately withholds a complete implementation. Start from the ordering and justified call set you measured and explained in Lesson 06.03. Seccomp is one runtime layer: this lab does not claim pathname policy, resource accounting, network destination authorization, or protection from already-open descriptors.
 
-<!-- PAGEBREAK -->
-
 # Module 07 - Bound CPU, memory, and process creation
 
 Use cgroup v2 through the ordinary user's delegated systemd manager. Observe effective controller files from inside workloads, trigger bounded pressure, and prove that transient service collection removes the complete process tree.
@@ -3119,8 +3139,6 @@ python3 -m json.tool result.json
 - Practice and exam modes run the same kernel properties with different hint detail.
 
 The lab withholds a complete implementation. Reuse the structured subprocess, unit naming, property ordering, timeout cleanup, and effective-state observations practiced in the guided lessons.
-
-<!-- PAGEBREAK -->
 
 # North Echo field manual - Module 08
 
@@ -3302,6 +3320,8 @@ finally:
     ready.unlink(missing_ok=True)
 ```
 
+<!-- PAGEBREAK -->
+
 #### `connect_probe.py`
 
 ```python
@@ -3464,6 +3484,8 @@ finally:
     ready.unlink(missing_ok=True)
 ```
 
+<!-- PAGEBREAK -->
+
 #### `one_host_broker.py`
 
 ```python
@@ -3507,6 +3529,8 @@ finally:
     listener.close()
     path.unlink(missing_ok=True)
 ```
+
+<!-- PAGEBREAK -->
 
 #### `broker_client.py`
 
@@ -3810,6 +3834,8 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
+<!-- PAGEBREAK -->
+
 #### `redirect_services.py`
 
 ```python
@@ -3874,6 +3900,8 @@ finally:
     protected.server_close()
     ready.unlink(missing_ok=True)
 ```
+
+<!-- PAGEBREAK -->
 
 #### `broker_client.py`
 
@@ -3947,8 +3975,6 @@ The network namespace removes the workload's inherited IP interfaces and routes.
 - **Mediated egress:** a narrower process performs an approved network operation for an isolated caller.
 - **Reauthorization:** repeating policy checks after a request changes, including at every redirect.
 - **Run binding:** requiring a request to name the exact synthetic execution identity authorized by policy.
-
-<!-- PAGEBREAK -->
 
 # North Echo field manual - Module 09
 
@@ -4808,8 +4834,6 @@ The workload receives neither the fake service credential nor the signing key. I
 - **Replay:** reuse of a previously accepted authorization value.
 - **Confused deputy:** a more-privileged component induced to use its authority for a caller-selected target outside the caller's grant.
 - **HMAC:** a keyed message-authentication code that provides integrity and issuer authentication, not confidentiality.
-
-<!-- PAGEBREAK -->
 
 # North Echo field manual - Module 10
 
@@ -5825,8 +5849,6 @@ Required teaching is above. Optional depth: `landlock(7)`, `seccomp(2)`, `proc_p
 
 A complete run has three evidence classes: workload attestation for effective controls, a broker event proving fake-credential use outside the workload, and post-run unit/socket checks proving teardown. Passing only one or two is not a passing composition.
 
-<!-- PAGEBREAK -->
-
 # North Echo field manual - Module 11
 
 This chapter is self-contained for the randomized break/fix research lessons and independent lab. It repeats every guided command, fixture, and complete source listing. All effects are synthetic and local; the harness does not connect to a target or delete cleanup candidates.
@@ -6353,8 +6375,6 @@ Required teaching is above. Optional depth: `subprocess(3)` Python documentation
 ## Completion checkpoint
 
 A credible repair package contains the input plan, bounded reproducer, before evidence, invariant statement, repaired plan, after evidence, functional preservation, idempotence result, and exact cleanup record. Removing any one of these weakens the conclusion.
-
-<!-- PAGEBREAK -->
 
 # North Echo field manual - Module 12
 

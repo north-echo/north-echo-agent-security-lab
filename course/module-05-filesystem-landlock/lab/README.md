@@ -13,10 +13,12 @@ Required security properties:
 - `read` prints an allowed regular file and `write` creates or truncates an allowed regular file with exact content;
 - both operations resolve from an opened `ALLOWED_ROOT` descriptor in one kernel operation;
 - absolute paths, `..` traversal, magic links, and every symlink are denied rather than normalized and reopened;
-- `run` queries the Landlock ABI, handles only rights supported by it, grants the child filesystem access beneath `ALLOWED_ROOT`, sets `no_new_privs`, and restricts before `exec`;
+- `run` queries the Landlock ABI, handles every filesystem right known to its source and build headers that the detected ABI supports - including device IOCTL at ABI 5 and pathname UNIX-socket resolution at ABI 9 when those constants are available - grants the child filesystem access beneath `ALLOWED_ROOT`, sets `no_new_privs`, and restricts before `exec`;
 - an executable inside the allowed tree still runs, while that child cannot newly open a protected sibling;
 - inherited descriptors numbered 3 and above are closed on `exec`, preventing a pre-opened protected file from bypassing the pathname policy;
 - malformed or unknown modes fail closed with a nonzero status.
+
+The external grader observes the common path, traversal, symlink, execution, protected-open, and inherited-descriptor properties. ABI 5 device IOCTL and ABI 9 pathname UNIX-socket handling are stated source properties rather than externally graded properties on the Ubuntu 24.04 baseline: observing them safely requires matching newer headers plus controlled device or socket fixtures. Review the guarded rights table and the lesson's ABI checkpoint instead of treating a baseline grader pass as evidence for unavailable kernel features.
 
 The grader changes directory names, relative paths, contents, and synthetic canaries on every run. It compiles its observation child statically inside the allowed tree, creates a symlink to a protected sibling, passes a protected descriptor deliberately, and evaluates a read-only copy of your source.
 

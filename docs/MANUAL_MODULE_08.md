@@ -178,6 +178,8 @@ finally:
     ready.unlink(missing_ok=True)
 ```
 
+<!-- PAGEBREAK -->
+
 #### `connect_probe.py`
 
 ```python
@@ -340,6 +342,8 @@ finally:
     ready.unlink(missing_ok=True)
 ```
 
+<!-- PAGEBREAK -->
+
 #### `one_host_broker.py`
 
 ```python
@@ -383,6 +387,8 @@ finally:
     listener.close()
     path.unlink(missing_ok=True)
 ```
+
+<!-- PAGEBREAK -->
 
 #### `broker_client.py`
 
@@ -686,6 +692,8 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
+<!-- PAGEBREAK -->
+
 #### `redirect_services.py`
 
 ```python
@@ -750,6 +758,8 @@ finally:
     protected.server_close()
     ready.unlink(missing_ok=True)
 ```
+
+<!-- PAGEBREAK -->
 
 #### `broker_client.py`
 

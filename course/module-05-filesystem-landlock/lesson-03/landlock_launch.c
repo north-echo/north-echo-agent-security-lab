@@ -33,6 +33,14 @@ static __u64 supported_rights(int abi) {
         rights |= LANDLOCK_ACCESS_FS_REFER;
     if (abi >= 3)
         rights |= LANDLOCK_ACCESS_FS_TRUNCATE;
+#ifdef LANDLOCK_ACCESS_FS_IOCTL_DEV
+    if (abi >= 5)
+        rights |= LANDLOCK_ACCESS_FS_IOCTL_DEV;
+#endif
+#ifdef LANDLOCK_ACCESS_FS_RESOLVE_UNIX
+    if (abi >= 9)
+        rights |= LANDLOCK_ACCESS_FS_RESOLVE_UNIX;
+#endif
     return rights;
 }
 
@@ -60,6 +68,7 @@ int main(int argc, char **argv) {
         perror("Landlock ABI");
         return 1;
     }
+    fprintf(stderr, "Landlock ABI %d\n", abi);
     __u64 rights = supported_rights(abi);
     struct landlock_ruleset_attr ruleset = {.handled_access_fs = rights};
     int ruleset_fd = create_ruleset(&ruleset, sizeof(ruleset), 0);

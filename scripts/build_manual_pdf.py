@@ -10,7 +10,7 @@ from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
-from reportlab.platypus import KeepTogether, ListFlowable, ListItem, PageBreak, Paragraph, Preformatted, SimpleDocTemplate, Spacer
+from reportlab.platypus import ListFlowable, ListItem, PageBreak, Paragraph, Preformatted, SimpleDocTemplate, Spacer, Table, TableStyle
 
 
 def escape(text: str) -> str:
@@ -30,7 +30,9 @@ def parse_markdown(markdown: str, styles: dict) -> list:
     paragraph: list[str] = []
     bullets: list[str] = []
     code: list[str] = []
+    table: list[list[str]] = []
     in_code = False
+    included_markdown = False
 
     def flush_paragraph():
         if paragraph:
@@ -58,11 +60,47 @@ def parse_markdown(markdown: str, styles: dict) -> list:
             )
             bullets.clear()
 
+    def flush_table():
+        if not table:
+            return
+        columns = len(table[0])
+        if any(len(row) != columns for row in table):
+            raise ValueError("inconsistent Markdown table column count")
+        width = LETTER[0] - 1.44 * inch - 12
+        widths = ([width * .23, width * .77] if columns == 2 else [width / columns] * columns)
+        rows = [[Paragraph(inline_markup(cell), styles["BodyText"]) for cell in row] for row in table]
+        rendered = Table(rows, colWidths=widths, repeatRows=1, hAlign="LEFT")
+        rendered.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e0f2fe")),
+            ("GRID", (0, 0), (-1, -1), .4, colors.HexColor("#cbd5e1")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ]))
+        story.extend([rendered, Spacer(1, 8)])
+        table.clear()
+
+    def page_break():
+        if story and not isinstance(story[-1], PageBreak):
+            story.append(PageBreak())
+
     for line in lines:
+        if not in_code and line.startswith("|") and line.rstrip().endswith("|"):
+            flush_paragraph()
+            flush_bullets()
+            cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+            if not all(re.fullmatch(r":?-+:?", cell) for cell in cells):
+                table.append(cells)
+            continue
+        if not in_code:
+            flush_table()
         if line.startswith("```"):
             if in_code:
                 story.append(Spacer(1, 10))
-                story.append(KeepTogether([Preformatted("\n".join(code), styles["CodeBlock"])]))
+                if any(len(value) > 104 for value in code):
+                    story.append(Paragraph("Display only: long source lines wrap with a &gt; marker; do not type that marker or its display newline.", styles["BulletText"]))
+                story.append(Preformatted("\n".join(code), styles["CodeBlock"],
+                                          maxLineLength=104, newLineChars="    > "))
                 story.append(Spacer(1, 9))
                 code.clear()
                 in_code = False
@@ -74,33 +112,38 @@ def parse_markdown(markdown: str, styles: dict) -> list:
         if in_code:
             code.append(line)
             continue
+        if line.startswith("<!-- source:"):
+            included_markdown = "format=markdown" in line
+            continue
+        if line == "<!-- /source -->":
+            included_markdown = False
+            continue
+        if included_markdown and re.match(r"^#{1,4} ", line):
+            heading, title = line.split(" ", 1)
+            line = "#" * min(4, len(heading) + 1) + " " + title
         if line.strip() == "<!-- PAGEBREAK -->":
             flush_paragraph()
             flush_bullets()
-            story.append(PageBreak())
+            page_break()
             continue
         if line.startswith("# "):
             flush_paragraph()
             flush_bullets()
-            if story:
-                story.append(PageBreak())
+            page_break()
             story.append(Paragraph(escape(line[2:]), styles["Title"]))
             story.append(Spacer(1, 12))
         elif line.startswith("## "):
             flush_paragraph()
             flush_bullets()
             story.append(Paragraph(escape(line[3:]), styles["Heading2"]))
-            story.append(Spacer(1, 5))
         elif line.startswith("### "):
             flush_paragraph()
             flush_bullets()
             story.append(Paragraph(escape(line[4:]), styles["Heading3"]))
-            story.append(Spacer(1, 3))
         elif line.startswith("#### "):
             flush_paragraph()
             flush_bullets()
             story.append(Paragraph(inline_markup(line[5:]), styles["Heading4"]))
-            story.append(Spacer(1, 2))
         elif line.startswith("> "):
             flush_paragraph()
             flush_bullets()
@@ -109,6 +152,8 @@ def parse_markdown(markdown: str, styles: dict) -> list:
         elif line.startswith("- "):
             flush_paragraph()
             bullets.append(inline_markup(line[2:]))
+        elif bullets and line.startswith("  "):
+            bullets[-1] += " " + inline_markup(line.strip())
         elif not line.strip():
             flush_paragraph()
             flush_bullets()
@@ -117,6 +162,7 @@ def parse_markdown(markdown: str, styles: dict) -> list:
             paragraph.append(line)
     flush_paragraph()
     flush_bullets()
+    flush_table()
     return story
 
 

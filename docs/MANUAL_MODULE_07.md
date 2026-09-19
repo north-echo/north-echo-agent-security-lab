@@ -1,3 +1,4 @@
+<!-- source: course/module-07-cgroups/README.md format=markdown -->
 # Module 07 - Bound CPU, memory, and process creation
 
 Use cgroup v2 through the ordinary user's delegated systemd manager. Observe effective controller files from inside workloads, trigger bounded pressure, and prove that transient service collection removes the complete process tree.
@@ -13,9 +14,11 @@ Outcomes:
 - use bounded transient units whose cleanup is synchronous and ownership-verifiable.
 
 Prerequisites: Modules 01-06, unified cgroup v2, a running delegated systemd user manager, and the `cpu`, `memory`, and `pids` controllers. No root access is used by the exercises.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-07-cgroups/lesson-01/README.md format=markdown -->
 # 07.01 - Observe an effective CPU quota
 
 ## Goal
@@ -48,9 +51,11 @@ systemd-run --user --wait --pipe --collect --quiet --property=CPUQuota=50% -- py
 
 - If the user manager is unavailable, use the documented VM login session; do not switch to system units or `sudo`.
 - Quota throttles aggregate CPU time for the cgroup tree; it does not guarantee wall-clock latency or fair scheduling.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-07-cgroups/lesson-02/README.md format=markdown -->
 # 07.02 - Bound memory and observe OOM
 
 ## Goal
@@ -88,9 +93,11 @@ Intentional failure: run the 96 MiB request without `MemoryMax`. It completes an
 
 - A nonzero result is expected; do not increase the allocation or change host overcommit settings.
 - `memory.max` bounds charged memory, while OOM outcome can vary with interpreter startup and kernel accounting. The stable property is containment below the configured ceiling.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-07-cgroups/lesson-03/README.md format=markdown -->
 # 07.03 - Bound process-tree growth and collect it
 
 ## Goal
@@ -123,9 +130,11 @@ systemd-run --user --wait --pipe --collect --quiet --property=TasksMax=12 -- pyt
 
 - Never substitute an unbounded fork loop. The fixed upper bound and short sleep make failure recoverable.
 - A PID controller bounds task creation; it does not limit CPU or memory, so compose all required controllers.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-07-cgroups/lab/README.md format=markdown -->
 # Module 07 independent lab - Bounded transient runner
 
 Implement `resource_runner.py`. The grader invokes:
@@ -154,3 +163,4 @@ python3 -m json.tool result.json
 - Practice and exam modes run the same kernel properties with different hint detail.
 
 The lab withholds a complete implementation. Reuse the structured subprocess, unit naming, property ordering, timeout cleanup, and effective-state observations practiced in the guided lessons.
+<!-- /source -->

@@ -127,6 +127,30 @@ rm "$DEMO/spec.json" "$DEMO/result.json" "$DEMO/event.json"
 rmdir "$DEMO/allowed" "$DEMO"
 ```
 
+## Faded practice - From one job to a batch
+
+Before the cold capstone, practice orchestration without changing the controls.
+In this disposable lesson workspace, use the JSON-list validation and ordered
+trace skills from Module 04 to plan three copies of an already validated runtime
+spec. Give them distinct IDs and predict what should happen for workload exit
+statuses 0, 7, and 0. Write the prediction in `batch-notes.md`.
+
+Your independent exercise is to invoke the single-job interface sequentially,
+preserve IDs and statuses in input order, and inspect exact unit collection after
+each invocation. Use simple local static workers, not a broker that only accepts
+one connection. Change one resource budget and verify its effective cgroup value
+rather than merely inspecting the input JSON.
+
+Deliberate mistake: validate and launch the first job before looking at the
+second. Make the second job's task limit zero. Explain in `batch-notes.md` why
+partial execution is inappropriate for malformed input. Repair the sequence by
+validating all specs and unique identities before any launch. An ordinary worker
+exit of 7 is different: its spec was valid, so later jobs should still run.
+
+Checkpoint: show ordered 0/7/0 outcomes, no remaining owned units, and rejection
+of a malformed later spec before any workload runs. No batch implementation is
+provided; the capstone applies these practiced operations under fresh profiles.
+
 ## Checkpoint and troubleshooting
 
 - If the broker socket is not ready, inspect only the owned broker PID and its exact synthetic paths; do not search for or kill name-matched host processes.

@@ -1,6 +1,6 @@
 # North Echo Agent Security Lab
 
-## v0.1 field manual - Modules 01-03
+## Foundation field manual - Modules 01-03
 
 This is the self-contained teaching manual for the first three playable modules. It assumes no prior systems-programming expertise. The goal is not to memorize commands. The goal is to build a reliable mental model of what authority a Linux process carries and to verify every containment claim from observable kernel state.
 
@@ -207,6 +207,7 @@ ls -l /proc/$$/ns
 
 Complete source:
 
+<!-- source: course/module-01-process-authority/lesson-01/hello-syscall.c format=code -->
 ```c
 #include <stdio.h>
 #include <unistd.h>
@@ -222,6 +223,7 @@ int main(void) {
     return 0;
 }
 ```
+<!-- /source -->
 
 ### Source, line by line
 
@@ -352,6 +354,7 @@ strace -f -e trace=execve python3 show-env.py 2>&1 | head -20
 
 Launcher source:
 
+<!-- source: course/module-01-process-authority/lesson-02/launch-insecure.py format=code -->
 ```python
 #!/usr/bin/env python3
 import os
@@ -361,6 +364,7 @@ import subprocess
 child_env = os.environ.copy()
 subprocess.run(["python3", "show-env.py"], env=child_env, check=True)
 ```
+<!-- /source -->
 
 ### Launcher source, line by line
 
@@ -373,6 +377,7 @@ subprocess.run(["python3", "show-env.py"], env=child_env, check=True)
 
 Observer source:
 
+<!-- source: course/module-01-process-authority/lesson-02/show-env.py format=code -->
 ```python
 #!/usr/bin/env python3
 import os
@@ -380,6 +385,7 @@ import os
 print("DEMO_AGENT_TOKEN=" + os.environ.get("DEMO_AGENT_TOKEN", "<absent>"))
 print("PATH=" + os.environ.get("PATH", "<absent>"))
 ```
+<!-- /source -->
 
 ### Observer source, line by line
 
@@ -441,6 +447,7 @@ Opening a path performs resolution and access checks, creates or references an o
 
 Parent source:
 
+<!-- source: course/module-01-process-authority/lesson-03/fd-parent.c format=code -->
 ```c
 #define _GNU_SOURCE
 #include <fcntl.h>
@@ -464,6 +471,7 @@ int main(int argc, char **argv) {
     return 1;
 }
 ```
+<!-- /source -->
 
 ### Parent source, line by line
 
@@ -478,6 +486,7 @@ int main(int argc, char **argv) {
 
 Child source:
 
+<!-- source: course/module-01-process-authority/lesson-03/fd-child.py format=code -->
 ```python
 #!/usr/bin/env python3
 import os
@@ -495,6 +504,7 @@ for fd in range(0, 32):
         except OSError:
             pass
 ```
+<!-- /source -->
 
 ### Child source, line by line
 
@@ -925,6 +935,7 @@ The command must receive fresh user, UTS, PID, and mount namespaces; the randomi
 
 Starter source:
 
+<!-- source: course/module-02-namespaces/lab/sandbox.sh format=code -->
 ```bash
 #!/bin/sh
 set -eu
@@ -937,6 +948,7 @@ fi
 # Intentional starter flaw: this does not create any isolation.
 exec "$@"
 ```
+<!-- /source -->
 
 ### Starter source, line by line
 
@@ -1208,6 +1220,7 @@ The phrase “drop capabilities” is underspecified. Name every relevant set, s
 
 Complete source:
 
+<!-- source: course/module-03-privilege/lesson-03/nnp-launch.c format=code -->
 ```c
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -1228,6 +1241,7 @@ int main(int argc, char **argv) {
     return 1;
 }
 ```
+<!-- /source -->
 
 ### Source, line by line
 
@@ -1451,6 +1465,6 @@ If the commands feel familiar but the answer is not sitting in front of you, rep
 
 ## What comes next
 
-Modules 04-12 are currently planned scaffolds, not automatically generated lessons. Future releases will build them into the same pattern: guided examples, exact commands, line explanations, deliberate failures, randomized fixtures, independent labs, property-based graders, safe reset, and replay.
+Modules 04-12 continue this course with guided examples, exact commands, line explanations, deliberate failures, randomized fixtures, independent labs, property-based graders, safe reset, and replay. Their chapters follow in the complete manual.
 
-The planned path moves from a minimal tool-using agent through filesystem and syscall confinement, resource controls, network mediation, credential brokering, a composed runtime, vulnerable break/fix variants, and an adaptive cold-start capstone.
+The path moves from a minimal tool-using agent through filesystem and syscall confinement, resource controls, network mediation, credential brokering, a composed runtime, break/fix analysis, bounded evidence interpretation, and a cold batch-runtime capstone. Use the cumulative checkpoints in `docs/LEARNING_PATH.md` before advancing.

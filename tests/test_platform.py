@@ -16,7 +16,7 @@ class PlatformTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="north-echo-test-")
         self.root = Path(self.temporary.name) / "repo"
-        shutil.copytree(SOURCE, self.root, ignore=shutil.ignore_patterns(".student", ".fixtures", ".runtime", ".state", "__pycache__", "*.pyc"))
+        shutil.copytree(SOURCE, self.root, ignore=shutil.ignore_patterns(".student", ".fixtures", ".runtime", ".state", "__pycache__", "*.pyc", ".git", "output", "dist-*"))
         for name in (".student", ".fixtures", ".runtime", ".state"):
             (self.root / name).mkdir()
 
@@ -335,15 +335,13 @@ if __name__ == "__main__":
         self.assertLess(template.index('if [[ -f "$ready_marker" ]]'), template.index("apt-get update"))
         self.assertLess(template.rindex('if [[ -f "$ready_marker" ]]'), template.index('curl --fail'))
 
-    def test_v102_release_versions_are_aligned(self):
-        root_marker = (SOURCE / ".north-echo-root").read_text(encoding="utf-8")
-        package = (SOURCE / "scripts" / "northecho" / "__init__.py").read_text(encoding="utf-8")
-        manual_builder = (SOURCE / "scripts" / "build_field_manual.py").read_text(encoding="utf-8")
-        release_builder = (SOURCE / "scripts" / "build-release").read_text(encoding="utf-8")
-        template = (SOURCE / "deploy" / "north-echo.yaml").read_text(encoding="utf-8")
-        for text in (root_marker, package, manual_builder, release_builder, template):
-            self.assertIn("1.0.2", text)
-        self.assertTrue((SOURCE / "release" / "RELEASE_NOTES_v1.0.2.md").is_file())
+    def test_release_metadata_matches_version_source(self):
+        version = (SOURCE / "VERSION").read_text().strip()
+        run = subprocess.run([sys.executable, str(SOURCE / "scripts/labctl.py"), "--version"],
+                             text=True, capture_output=True, check=True)
+        self.assertEqual(run.stdout.strip(), version)
+        self.assertIn(f"Complete Field Manual v{version}", (SOURCE / "docs/FIELD_MANUAL.md").read_text())
+        self.assertTrue((SOURCE / "release" / f"RELEASE_NOTES_v{version}.md").is_file())
 
     def test_handoff_contract_is_present_and_explicit(self):
         agents = (SOURCE / "AGENTS.md").read_text(encoding="utf-8")

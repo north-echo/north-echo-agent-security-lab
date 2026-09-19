@@ -4,13 +4,13 @@ Run this matrix only in a disposable Linux VM with synthetic data and no persona
 
 ## Supported baseline
 
-The first supported target is Ubuntu 24.04 or Debian 12 on x86-64 or arm64 with a recent distribution kernel. Record the exact environment:
+The validated baseline is Ubuntu 24.04 on x86-64 and arm64; individual records identify the exact source, image, and kernel tested. Debian 12 remains an unvalidated candidate, not an equivalent supported baseline. Record the exact environment:
 
 ```bash
 mkdir -p validation
 {
   date -u +%Y-%m-%dT%H:%M:%SZ
-  uname -a
+  uname -srmo
   test -r /etc/os-release && cat /etc/os-release
   python3 --version
   cc --version | head -n 1
@@ -26,7 +26,7 @@ mkdir -p validation
 - `mkdir -p validation` creates a dedicated directory for synthetic validation records and succeeds if it already exists.
 - `{ ...; }` groups the inventory commands so one pipe can capture all of them.
 - `date -u` records the check time in UTC without depending on a local timezone label.
-- `uname -a` records kernel and architecture; `/etc/os-release` records the distribution.
+- `uname -srmo` records kernel and architecture without the guest hostname; `/etc/os-release` records the distribution.
 - The version commands identify the user-space tools that influence the lessons.
 - `2>&1` joins standard error to standard output for tools that print their version there.
 - `tee` shows the inventory and stores the same text. Inspect it before sharing and remove unexpected host-identifying details.
@@ -37,17 +37,19 @@ mkdir -p validation
 ./scripts/linux-preflight | tee validation/preflight.txt
 ```
 
-Expected: all v0.1 required checks report `PASS`. Future-module checks may report `INFO` or `MISSING` until their packages and VM configuration are added. Do not weaken the host to turn a missing feature into a pass.
+Expected: every required check reports `PASS`, including actual Landlock/seccomp enforcement and effective delegated CPU/memory/swap/task limits. Optional `INFO` tools do not affect readiness. Run this before grading; do not weaken the host to force a pass.
 
 ## Gate 1: control plane and integrity
 
 ```bash
-python3 -m unittest discover -s tests -v 2>&1 | tee validation/tests.txt
+set -o pipefail
+python3 scripts/run_tests.py --require-no-skips 2>&1 | tee validation/tests.txt
 ./scripts/attest-course | tee validation/attestation.txt
+python3 scripts/build_field_manual.py --check
 ./lab-status | tee validation/status-before.txt
 ```
 
-Expected: the test suite and attestation pass. Initial status should show zero or previously recorded metadata, but there should be no unexplained student workspace or fixture.
+Expected: the entire test suite passes with zero skips, attestation passes, and canonical/manual synchronization passes. Use Bash for `pipefail` so a logging pipe cannot mask failure. Initial status should show zero or previously recorded metadata, but there should be no unexplained student workspace or fixture.
 
 ## Gate 2: Modules 01-03 guided paths
 
@@ -188,3 +190,16 @@ Create `validation/RESULTS.md` with:
 - confirmation that completed student solutions were reset and not committed.
 
 Gate A passes only when Modules 01-03 work end to end on Linux and cleanup leaves no lab-owned resource behind.
+
+## Full-course maintenance gate
+
+The historical Gates 2–3 above define the original foundation acceptance, not a full-course maintenance pass. For changes after v1.0.2:
+
+- Run strict tests across Modules 01–12 and the distinct ordered-batch capstone on Ubuntu x86-64 and arm64. Reference implementations are test fixtures, not evidence of human learning.
+- Re-exercise each changed guided interface, intentional failure, repair, and checkpoint in a fresh student workspace. Retain outcome logs, never student solutions.
+- Compile changed native sources with `-Wall -Wextra -Werror` and the lesson's other flags.
+- Verify portable Module 12 evidence replay after moving the bundle to a new directory, with a complete hash inventory.
+- Check latest-failure versus historical-pass status, concurrent progress updates, invalid-resource no-mutation behavior, and timeout registry retention.
+- Rebuild the manual from canonical includes, check synchronization, and render/inspect the PDF before releasing it.
+- For deployment changes, record the exact image digests and installed package revisions; test marker-preserving reboot, plain-mode evidence copy, and a deliberately failing readiness probe. Do not imply that a pinned image pins later apt packages.
+- Record the source commit or candidate archive digest, all skips, and any untested architecture. Follow `docs/dev/LEARNER_PILOT.md` separately for human learning evidence.

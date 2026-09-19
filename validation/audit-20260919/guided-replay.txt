@@ -1,0 +1,76 @@
+NORTH ECHO AGENT SECURITY LAB
+
+START 12.02 - Adapt within an action budget
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <guest-home>/north-echo-audit-source/.student/12.02
+Mode: practice
+Attempt: 1
+Open README.md in the workspace and begin with Exercise 1.
+[
+  {
+    "case_id": "complete-hardened",
+    "claim": "limited to the supplied observations; security is not established",
+    "failures": [],
+    "missing": [],
+    "status": "passed_observations"
+  },
+  {
+    "case_id": "complete-seeded",
+    "claim": "limited to the supplied observations; security is not established",
+    "failures": [
+      "protected_read"
+    ],
+    "missing": [],
+    "status": "observed_failure"
+  },
+  {
+    "case_id": "incomplete-seeded",
+    "claim": "limited to the supplied observations; security is not established",
+    "failures": [],
+    "missing": [
+      "protected_read"
+    ],
+    "status": "inconclusive"
+  },
+  {
+    "case_id": "ambiguous-hardened",
+    "claim": "limited to the supplied observations; security is not established",
+    "failures": [],
+    "missing": [
+      "protected_read"
+    ],
+    "status": "inconclusive"
+  }
+]
+NORTH ECHO AGENT SECURITY LAB
+
+RESET COMPLETE
+  remove <guest-home>/north-echo-audit-source/.student/12.02
+  remove <guest-home>/north-echo-audit-source/.fixtures/12.02
+
+Attempt/pass metadata was preserved; student source and fixtures were not.
+NORTH ECHO AGENT SECURITY LAB
+
+START 12.03 - Package a calibrated candidate experiment
+Creating clean workspace... done
+Generating synthetic fixtures... done
+Verifying canonical course... done
+
+READY
+Workspace: <guest-home>/north-echo-audit-source/.student/12.03
+Mode: practice
+Attempt: 1
+Open README.md in the workspace and begin with Exercise 1.
+NORTH ECHO AGENT SECURITY LAB
+
+RESET COMPLETE
+  remove <guest-home>/north-echo-audit-source/.student/12.03
+  remove <guest-home>/north-echo-audit-source/.fixtures/12.03
+
+Attempt/pass metadata was preserved; student source and fixtures were not.
+COURSE ATTESTATION: PASS
+GUIDED EVIDENCE REPLAY, DELIBERATE FAILURE, REPAIR, RESET: PASS

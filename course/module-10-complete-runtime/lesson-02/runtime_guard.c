@@ -36,6 +36,14 @@ static __u64 supported_rights(int abi) {
         rights |= LANDLOCK_ACCESS_FS_REFER;
     if (abi >= 3)
         rights |= LANDLOCK_ACCESS_FS_TRUNCATE;
+#ifdef LANDLOCK_ACCESS_FS_IOCTL_DEV
+    if (abi >= 5)
+        rights |= LANDLOCK_ACCESS_FS_IOCTL_DEV;
+#endif
+#ifdef LANDLOCK_ACCESS_FS_RESOLVE_UNIX
+    if (abi >= 9)
+        rights |= LANDLOCK_ACCESS_FS_RESOLVE_UNIX;
+#endif
     return rights;
 }
 
@@ -47,6 +55,12 @@ static int install_landlock(const char *allowed_root) {
     __u64 read_execute = LANDLOCK_ACCESS_FS_EXECUTE | LANDLOCK_ACCESS_FS_READ_FILE |
                           LANDLOCK_ACCESS_FS_READ_DIR;
     __u64 read_only = LANDLOCK_ACCESS_FS_READ_FILE | LANDLOCK_ACCESS_FS_READ_DIR;
+#ifdef LANDLOCK_ACCESS_FS_RESOLVE_UNIX
+    /* The broker is intentionally reachable only below the workload root. */
+    if (abi >= 9)
+        read_execute |= LANDLOCK_ACCESS_FS_RESOLVE_UNIX;
+#endif
+    fprintf(stderr, "Landlock ABI %d; explicit build-known filesystem policy\n", abi);
     struct landlock_ruleset_attr ruleset = {.handled_access_fs = handled};
     int ruleset_fd = create_ruleset(&ruleset, sizeof(ruleset), 0);
     if (ruleset_fd == -1)

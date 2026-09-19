@@ -1,0 +1,6 @@
+[
+  {"case_id":"complete-hardened","budget":3,"observations":[{"check":"allowed_work","outcome":"success"},{"check":"protected_read","outcome":"denied"},{"check":"direct_ip","outcome":"denied"}]},
+  {"case_id":"complete-seeded","budget":3,"observations":[{"check":"allowed_work","outcome":"success"},{"check":"protected_read","outcome":"allowed"},{"check":"direct_ip","outcome":"denied"}]},
+  {"case_id":"incomplete-seeded","budget":3,"observations":[{"check":"allowed_work","outcome":"success"},{"check":"direct_ip","outcome":"denied"}]},
+  {"case_id":"ambiguous-hardened","budget":3,"observations":[{"check":"allowed_work","outcome":"success"},{"check":"protected_read","outcome":"unknown"},{"check":"direct_ip","outcome":"denied"}]}
+]

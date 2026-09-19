@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from northecho.grading import Check
+from northecho.grading import Check, run_bounded
 
 
 PROBE_SOURCE = r'''
@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
 
 def _run(argv: list[str]) -> subprocess.CompletedProcess[str] | None:
     try:
-        return subprocess.run(argv, text=True, capture_output=True, timeout=8)
+        return run_bounded(argv, text=True, capture_output=True, timeout=8)
     except subprocess.TimeoutExpired:
         return None
 
@@ -63,7 +63,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
         shutil.copy2(source, copied)
         copied.chmod(0o444)
         launcher = submission / "seccomp-guard"
-        compiled = subprocess.run(
+        compiled = run_bounded(
             ["cc", "-std=c11", "-Wall", "-Wextra", "-Werror", "-O2", str(copied), "-o", str(launcher), "-lseccomp"],
             text=True, capture_output=True,
         )
@@ -72,7 +72,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
         probe_source = evaluation / "probe.c"
         probe = evaluation / "probe"
         probe_source.write_text(PROBE_SOURCE, encoding="utf-8")
-        probe_build = subprocess.run(["cc", "-std=c11", "-Wall", "-Wextra", "-O2", "-static", str(probe_source), "-o", str(probe)], text=True, capture_output=True)
+        probe_build = run_bounded(["cc", "-std=c11", "-Wall", "-Wextra", "-O2", "-static", str(probe_source), "-o", str(probe)], text=True, capture_output=True)
         if probe_build.returncode != 0:
             return [Check("The grader's static probe builds", False, "Use the documented disposable VM toolchain")]
         data = f"allowed-{fixture['hostname']}\n"

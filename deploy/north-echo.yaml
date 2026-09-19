@@ -114,10 +114,17 @@ provision:
         python3 --version
         cc --version | head -n 1
       } > "$evidence_dir/environment.txt"
+      mapfile -t packages < /usr/local/share/north-echo/ubuntu-packages.txt
+      dpkg-query -W -f='${binary:Package}\t${Version}\n' "${packages[@]}" \
+        > "$evidence_dir/packages.tsv"
 
       cd "$course_dir"
-      python3 -m unittest discover -s tests -v \
-        > "$evidence_dir/tests.txt" 2>&1
+      # Use the standard library so the template also supports earlier tagged releases.
+      python3 - > "$evidence_dir/tests.txt" 2>&1 <<'PY'
+      import sys, unittest
+      result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.discover("tests"))
+      sys.exit(0 if result.wasSuccessful() and not result.skipped else 1)
+      PY
       ./scripts/attest-course > "$evidence_dir/attestation.txt" 2>&1
       ./scripts/linux-preflight > "$evidence_dir/preflight.txt" 2>&1
       cc -std=c11 -Wall -Wextra -Werror -O2 \

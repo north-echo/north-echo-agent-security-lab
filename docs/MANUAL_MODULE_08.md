@@ -6,6 +6,7 @@ This chapter is self-contained for the guided networking exercises and independe
 
 ## Module overview
 
+<!-- source: course/module-08-network-egress/README.md format=markdown -->
 # Module 08 - Isolate the network and mediate egress
 
 Remove the workload's inherited IP network, then expose only a narrow HTTP capability through a filesystem Unix socket. The broker uses an explicit synthetic name-to-loopback map, binds requests to a run identity, and authorizes every redirect again.
@@ -22,11 +23,13 @@ Outcomes:
 - bound request and response sizes and cleanly remove the broker socket.
 
 All services are synthetic and bind only to `127.0.0.1`. The exercises do not create veth devices, routes, firewall rules, DNS traffic, or public requests. Prerequisites are Modules 01-07 and Linux support for unprivileged user plus network namespaces.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 08.01
 
+<!-- source: course/module-08-network-egress/lesson-01/README.md format=markdown -->
 # 08.01 - Remove the inherited IP network
 
 ## Goal
@@ -138,11 +141,13 @@ test "$loopback_status" -ne 0
 - If `unshare` reports `Operation not permitted`, use the documented disposable VM and its narrow user-namespace setup; do not weaken a work host.
 - If the first connection fails, select another high port and ensure no stale lesson process remains.
 - Checkpoint: explain why both namespaces can have an interface named `lo` while their `127.0.0.1` services remain disjoint.
+<!-- /source -->
 
 ### Complete guided source listings
 
 #### `local_http.py`
 
+<!-- source: course/module-08-network-egress/lesson-01/local_http.py format=code -->
 ```python
 #!/usr/bin/env python3
 """One bounded synthetic HTTP response on loopback."""
@@ -177,11 +182,13 @@ finally:
     server.server_close()
     ready.unlink(missing_ok=True)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 #### `connect_probe.py`
 
+<!-- source: course/module-08-network-egress/lesson-01/connect_probe.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Attempt one TCP connection and report the network namespace identity."""
@@ -207,11 +214,13 @@ except OSError as error:
 print(json.dumps(result, sort_keys=True))
 raise SystemExit(0 if result["connected"] else 1)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 08.02
 
+<!-- source: course/module-08-network-egress/lesson-02/README.md format=markdown -->
 # 08.02 - Reach one service through a Unix-socket broker
 
 ## Goal
@@ -302,11 +311,13 @@ test ! -e "$SOCKET"
 - If the socket path already exists, remove it only after proving it is the exact lesson path and no owned broker is running.
 - If the client gets `Connection refused`, inspect the bounded readiness loop and exact saved PID.
 - Checkpoint: explain why an `AF_UNIX` connection crosses this network-namespace boundary without restoring any IP destination authority.
+<!-- /source -->
 
 ### Complete guided source listings
 
 #### `synthetic_http.py`
 
+<!-- source: course/module-08-network-egress/lesson-02/synthetic_http.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Serve synthetic content on host loopback until interrupted."""
@@ -341,11 +352,13 @@ finally:
     server.server_close()
     ready.unlink(missing_ok=True)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 #### `one_host_broker.py`
 
+<!-- source: course/module-08-network-egress/lesson-02/one_host_broker.py format=code -->
 ```python
 #!/usr/bin/env python3
 """A one-request Unix-socket broker for one exact synthetic destination."""
@@ -387,11 +400,13 @@ finally:
     listener.close()
     path.unlink(missing_ok=True)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 #### `broker_client.py`
 
+<!-- source: course/module-08-network-egress/lesson-02/broker_client.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Send one structured request to a filesystem Unix socket."""
@@ -414,11 +429,13 @@ with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as stream:
     stream.shutdown(socket.SHUT_WR)
     print(stream.makefile("r", encoding="utf-8").readline(), end="")
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 08.03
 
+<!-- source: course/module-08-network-egress/lesson-03/README.md format=markdown -->
 # 08.03 - Reauthorize names, ports, redirects, and runs
 
 ## Goal
@@ -524,11 +541,13 @@ test ! -e "$PWD/check.sock"
 - If a redirect reports `destination is not authorized`, inspect the new hostname and effective port. Do not allow it merely to silence the failure.
 - If termination leaves a path, confirm you signaled the exact broker PID and that the process exited normally.
 - Checkpoint: identify the authorization decision made before the first connection and the same decision made again before a redirect connection.
+<!-- /source -->
 
 ### Complete guided source listings
 
 #### `egress_broker.py`
 
+<!-- source: course/module-08-network-egress/lesson-03/egress_broker.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Policy-bound loopback HTTP broker over a Unix-domain socket."""
@@ -691,11 +710,13 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 #### `redirect_services.py`
 
+<!-- source: course/module-08-network-egress/lesson-03/redirect_services.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Synthetic allowed and protected HTTP services for redirect exercises."""
@@ -758,11 +779,13 @@ finally:
     protected.server_close()
     ready.unlink(missing_ok=True)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 #### `broker_client.py`
 
+<!-- source: course/module-08-network-egress/lesson-03/broker_client.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Send one JSON request to the lesson broker."""
@@ -780,11 +803,13 @@ with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as stream:
     stream.shutdown(socket.SHUT_WR)
     print(stream.makefile("r", encoding="utf-8").readline(), end="")
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Independent lab
 
+<!-- source: course/module-08-network-egress/lab/README.md format=markdown -->
 # Module 08 independent lab - Policy-bound egress broker
 
 Implement `egress_broker.py`. The grader invokes:
@@ -820,6 +845,7 @@ python3 -m py_compile egress_broker.py
 - Exam mode runs the same behavior checks with reduced repair guidance.
 
 Use only the disposable VM and grader-created synthetic loopback services. Do not add veth devices, routes, firewall rules, DNS requests, public endpoints, or a permissive fallback.
+<!-- /source -->
 
 ## Security model summary
 

@@ -1,3 +1,4 @@
+<!-- source: course/module-05-filesystem-landlock/README.md format=markdown -->
 # Module 05 - Confine filesystem access
 
 Turn a directory name into an enforced filesystem boundary. First break lexical path checks with traversal and symlinks. Then anchor lookup to a directory descriptor with `openat2(2)` and add Landlock so an entire child process is restricted. Finally confront Landlock's important pre-opened-file-descriptor limit.
@@ -15,9 +16,11 @@ Outcomes:
 Prerequisites: Modules 01-04, Linux, a C compiler, Linux UAPI headers containing `openat2.h` and `landlock.h`, and a kernel with `openat2` and Landlock. The lessons require no root privilege, mount, network access, or host policy change.
 
 Cross-layer boundary: `openat2` protects individual brokered lookups. Landlock restricts future filesystem operations by the launched process. Neither one closes an already-open descriptor; descriptor hygiene from Module 01 remains necessary.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-05-filesystem-landlock/lesson-01/README.md format=markdown -->
 # 05.01 - Break pathname string checks
 
 ## Goal
@@ -127,9 +130,11 @@ test "$(python3 resolved_open.py demo/allowed note.txt)" = allowed
 - If `ln` says the link exists, rerun the scoped `rm -rf demo` setup.
 - If `resolve(strict=True)` reports a missing file, verify the setup paths rather than weakening strict resolution.
 - Checkpoint: explain why component-aware resolution repairs these examples but is not atomic authorization.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-05-filesystem-landlock/lesson-02/README.md format=markdown -->
 # 05.02 - Make lookup descriptor-relative with `openat2`
 
 ## Goal
@@ -267,9 +272,11 @@ test "$(./safe-open demo/allowed note.txt)" = allowed
 - `ENOSYS` means the running kernel lacks `openat2`; record the exact kernel and use a supported disposable VM.
 - If the safe link succeeds, confirm the repaired binary was rebuilt from `safe_open.c`.
 - Checkpoint: point to the directory descriptor, the kernel resolution flags, and the single operation that joins authorization to use.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-05-filesystem-landlock/lesson-03/README.md format=markdown -->
 # 05.03 - Restrict a child with Landlock
 
 ## Goal
@@ -553,9 +560,11 @@ test "$(./landlock-launch "$PWD/demo/allowed" "$PWD/demo/allowed/fd-probe" path 
 - `Permission denied` on the allowed executable usually means the probe is outside the allowed tree or was not compiled successfully.
 - A visible synthetic secret in the final command means inherited descriptors were not marked close-on-exec.
 - Checkpoint: identify which assertion tests Landlock and which tests the independent descriptor-hygiene layer.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-05-filesystem-landlock/lab/README.md format=markdown -->
 # Module 05 independent lab - Filesystem guard
 
 Implement `fs_guard.c`. The grader builds one executable and invokes these interfaces:
@@ -609,3 +618,4 @@ test "$(cat sample-root/output.txt)" = sample-output
 The lab does not provide a completed implementation. Plan separate read/write and run paths, keep the root descriptor alive only as long as needed, make every setup failure stop the command, and preserve the required order: inspect ABI, create ruleset, add rule, set `no_new_privs`, restrict, close inherited authority, then `exec`.
 
 This is an unprivileged local exercise. Do not add `sudo`, mounts, external paths, network access, or real secrets.
+<!-- /source -->

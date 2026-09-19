@@ -10,12 +10,21 @@ The next task should work in this repository rather than regenerate it from a sp
 
 ## Current checkpoint
 
+Unreleased audit implementation is tracked in `docs/dev/AUDIT_IMPLEMENTATION.md`.
+It hardens cleanup and grading, introduces behavioral preflight and strict tests,
+replaces the copied single-job capstone with ordered-batch transfer assessment,
+adds offline evidence interpretation and portable replay, synchronizes manual
+listings from canonical sources, and adds a diagnostic/checkpoint/pilot pathway.
+The historical results below belong to the published release; they are not
+validation claims for the changed working tree. Follow the audit record for its
+new evidence and remaining release/human-study gates.
+
 - Project: **North Echo Agent Security Lab**
 - Source checkpoint: published v1.0.2 release at tagged commit `036c8e6376102a7dd5b0066ed77fe903429cea06`, with the pinned Lima appliance and completed deployment validation
 - Modules 01-12: fully authored and Linux-validated, with thirty-six guided lessons and twelve independent labs
 - Platform lifecycle: start, status, grade, lesson/module/all reset, dry-run cleanup, randomized fixtures, practice/exam modes, and metadata-only progress are implemented
 - Field manual: Modules 01-12 have synchronized, self-contained chapters with complete guided source, local explanations, expected observations, troubleshooting, labs, and security models
-- Current automated result: 44 tests passing, course attestation passing, and continuous Ubuntu 24.04 CI passing on x86-64 and arm64
+- Published v1.0.2 automated result: 44 tests passing, course attestation passing, and continuous Ubuntu 24.04 CI passing on x86-64 and arm64
 - Gate A record: `validation/RESULTS.md`; no required Gate A step was skipped
 - Module 04 record: `validation/module-04/RESULTS.md`; all module acceptance items passed
 - Module 05 record: `validation/module-05/RESULTS.md`; all module acceptance items passed

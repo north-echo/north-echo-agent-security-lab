@@ -8,7 +8,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from northecho.grading import Check
+from northecho.grading import Check, run_bounded
 
 
 def _records(path: Path) -> list[dict] | None:
@@ -28,7 +28,7 @@ def _field(record: dict, name: str):
 
 def _run(agent: Path, task: Path, trace: Path, cwd: Path, environment: dict) -> subprocess.CompletedProcess[str] | None:
     try:
-        return subprocess.run(
+        return run_bounded(
             [sys.executable, str(agent), str(task), str(trace)],
             cwd=cwd,
             env=environment,

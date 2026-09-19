@@ -4,17 +4,18 @@ import argparse
 import json
 import os
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
 from . import __version__
 from .catalog import CATALOG, SCAFFOLDS, course_dir_name, normalize_target, target_dir_name, targets_for_scope
-from .cleanup import cleanup_target, register_user_unit
+from .cleanup import CleanupPlan, execute_cleanup, plan_cleanup, register_user_unit
 from .fixtures import generate
-from .grading import fresh_evaluation_fixture, load_grader
+from .grading import evaluate, fresh_evaluation_fixture, load_grader
 from .integrity import verify
 from .paths import SafetyError, repo_root, safe_child
-from .state import entry, load, now, save
+from .state import entry, lifecycle_lock, load, now, record_grade, save
 
 BANNER = "NORTH ECHO AGENT SECURITY LAB"
 
@@ -96,8 +97,8 @@ def cmd_start(args: argparse.Namespace) -> int:
     return 0
 
 
-def _remove_managed(root: Path, target: str, dry_run: bool) -> list[str]:
-    actions = cleanup_target(root, target, dry_run=dry_run)
+def _remove_managed(root: Path, target: str, dry_run: bool, plan: CleanupPlan) -> list[str]:
+    actions = list(execute_cleanup(plan, dry_run=dry_run))
     for area in (".student", ".fixtures"):
         path = safe_child(root, area, target)
         if path.exists() or path.is_symlink():
@@ -115,7 +116,8 @@ def cmd_reset(args: argparse.Namespace) -> int:
     if not scope:
         raise ValueError("provide a lesson, module-NN, or --all")
     targets = targets_for_scope(scope)
-    existing = [t for t in targets if (root / ".student" / t).exists() or (root / ".fixtures" / t).exists() or (root / ".runtime" / t).exists()]
+    existing = [t for t in targets if any((root / area / t).exists() or (root / area / t).is_symlink()
+                                         for area in (".student", ".fixtures", ".runtime"))]
     if not existing:
         print("Nothing to reset in that scope. Persistent attempt metadata is unchanged.")
         return 0
@@ -125,9 +127,15 @@ def cmd_reset(args: argparse.Namespace) -> int:
             print("Reset cancelled.")
             return 1
     progress = load(root)
+    plans = {target: plan_cleanup(root, target) for target in existing}
+    for target in existing:
+        for area in (".student", ".fixtures"):
+            path = safe_child(root, area, target)
+            if path.exists() and not path.is_dir():
+                raise SafetyError(f"managed workspace is not a directory: {path}")
     all_actions: list[str] = []
     for target in existing:
-        all_actions.extend(_remove_managed(root, target, args.dry_run))
+        all_actions.extend(_remove_managed(root, target, args.dry_run, plans[target]))
         if not args.dry_run:
             record = entry(progress, target)
             record["resets"] += 1
@@ -155,13 +163,9 @@ def cmd_grade(args: argparse.Namespace) -> int:
     mode = args.mode or record.get("mode", "practice")
     fixture = fresh_evaluation_fixture(target)
     grader = load_grader(root, target.split(".")[0])
-    checks = grader.grade(workspace, fixture)
+    checks = evaluate(grader, workspace, fixture)
     passed = all(check.passed for check in checks)
-    record["grade_attempts"] += 1
-    record["last_graded_at"] = now()
-    if passed:
-        record["passed"] = True
-        record["passed_at"] = now()
+    record_grade(record, passed, mode, [check.name for check in checks if not check.passed])
     save(root, progress)
     heading = "COLD CAPSTONE" if target == "capstone" else f"MODULE {target.split('.')[0]} INDEPENDENT LAB"
     print(f"{BANNER}\n\n{heading} - {mode.upper()} MODE")
@@ -185,12 +189,14 @@ def cmd_status(args: argparse.Namespace) -> int:
     root = repo_root()
     progress = load(root)
     print(f"{BANNER}\n\nv{__version__} COURSE STATUS")
-    print("TARGET   STATE       STARTS  GRADES  MODE      TITLE")
+    print("TARGET   STATE       STARTS  GRADES  LAST     EVER  MODE      TITLE")
     for target in sorted(CATALOG):
         record = progress["targets"].get(target, {})
         active = (root / ".student" / target).exists()
-        state = "PASSED" if record.get("passed") else "ACTIVE" if active else "READY"
-        print(f"{target:8} {state:11} {record.get('starts', 0):6}  {record.get('grade_attempts', 0):6}  {record.get('mode', '-'):8}  {CATALOG[target][1]}")
+        current = record.get("last_result") if active and record.get("last_graded_attempt") == record.get("starts") else None
+        state = current.upper() if current else "ACTIVE" if active else "READY"
+        ever = "yes" if record.get("ever_passed", record.get("passed")) else "no"
+        print(f"{target:8} {state:11} {record.get('starts', 0):6}  {record.get('grade_attempts', 0):6}  {record.get('last_result', '-'):8} {ever:4}  {record.get('last_mode', record.get('mode', '-')):8}  {CATALOG[target][1]}")
     print("\nPLAYABLE KERNEL/TOOLING PREREQUISITES")
     print("05       Linux openat2 + Landlock ABI, Linux UAPI headers, static C toolchain")
     print("06       Linux seccomp filter mode, libseccomp development files, pkg-config, static C toolchain")
@@ -208,8 +214,9 @@ def cmd_cleanup(args: argparse.Namespace) -> int:
     root = repo_root()
     targets = targets_for_scope("--all" if args.all else args.scope)
     actions = []
-    for target in targets:
-        actions.extend(cleanup_target(root, target, dry_run=args.dry_run))
+    plans = [plan_cleanup(root, target) for target in targets]
+    for plan in plans:
+        actions.extend(execute_cleanup(plan, dry_run=args.dry_run))
     print("CLEANUP " + ("DRY RUN" if args.dry_run else "COMPLETE"))
     for action in actions:
         print(f"  {action}")
@@ -264,8 +271,9 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     try:
         args = parser().parse_args(argv)
-        return args.func(args)
-    except (ValueError, SafetyError, FileNotFoundError) as error:
+        with lifecycle_lock(repo_root()):
+            return args.func(args)
+    except (ValueError, SafetyError, OSError, subprocess.SubprocessError) as error:
         print(f"ERROR: {error}", file=sys.stderr)
         return 2
 

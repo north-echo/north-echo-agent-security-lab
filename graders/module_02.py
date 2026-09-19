@@ -5,7 +5,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from northecho.grading import Check
+from northecho.grading import Check, run_bounded
 
 
 def _inode(namespace: str) -> int:
@@ -33,7 +33,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
     environment = os.environ.copy()
     environment["NE_EXPECTED_HOSTNAME"] = fixture["hostname"]
     try:
-        run = subprocess.run(
+        run = run_bounded(
             [str(launcher), "python3", str(probe)],
             cwd=workspace,
             env=environment,

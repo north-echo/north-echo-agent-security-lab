@@ -1,12 +1,67 @@
-import json,shutil,sys,tempfile,unittest
+import json
+import shutil
+import sys
+import tempfile
+import unittest
 from pathlib import Path
-SOURCE=Path(__file__).resolve().parents[1];sys.path[:0]=[str(SOURCE/"scripts"),str(SOURCE/"graders")]
+
+SOURCE = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(SOURCE / "scripts"), str(SOURCE / "graders")]
 import capstone
+from northecho.grading import evaluate
+
+
+def reference_source():
+    single = (SOURCE / "course/module-10-complete-runtime/lesson-03/complete_runtime.py").read_text()
+    single = single.rsplit('if __name__ == "__main__":', 1)[0].replace('def main()', 'def run_single()')
+    return single + '''
+import tempfile
+def main():
+    args = sys.argv[:]
+    try:
+        batch = json.loads(Path(args[1]).read_text())
+        if set(batch) != {"schema", "jobs"} or batch["schema"] != 2: return 1
+        jobs = batch["jobs"]
+        if not isinstance(jobs, list) or not 1 <= len(jobs) <= 8: return 1
+        ids = []
+        for job in jobs:
+            if set(job) != {"id", "runtime"} or not isinstance(job["id"], str) or not job["id"]: return 1
+            if set(job["runtime"]) != {"guard", "allowed_root", "command", "memory_max", "tasks_max", "cpu_percent"}: return 1
+            validated(job["runtime"])
+            ids.append(job["id"])
+        if len(set(ids)) != len(ids): return 1
+    except (ValueError, TypeError, KeyError, OSError): return 1
+    rows = []
+    with tempfile.TemporaryDirectory() as raw:
+        spec, output = Path(raw) / "spec.json", Path(raw) / "result.json"
+        for job in jobs:
+            spec.write_text(json.dumps(job["runtime"]))
+            output.unlink(missing_ok=True)
+            sys.argv = [args[0], str(spec), str(output)]
+            run_single()
+            rows.append({"id": job["id"], "result": json.loads(output.read_text())})
+    sys.argv = args
+    Path(args[2]).write_text(json.dumps({"schema": 2, "jobs": rows}))
+    return int(any(row["result"]["status"] != 0 for row in rows))
+if __name__ == "__main__": raise SystemExit(main())
+'''
+
+
+@unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux containment")
 class CapstoneTests(unittest.TestCase):
- @unittest.skipUnless(sys.platform.startswith("linux"),"requires Linux containment")
- def test_starter_fails_and_reference_passes(self):
-  fixture={"hostname":"cold-test","canary":"COLD-only"}
-  with tempfile.TemporaryDirectory() as raw:
-   w=Path(raw);shutil.copy2(SOURCE/"course/capstone/lab/cold_runtime.py",w/"cold_runtime.py");self.assertFalse(all(x.passed for x in capstone.grade(w,fixture)))
-   shutil.copy2(SOURCE/"course/module-10-complete-runtime/lesson-03/complete_runtime.py",w/"cold_runtime.py");checks=capstone.grade(w,fixture)
-  self.assertTrue(all(x.passed for x in checks),json.dumps([(x.name,x.passed) for x in checks]))
+    fixture = {"hostname": "cold-test", "canary": "COLD-only"}
+
+    def test_starter_and_unmodified_module_ten_do_not_pass(self):
+        with tempfile.TemporaryDirectory() as raw:
+            work = Path(raw)
+            for source in ("course/capstone/lab/cold_runtime.py",
+                           "course/module-10-complete-runtime/lesson-03/complete_runtime.py"):
+                shutil.copy2(SOURCE / source, work / "cold_runtime.py")
+                self.assertFalse(all(c.passed for c in evaluate(capstone, work, self.fixture)))
+
+    def test_independent_batch_composition_passes(self):
+        with tempfile.TemporaryDirectory() as raw:
+            work = Path(raw)
+            (work / "cold_runtime.py").write_text(reference_source())
+            checks = evaluate(capstone, work, self.fixture)
+        self.assertTrue(all(c.passed for c in checks), json.dumps([(c.name, c.passed) for c in checks]))

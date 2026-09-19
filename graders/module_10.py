@@ -10,9 +10,10 @@ import sys
 import tempfile
 import threading
 import time
+from contextlib import ExitStack
 from pathlib import Path
 
-from northecho.grading import Check
+from northecho.grading import Check, result_object, run_bounded
 
 
 class Broker:
@@ -37,6 +38,7 @@ class Broker:
             except TimeoutError:
                 continue
             with peer:
+                peer.settimeout(2)
                 try:
                     request = json.loads(peer.makefile("rb").readline(16384))
                     if request == {"operation": "read", "resource": "synthetic:record", "token": self.token}:
@@ -59,7 +61,7 @@ class Broker:
 
 
 def _compile(source: Path, output: Path, *extra: str) -> bool:
-    run = subprocess.run(
+    run = run_bounded(
         ["gcc", "-O2", "-Wall", "-Wextra", "-static", str(source), "-o", str(output), *extra],
         text=True, capture_output=True, check=False,
     )
@@ -70,7 +72,7 @@ def _invoke(agent: Path, spec: Path, result: Path, cwd: Path, credential: str):
     environment = dict(os.environ)
     environment["NORTH_ECHO_FAKE_CREDENTIAL"] = credential
     try:
-        return subprocess.run(
+        return run_bounded(
             [sys.executable, str(agent), str(spec), str(result)], cwd=cwd,
             text=True, capture_output=True, timeout=25, env=environment,
         )
@@ -80,8 +82,8 @@ def _invoke(agent: Path, spec: Path, result: Path, cwd: Path, credential: str):
 
 def _load(path: Path):
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+        return result_object(path)
+    except (OSError, ValueError):
         return None
 
 
@@ -93,7 +95,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
     results: dict[str, bool] = {}
     output = ""
     broker: Broker | None = None
-    with tempfile.TemporaryDirectory(prefix="north-echo-grade-10-") as raw:
+    with tempfile.TemporaryDirectory(prefix="north-echo-grade-10-") as raw, ExitStack() as owned:
         work = Path(raw)
         agent = work / "complete_runtime.py"
         shutil.copy2(source, agent)
@@ -122,6 +124,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
         }, sort_keys=True, separators=(",", ":")) + "\n", encoding="utf-8")
         broker_path = allowed / "broker.sock"
         broker = Broker(broker_path, token, credential)
+        owned.callback(broker.stop)
         host_net_inode = os.stat("/proc/self/ns/net").st_ino
         host_user_inode = os.stat("/proc/self/ns/user").st_ino
         spec_value = {
@@ -131,6 +134,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
                         "FAKE-CREDENTIAL-"],
             "memory_max": 50331648, "tasks_max": 16, "cpu_percent": 50,
         }
+        spec_value.update(fixture.get("runtime_profile", {}))
         spec = work / "spec.json"
         result_path = work / "result.json"
         spec.write_text(json.dumps(spec_value), encoding="utf-8")
@@ -142,9 +146,11 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
         results["result"] = bool(run and run.returncode == 0 and result and
                                  result.get("schema") == 1 and result.get("status") == 0 and
                                  isinstance(attestation, dict))
-        results["cgroup"] = bool(attestation and attestation.get("cpu") == "50000 100000" and
-                                 attestation.get("memory") == "50331648" and
-                                 attestation.get("swap") == "0" and attestation.get("pids") == "16")
+        results["cgroup"] = bool(attestation and
+                                 attestation.get("cpu") == f"{spec_value['cpu_percent'] * 1000} 100000" and
+                                 attestation.get("memory") == str(spec_value["memory_max"]) and
+                                 attestation.get("swap") == "0" and
+                                 attestation.get("pids") == str(spec_value["tasks_max"]))
         results["network"] = bool(attestation and attestation.get("private_net") is True and
                                   attestation.get("private_user") is True and
                                   attestation.get("inet_denied") is True)
@@ -195,7 +201,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
             bad_limit_run and bad_limit_run.returncode != 0 and not bad_limit_result.exists()
         )
 
-        units = subprocess.run(
+        units = run_bounded(
             ["systemctl", "--user", "list-units", "--all", "--plain", "--no-legend",
              f"north-echo-{os.getuid()}-10-lab-*.service"],
             text=True, capture_output=True, check=False,

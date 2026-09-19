@@ -1,12 +1,134 @@
 # North Echo Agent Security Lab - Complete Field Manual v1.0.2
 
-This release manual combines the twelve validated module chapters. The cold capstone contract is in the repository and deliberately contains no guided solution.
+This manual combines the learning path, twelve module chapters, and independent capstone contract. The capstone contains no guided solution. See validation records for the exact revision and Linux baseline exercised.
 
 <!-- PAGEBREAK -->
 
+# Learning path and assessment
+
+This course teaches runtime containment for local agent workloads. A passing
+command is the beginning of an explanation: identify the authority, the control,
+the observed effect, and the limits of that evidence. No AI service is required.
+
+## Entry diagnostic
+
+Use the validated disposable VM. Start `./lab-start 01.01` and enter
+`.student/01.01`; all scratch files below stay in that resettable workspace.
+Try the following without consulting the expected observations, then compare.
+
+```bash
+printf '%s\n' 'two words' 'one'
+python3 -c 'import sys; sys.exit(7)'
+printf 'previous status=%s\n' "$?"
+python3 -c 'import json; print(json.loads("{\"count\": 2}")["count"])'
+cc -std=c11 -Wall -Wextra hello-syscall.c -o diagnostic-program
+./diagnostic-program
+ps -o pid,ppid,comm -p "$$"
+rm diagnostic-program
+```
+
+### Line by line
+
+- Single quotes keep `two words` as one argument; the format emits one line per
+  remaining argument. Predict two output lines.
+- The Python child exits with status 7. Read `$?` immediately: another command
+  would replace it. Expected `previous status=7`.
+- `json.loads` parses an object; indexing `count` returns integer 2, not the
+  original JSON string.
+- The compiler turns the supplied C source into a local executable and reports
+  syntax/type errors before execution. Expect the lesson's two output messages.
+- `ps` shows the current shell and its parent ID. Explain which process `$$`
+  denotes before comparing the row.
+- Remove only the exact diagnostic executable. The canonical source is untouched.
+
+Record one point each for explaining quoting, exit status, parsed JSON, the
+compile/execute distinction, and PID/PPID. This is a self-check, not an exam.
+For missed shell items, read “Reading command and code blocks” in the foundation
+manual. For C, follow Lesson 01.01's source explanation and deliberately introduce
+then repair a missing semicolon in the student copy. For JSON, change `count` to
+a quoted string and explain the changed type. Repeat the missed task until you
+can predict and explain it. No systems-programming background is assumed.
+
+## Worked, faded, independent
+
+For each module, complete the worked lessons, attempt the corresponding faded
+task below with the manual closed, then take the independent lab. A faded task
+changes one requirement while retaining familiar interfaces. Reopen a specific
+explanation if needed and record which hint helped; do not mistake copied output
+for an explanation.
+
+| Module | Faded task before the independent lab |
+| --- | --- |
+| 01 | Predict which environment and descriptor state survives a launch; justify each observation. |
+| 02 | Given two namespace/procfs observations, identify which establishes the child's PID view. |
+| 03 | Explain a nonzero bounding set alongside empty effective capabilities; state what no_new_privs adds. |
+| 04 | Add a harmless argv task with a space in one argument and a nonzero child status; predict its trace. |
+| 05 | Draw a descriptor's lifetime across policy installation and exec; identify where it must be closed. |
+| 06 | Explain why an allowed read must still succeed under a syscall policy; distinguish it from pathname authorization. |
+| 07 | Change a bounded CPU quota and predict cpu.max; compare configured values with observed values. |
+| 08 | Explain which authority the local broker retains and which authority the isolated client lacks. |
+| 09 | Given a capability's audience, expiry and run identity, identify the evidence needed to accept an operation. |
+| 10 | Plan two independent jobs before launch; predict ordered success/failure records and exact collection. |
+| 11 | Classify a mixed synthetic evidence row without looking at its variant label; preserve useful-work requirements. |
+| 12 | Classify incomplete observations without the oracle's next_probe hint; state the smallest missing observation. |
+
+## Cumulative checkpoint after Module 03
+
+From the repository root, grade `module-01`, `module-02`, and `module-03` in exam
+mode. In `.student/03.lab/checkpoint.md`, make a table of environment, descriptors,
+namespace membership, capability state, and no_new_privs. For each, name one
+observation and one fact it cannot establish. Explain why a namespace change alone
+does not remove inherited authority. Pass this checkpoint only when the practicals
+pass and you can explain every row without reading a solution.
+
+## Cumulative checkpoint after Module 06
+
+Grade `module-04`, `module-05`, and `module-06` in exam mode. Record evidence in
+`.student/06.lab/checkpoint.md`: literal argument preservation, allowed file access,
+intended file denial, inherited descriptor hygiene, and effective syscall policy.
+For each denial, include a corresponding useful operation that still works.
+Explain why `Seccomp: 2` alone cannot establish a particular denial and why
+filesystem denial does not establish resource limits. Revisit only the failed
+property's lesson, then repeat with fresh evaluation fixtures.
+
+## Cumulative checkpoint after Module 09
+
+Grade `module-07`, `module-08`, and `module-09` in exam mode. In
+`.student/09.lab/checkpoint.md`, map resource limits, direct network isolation,
+broker authorization, credential absence, and replay handling to distinct
+observations. Explain which component retains each authority and how it is
+collected. A functional broker response alone does not establish all these facts.
+
+## Graduation rubric
+
+The capstone's automated batch-runtime assessment must pass. Separately review
+`RATIONALE.md` using this rubric; the program does not grade prose by keywords.
+Score each dimension 0 (absent/incorrect), 1 (correct but unsupported), or 2
+(correct, tied to observed evidence, and appropriately limited).
+
+| Dimension | Evidence needed for 2 points |
+| --- | --- |
+| Authority model | Names workload versus broker authority and the boundary each control enforces. |
+| Composition | Explains launch order using dependencies, including privilege removal after namespace entry. |
+| Functional preservation | Connects useful work and intended denial observations, rather than reporting only failures. |
+| Lifecycle | Distinguishes invalid batch input, ordinary job failure, timeout, and exact resource collection. |
+| Interpretation | States what each observation proves, what remains untested, and how a fresh run differs. |
+
+Graduation requires an automated pass and 2 points in every reasoning dimension.
+An instructor or peer should score the rationale; a solo learner may self-review
+but should label that result self-assessed. Keep notes and solutions private when
+exporting them. `lab-reset` intentionally deletes these workspace notes too.
+
+## Pace and evidence
+
+There is no validated course-duration estimate yet. Work one conceptual layer at
+a time and record active time, hints used, and failed checkpoints. Stop at a
+checkpoint until the missing prerequisite is understood. Time spent diagnosing
+the VM is setup friction and should be measured separately from learning time.
+
 # North Echo Agent Security Lab
 
-## v0.1 field manual - Modules 01-03
+## Foundation field manual - Modules 01-03
 
 This is the self-contained teaching manual for the first three playable modules. It assumes no prior systems-programming expertise. The goal is not to memorize commands. The goal is to build a reliable mental model of what authority a Linux process carries and to verify every containment claim from observable kernel state.
 
@@ -213,6 +335,7 @@ ls -l /proc/$$/ns
 
 Complete source:
 
+<!-- source: course/module-01-process-authority/lesson-01/hello-syscall.c format=code -->
 ```c
 #include <stdio.h>
 #include <unistd.h>
@@ -228,6 +351,7 @@ int main(void) {
     return 0;
 }
 ```
+<!-- /source -->
 
 ### Source, line by line
 
@@ -358,6 +482,7 @@ strace -f -e trace=execve python3 show-env.py 2>&1 | head -20
 
 Launcher source:
 
+<!-- source: course/module-01-process-authority/lesson-02/launch-insecure.py format=code -->
 ```python
 #!/usr/bin/env python3
 import os
@@ -367,6 +492,7 @@ import subprocess
 child_env = os.environ.copy()
 subprocess.run(["python3", "show-env.py"], env=child_env, check=True)
 ```
+<!-- /source -->
 
 ### Launcher source, line by line
 
@@ -379,6 +505,7 @@ subprocess.run(["python3", "show-env.py"], env=child_env, check=True)
 
 Observer source:
 
+<!-- source: course/module-01-process-authority/lesson-02/show-env.py format=code -->
 ```python
 #!/usr/bin/env python3
 import os
@@ -386,6 +513,7 @@ import os
 print("DEMO_AGENT_TOKEN=" + os.environ.get("DEMO_AGENT_TOKEN", "<absent>"))
 print("PATH=" + os.environ.get("PATH", "<absent>"))
 ```
+<!-- /source -->
 
 ### Observer source, line by line
 
@@ -447,6 +575,7 @@ Opening a path performs resolution and access checks, creates or references an o
 
 Parent source:
 
+<!-- source: course/module-01-process-authority/lesson-03/fd-parent.c format=code -->
 ```c
 #define _GNU_SOURCE
 #include <fcntl.h>
@@ -470,6 +599,7 @@ int main(int argc, char **argv) {
     return 1;
 }
 ```
+<!-- /source -->
 
 ### Parent source, line by line
 
@@ -484,6 +614,7 @@ int main(int argc, char **argv) {
 
 Child source:
 
+<!-- source: course/module-01-process-authority/lesson-03/fd-child.py format=code -->
 ```python
 #!/usr/bin/env python3
 import os
@@ -501,6 +632,7 @@ for fd in range(0, 32):
         except OSError:
             pass
 ```
+<!-- /source -->
 
 ### Child source, line by line
 
@@ -931,6 +1063,7 @@ The command must receive fresh user, UTS, PID, and mount namespaces; the randomi
 
 Starter source:
 
+<!-- source: course/module-02-namespaces/lab/sandbox.sh format=code -->
 ```bash
 #!/bin/sh
 set -eu
@@ -943,6 +1076,7 @@ fi
 # Intentional starter flaw: this does not create any isolation.
 exec "$@"
 ```
+<!-- /source -->
 
 ### Starter source, line by line
 
@@ -1214,6 +1348,7 @@ The phrase “drop capabilities” is underspecified. Name every relevant set, s
 
 Complete source:
 
+<!-- source: course/module-03-privilege/lesson-03/nnp-launch.c format=code -->
 ```c
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -1234,6 +1369,7 @@ int main(int argc, char **argv) {
     return 1;
 }
 ```
+<!-- /source -->
 
 ### Source, line by line
 
@@ -1457,10 +1593,11 @@ If the commands feel familiar but the answer is not sitting in front of you, rep
 
 ## What comes next
 
-Modules 04-12 are currently planned scaffolds, not automatically generated lessons. Future releases will build them into the same pattern: guided examples, exact commands, line explanations, deliberate failures, randomized fixtures, independent labs, property-based graders, safe reset, and replay.
+Modules 04-12 continue this course with guided examples, exact commands, line explanations, deliberate failures, randomized fixtures, independent labs, property-based graders, safe reset, and replay. Their chapters follow in the complete manual.
 
-The planned path moves from a minimal tool-using agent through filesystem and syscall confinement, resource controls, network mediation, credential brokering, a composed runtime, vulnerable break/fix variants, and an adaptive cold-start capstone.
+The path moves from a minimal tool-using agent through filesystem and syscall confinement, resource controls, network mediation, credential brokering, a composed runtime, break/fix analysis, bounded evidence interpretation, and a cold batch-runtime capstone. Use the cumulative checkpoints in `docs/LEARNING_PATH.md` before advancing.
 
+<!-- source: course/module-04-minimal-agent/README.md format=markdown -->
 # Module 04 - Build a minimal tool-using agent
 
 Build a small deterministic agent loop with `read_file`, `write_file`, and argv-based command execution over synthetic tasks. Begin deliberately over-authorized, inventory inherited authority, then define and verify a narrow tool contract.
@@ -1476,9 +1613,11 @@ Outcomes:
 - inventory the launcher's environment, descriptors, and working directory without logging secret values;
 - remove synthetic ambient environment authority before launching a child;
 - distinguish an action request, an execution result, and evidence that the result actually occurred.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-04-minimal-agent/lesson-01/README.md format=markdown -->
 # 04.01 - Run a deterministic tool loop and record every action
 
 ## Goal
@@ -1603,9 +1742,11 @@ test "$(cat output.txt)" = "synthetic result"
 - If the trace says success but the file is absent, the record was emitted before the effect or without checking it.
 - If an old output survives, repeat the scoped `rm -f` command; never delete outside this lesson workspace.
 - Checkpoint: explain why the request, trace record, and filesystem observation are three distinct facts.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-04-minimal-agent/lesson-02/README.md format=markdown -->
 # 04.02 - Preserve argv boundaries and handle tool failure
 
 ## Goal
@@ -1728,9 +1869,11 @@ printf 'runner status=%s\n' "$STATUS"
 - If `python3` is not found, verify the fixed `PATH` for this disposable VM rather than copying the parent environment.
 - If failure JSON is empty, the runner probably raised instead of recording `returncode`, stdout, and stderr.
 - Checkpoint: explain why an argv array is a security boundary only while every layer preserves the array.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-04-minimal-agent/lesson-03/README.md format=markdown -->
 # 04.03 - Inventory and remove ambient launcher authority
 
 ## Goal
@@ -1839,9 +1982,11 @@ if grep -F "$NE_AGENT_SECRET" safe-output.txt; then exit 1; else echo 'AMBIENT E
 - If the unsafe grep fails, confirm the variable was exported in the same shell.
 - Remove `unsafe-output.txt` after the observation; it contains only a synthetic value, but it is still disposable fixture data.
 - Checkpoint: identify which authority is removed by the repair and name at least three channels it does not address.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-04-minimal-agent/lab/README.md format=markdown -->
 # Module 04 independent lab - Auditable local tool runner
 
 Implement `agent.py`. The grader invokes:
@@ -1885,7 +2030,9 @@ python3 agent.py sample-task.json trace.jsonl
 - Exam mode tests the same properties but suppresses repair-oriented references.
 
 The lab intentionally does not provide a complete implementation. Plan the dispatcher, per-tool result fields, trace write point, failure aggregation, argv launch, and child environment before coding.
+<!-- /source -->
 
+<!-- source: course/module-05-filesystem-landlock/README.md format=markdown -->
 # Module 05 - Confine filesystem access
 
 Turn a directory name into an enforced filesystem boundary. First break lexical path checks with traversal and symlinks. Then anchor lookup to a directory descriptor with `openat2(2)` and add Landlock so an entire child process is restricted. Finally confront Landlock's important pre-opened-file-descriptor limit.
@@ -1903,9 +2050,11 @@ Outcomes:
 Prerequisites: Modules 01-04, Linux, a C compiler, Linux UAPI headers containing `openat2.h` and `landlock.h`, and a kernel with `openat2` and Landlock. The lessons require no root privilege, mount, network access, or host policy change.
 
 Cross-layer boundary: `openat2` protects individual brokered lookups. Landlock restricts future filesystem operations by the launched process. Neither one closes an already-open descriptor; descriptor hygiene from Module 01 remains necessary.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-05-filesystem-landlock/lesson-01/README.md format=markdown -->
 # 05.01 - Break pathname string checks
 
 ## Goal
@@ -2015,9 +2164,11 @@ test "$(python3 resolved_open.py demo/allowed note.txt)" = allowed
 - If `ln` says the link exists, rerun the scoped `rm -rf demo` setup.
 - If `resolve(strict=True)` reports a missing file, verify the setup paths rather than weakening strict resolution.
 - Checkpoint: explain why component-aware resolution repairs these examples but is not atomic authorization.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-05-filesystem-landlock/lesson-02/README.md format=markdown -->
 # 05.02 - Make lookup descriptor-relative with `openat2`
 
 ## Goal
@@ -2155,9 +2306,11 @@ test "$(./safe-open demo/allowed note.txt)" = allowed
 - `ENOSYS` means the running kernel lacks `openat2`; record the exact kernel and use a supported disposable VM.
 - If the safe link succeeds, confirm the repaired binary was rebuilt from `safe_open.c`.
 - Checkpoint: point to the directory descriptor, the kernel resolution flags, and the single operation that joins authorization to use.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-05-filesystem-landlock/lesson-03/README.md format=markdown -->
 # 05.03 - Restrict a child with Landlock
 
 ## Goal
@@ -2441,9 +2594,11 @@ test "$(./landlock-launch "$PWD/demo/allowed" "$PWD/demo/allowed/fd-probe" path 
 - `Permission denied` on the allowed executable usually means the probe is outside the allowed tree or was not compiled successfully.
 - A visible synthetic secret in the final command means inherited descriptors were not marked close-on-exec.
 - Checkpoint: identify which assertion tests Landlock and which tests the independent descriptor-hygiene layer.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-05-filesystem-landlock/lab/README.md format=markdown -->
 # Module 05 independent lab - Filesystem guard
 
 Implement `fs_guard.c`. The grader builds one executable and invokes these interfaces:
@@ -2497,7 +2652,9 @@ test "$(cat sample-root/output.txt)" = sample-output
 The lab does not provide a completed implementation. Plan separate read/write and run paths, keep the root descriptor alive only as long as needed, make every setup failure stop the command, and preserve the required order: inspect ABI, create ruleset, add rule, set `no_new_privs`, restrict, close inherited authority, then `exec`.
 
 This is an unprivileged local exercise. Do not add `sudo`, mounts, external paths, network access, or real secrets.
+<!-- /source -->
 
+<!-- source: course/module-06-seccomp/README.md format=markdown -->
 # Module 06 - Constrain syscalls with seccomp
 
 Measure a real workload before writing policy, observe the operational difference between errno and kill actions, then launch a static child under a native-architecture default-deny libseccomp filter.
@@ -2514,9 +2671,11 @@ Outcomes:
 - explain why syscall filtering is not pathname authorization, resource accounting, or network destination policy.
 
 Prerequisites: Modules 01-05, Linux, `strace`, a C compiler with static libc development files, and libseccomp headers/library discoverable through `pkg-config`. All probes are local and unprivileged.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-06-seccomp/lesson-01/README.md format=markdown -->
 # 06.01 - Measure the workload before filtering
 
 ## Goal
@@ -2622,9 +2781,11 @@ grep -q 'read(' trace.txt
 - If `strace` is blocked, use the documented disposable VM; do not weaken a work host.
 - A libc may use `openat` even though the source says `open`; policy applies to kernel ABI calls, not C function spelling.
 - Checkpoint: name one observed loader syscall and one input-dependent syscall, and explain why measurement alone is not least privilege.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-06-seccomp/lesson-02/README.md format=markdown -->
 # 06.02 - Compare errno, kill, and blacklist bypass
 
 ## Goal
@@ -2758,9 +2919,11 @@ Repair the design in Lesson 06.03 with a default-deny policy whose allowlist is 
 - If `seccomp.h` or `libseccomp.pc` is absent, install the documented `libseccomp-dev` and `pkg-config` packages in the disposable VM.
 - If kill mode emits no probe line, that is expected: the kernel terminates at the denied syscall.
 - Checkpoint: explain why both observed actions enforce the same rule but have different failure semantics, and why neither blocks `socketpair`.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-06-seccomp/lesson-03/README.md format=markdown -->
 # 06.03 - Launch with a native default-deny filter
 
 ## Goal
@@ -2945,9 +3108,11 @@ test "$(./allowlist ./policy-probe unexpected)" = 'result=-1 errno=1'
 - If the static probe fails before output, compare its `strace` surface with the allowlist on this supported VM and add only justified startup calls.
 - `EPERM` from `seccomp_load` usually means `no_new_privs` was not set or policy setup was reordered.
 - Checkpoint: identify the functional syscalls, startup syscalls, deliberately denied syscalls, and the separate pathname assumption.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-06-seccomp/lab/README.md format=markdown -->
 # Module 06 independent lab - Default-deny syscall launcher
 
 Implement `seccomp_guard.c`. The grader builds and invokes:
@@ -2982,7 +3147,9 @@ cc -std=c11 -Wall -Wextra -Werror -O2 seccomp_guard.c -o seccomp-guard $(pkg-con
 - Exam mode repeats fresh behavior checks but suppresses repair-oriented references.
 
 The lab deliberately withholds a complete implementation. Start from the ordering and justified call set you measured and explained in Lesson 06.03. Seccomp is one runtime layer: this lab does not claim pathname policy, resource accounting, network destination authorization, or protection from already-open descriptors.
+<!-- /source -->
 
+<!-- source: course/module-07-cgroups/README.md format=markdown -->
 # Module 07 - Bound CPU, memory, and process creation
 
 Use cgroup v2 through the ordinary user's delegated systemd manager. Observe effective controller files from inside workloads, trigger bounded pressure, and prove that transient service collection removes the complete process tree.
@@ -2998,9 +3165,11 @@ Outcomes:
 - use bounded transient units whose cleanup is synchronous and ownership-verifiable.
 
 Prerequisites: Modules 01-06, unified cgroup v2, a running delegated systemd user manager, and the `cpu`, `memory`, and `pids` controllers. No root access is used by the exercises.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-07-cgroups/lesson-01/README.md format=markdown -->
 # 07.01 - Observe an effective CPU quota
 
 ## Goal
@@ -3033,9 +3202,11 @@ systemd-run --user --wait --pipe --collect --quiet --property=CPUQuota=50% -- py
 
 - If the user manager is unavailable, use the documented VM login session; do not switch to system units or `sudo`.
 - Quota throttles aggregate CPU time for the cgroup tree; it does not guarantee wall-clock latency or fair scheduling.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-07-cgroups/lesson-02/README.md format=markdown -->
 # 07.02 - Bound memory and observe OOM
 
 ## Goal
@@ -3073,9 +3244,11 @@ Intentional failure: run the 96 MiB request without `MemoryMax`. It completes an
 
 - A nonzero result is expected; do not increase the allocation or change host overcommit settings.
 - `memory.max` bounds charged memory, while OOM outcome can vary with interpreter startup and kernel accounting. The stable property is containment below the configured ceiling.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-07-cgroups/lesson-03/README.md format=markdown -->
 # 07.03 - Bound process-tree growth and collect it
 
 ## Goal
@@ -3108,9 +3281,11 @@ systemd-run --user --wait --pipe --collect --quiet --property=TasksMax=12 -- pyt
 
 - Never substitute an unbounded fork loop. The fixed upper bound and short sleep make failure recoverable.
 - A PID controller bounds task creation; it does not limit CPU or memory, so compose all required controllers.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-07-cgroups/lab/README.md format=markdown -->
 # Module 07 independent lab - Bounded transient runner
 
 Implement `resource_runner.py`. The grader invokes:
@@ -3139,6 +3314,7 @@ python3 -m json.tool result.json
 - Practice and exam modes run the same kernel properties with different hint detail.
 
 The lab withholds a complete implementation. Reuse the structured subprocess, unit naming, property ordering, timeout cleanup, and effective-state observations practiced in the guided lessons.
+<!-- /source -->
 
 # North Echo field manual - Module 08
 
@@ -3148,6 +3324,7 @@ This chapter is self-contained for the guided networking exercises and independe
 
 ## Module overview
 
+<!-- source: course/module-08-network-egress/README.md format=markdown -->
 # Module 08 - Isolate the network and mediate egress
 
 Remove the workload's inherited IP network, then expose only a narrow HTTP capability through a filesystem Unix socket. The broker uses an explicit synthetic name-to-loopback map, binds requests to a run identity, and authorizes every redirect again.
@@ -3164,11 +3341,13 @@ Outcomes:
 - bound request and response sizes and cleanly remove the broker socket.
 
 All services are synthetic and bind only to `127.0.0.1`. The exercises do not create veth devices, routes, firewall rules, DNS traffic, or public requests. Prerequisites are Modules 01-07 and Linux support for unprivileged user plus network namespaces.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 08.01
 
+<!-- source: course/module-08-network-egress/lesson-01/README.md format=markdown -->
 # 08.01 - Remove the inherited IP network
 
 ## Goal
@@ -3280,11 +3459,13 @@ test "$loopback_status" -ne 0
 - If `unshare` reports `Operation not permitted`, use the documented disposable VM and its narrow user-namespace setup; do not weaken a work host.
 - If the first connection fails, select another high port and ensure no stale lesson process remains.
 - Checkpoint: explain why both namespaces can have an interface named `lo` while their `127.0.0.1` services remain disjoint.
+<!-- /source -->
 
 ### Complete guided source listings
 
 #### `local_http.py`
 
+<!-- source: course/module-08-network-egress/lesson-01/local_http.py format=code -->
 ```python
 #!/usr/bin/env python3
 """One bounded synthetic HTTP response on loopback."""
@@ -3319,11 +3500,13 @@ finally:
     server.server_close()
     ready.unlink(missing_ok=True)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 #### `connect_probe.py`
 
+<!-- source: course/module-08-network-egress/lesson-01/connect_probe.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Attempt one TCP connection and report the network namespace identity."""
@@ -3349,11 +3532,13 @@ except OSError as error:
 print(json.dumps(result, sort_keys=True))
 raise SystemExit(0 if result["connected"] else 1)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 08.02
 
+<!-- source: course/module-08-network-egress/lesson-02/README.md format=markdown -->
 # 08.02 - Reach one service through a Unix-socket broker
 
 ## Goal
@@ -3444,11 +3629,13 @@ test ! -e "$SOCKET"
 - If the socket path already exists, remove it only after proving it is the exact lesson path and no owned broker is running.
 - If the client gets `Connection refused`, inspect the bounded readiness loop and exact saved PID.
 - Checkpoint: explain why an `AF_UNIX` connection crosses this network-namespace boundary without restoring any IP destination authority.
+<!-- /source -->
 
 ### Complete guided source listings
 
 #### `synthetic_http.py`
 
+<!-- source: course/module-08-network-egress/lesson-02/synthetic_http.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Serve synthetic content on host loopback until interrupted."""
@@ -3483,11 +3670,13 @@ finally:
     server.server_close()
     ready.unlink(missing_ok=True)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 #### `one_host_broker.py`
 
+<!-- source: course/module-08-network-egress/lesson-02/one_host_broker.py format=code -->
 ```python
 #!/usr/bin/env python3
 """A one-request Unix-socket broker for one exact synthetic destination."""
@@ -3529,11 +3718,13 @@ finally:
     listener.close()
     path.unlink(missing_ok=True)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 #### `broker_client.py`
 
+<!-- source: course/module-08-network-egress/lesson-02/broker_client.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Send one structured request to a filesystem Unix socket."""
@@ -3556,11 +3747,13 @@ with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as stream:
     stream.shutdown(socket.SHUT_WR)
     print(stream.makefile("r", encoding="utf-8").readline(), end="")
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 08.03
 
+<!-- source: course/module-08-network-egress/lesson-03/README.md format=markdown -->
 # 08.03 - Reauthorize names, ports, redirects, and runs
 
 ## Goal
@@ -3666,11 +3859,13 @@ test ! -e "$PWD/check.sock"
 - If a redirect reports `destination is not authorized`, inspect the new hostname and effective port. Do not allow it merely to silence the failure.
 - If termination leaves a path, confirm you signaled the exact broker PID and that the process exited normally.
 - Checkpoint: identify the authorization decision made before the first connection and the same decision made again before a redirect connection.
+<!-- /source -->
 
 ### Complete guided source listings
 
 #### `egress_broker.py`
 
+<!-- source: course/module-08-network-egress/lesson-03/egress_broker.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Policy-bound loopback HTTP broker over a Unix-domain socket."""
@@ -3833,11 +4028,13 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 #### `redirect_services.py`
 
+<!-- source: course/module-08-network-egress/lesson-03/redirect_services.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Synthetic allowed and protected HTTP services for redirect exercises."""
@@ -3900,11 +4097,13 @@ finally:
     protected.server_close()
     ready.unlink(missing_ok=True)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 #### `broker_client.py`
 
+<!-- source: course/module-08-network-egress/lesson-03/broker_client.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Send one JSON request to the lesson broker."""
@@ -3922,11 +4121,13 @@ with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as stream:
     stream.shutdown(socket.SHUT_WR)
     print(stream.makefile("r", encoding="utf-8").readline(), end="")
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Independent lab
 
+<!-- source: course/module-08-network-egress/lab/README.md format=markdown -->
 # Module 08 independent lab - Policy-bound egress broker
 
 Implement `egress_broker.py`. The grader invokes:
@@ -3962,6 +4163,7 @@ python3 -m py_compile egress_broker.py
 - Exam mode runs the same behavior checks with reduced repair guidance.
 
 Use only the disposable VM and grader-created synthetic loopback services. Do not add veth devices, routes, firewall rules, DNS requests, public endpoints, or a permissive fallback.
+<!-- /source -->
 
 ## Security model summary
 
@@ -3984,6 +4186,7 @@ This chapter is self-contained for the guided credential-brokering exercises and
 
 ## Module overview
 
+<!-- source: course/module-09-credential-brokering/README.md format=markdown -->
 # Module 09 - Broker credentials with operation capabilities
 
 Remove fake credentials from workload environments, then place them behind a local operation broker. Signed, short-lived capabilities bind the exact operation, resource, arguments, audience, run, and one-use nonce without containing the underlying credential.
@@ -4000,11 +4203,13 @@ Outcomes:
 - prove a broker used a fake credential upstream without returning it to the client.
 
 Every credential, signing key, capability, resource, and upstream service is synthetic and lesson-local. Communication uses filesystem Unix sockets only; no DNS, LAN, public, cloud, employer, or production service is involved. Prerequisites are Modules 01, 04, and 08.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 09.01
 
+<!-- source: course/module-09-credential-brokering/lesson-01/README.md format=markdown -->
 # 09.01 - Remove ambient credential authority
 
 ## Goal
@@ -4076,11 +4281,13 @@ unset NORTH_ECHO_FAKE_CREDENTIAL
 - If the child still sees the value, confirm `env=clean` is passed to the exact `subprocess.run` call.
 - Do not inspect `/proc` entries belonging to unrelated processes; this exercise needs only its own child environment.
 - Checkpoint: explain why a shorter-lived environment credential remains ambient authority during its lifetime.
+<!-- /source -->
 
 ### Complete guided source listings
 
 #### `credential_probe.py`
 
+<!-- source: course/module-09-credential-brokering/lesson-01/credential_probe.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Observe whether a synthetic credential crossed exec."""
@@ -4096,9 +4303,11 @@ if len(sys.argv) == 2 and sys.argv[1] == "leak" and value is not None:
     result["leaked_value"] = value
 print(json.dumps(result, sort_keys=True))
 ```
+<!-- /source -->
 
 #### `clean_launch.py`
 
+<!-- source: course/module-09-credential-brokering/lesson-01/clean_launch.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Launch exact argv with a small, credential-free environment."""
@@ -4113,11 +4322,13 @@ clean = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8"}
 run = subprocess.run(sys.argv[1:], shell=False, env=clean, check=False)
 raise SystemExit(run.returncode)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 09.02
 
+<!-- source: course/module-09-credential-brokering/lesson-02/README.md format=markdown -->
 # 09.02 - Bind a signed operation capability
 
 ## Goal
@@ -4211,11 +4422,13 @@ test "$operation_status" -ne 0
 - If every verification reports signature mismatch, use the same unmodified key file for mint and verify.
 - If JSON input fails, quote it as one argv element; the tool hashes parsed canonical JSON.
 - Checkpoint: identify which properties are visible in the payload and which property depends on possession of the signing key.
+<!-- /source -->
 
 ### Complete guided source listings
 
 #### `capability.py`
 
+<!-- source: course/module-09-credential-brokering/lesson-02/capability.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Mint and verify one short-lived, operation-bound synthetic capability."""
@@ -4308,11 +4521,13 @@ if __name__ == "__main__":
         print(f"capability denied: {error}", file=sys.stderr)
         raise SystemExit(1)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 09.03
 
+<!-- source: course/module-09-credential-brokering/lesson-03/README.md format=markdown -->
 # 09.03 - Deny replay and confused-deputy substitution
 
 ## Goal
@@ -4426,11 +4641,13 @@ test ! -e "$UPSTREAM"
 - If a fresh token reports invalid time, confirm the VM clock is sane and the requested TTL does not exceed policy.
 - If upstream denies an exact request, compare its resource and empty input with the policy and token; do not expose the credential for debugging.
 - Checkpoint: explain why the replay set must be broker state and why signature verification alone cannot prevent replay.
+<!-- /source -->
 
 ### Complete guided source listings
 
 #### `capability_broker.py`
 
+<!-- source: course/module-09-credential-brokering/lesson-03/capability_broker.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Use fake credentials only after a capability passes every binding check."""
@@ -4651,9 +4868,11 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 #### `synthetic_upstream.py`
 
+<!-- source: course/module-09-credential-brokering/lesson-03/synthetic_upstream.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Synthetic credential-protected operation service over a Unix socket."""
@@ -4704,9 +4923,11 @@ finally:
     listener.close()
     socket_path.unlink(missing_ok=True)
 ```
+<!-- /source -->
 
 #### `mint_token.py`
 
+<!-- source: course/module-09-credential-brokering/lesson-03/mint_token.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Mint a lesson capability; signing material stays outside the client."""
@@ -4750,9 +4971,11 @@ signature = encode(hmac.new(key, payload.encode(), hashlib.sha256).digest())
 Path(sys.argv[2]).write_text(payload + "." + signature + "\n", encoding="utf-8")
 print("capability minted")
 ```
+<!-- /source -->
 
 #### `broker_client.py`
 
+<!-- source: course/module-09-credential-brokering/lesson-03/broker_client.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Send one capability-bound operation request."""
@@ -4778,11 +5001,13 @@ with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as stream:
     stream.shutdown(socket.SHUT_WR)
     print(stream.makefile("r", encoding="utf-8").readline(), end="")
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Independent lab
 
+<!-- source: course/module-09-credential-brokering/lab/README.md format=markdown -->
 # Module 09 independent lab - Capability-bound credential broker
 
 Implement `capability_broker.py`. The grader invokes:
@@ -4820,6 +5045,7 @@ python3 -m py_compile capability_broker.py
 - Exam mode repeats the same properties while withholding lesson references.
 
 Use only the generated fake credential and synthetic Unix-socket upstream. Never substitute a real key, token, credential, network service, or production resource.
+<!-- /source -->
 
 ## Security model summary
 
@@ -4845,6 +5071,7 @@ The central security rule is conjunctive: the runtime is acceptable only when ev
 
 ## Module overview
 
+<!-- source: course/module-10-complete-runtime/README.md format=markdown -->
 # Module 10 - Compose a complete agent runtime
 
 Assemble the controls from Modules 01-09 in dependency order, then ask the running workload and kernel for evidence that the composition is effective. The final runtime has bounded resources, fresh user and network namespaces, empty capability sets, `no_new_privs`, Landlock filesystem policy, a default-deny seccomp filter, capability-mediated Unix-socket access, a clean credential environment, structured telemetry, and synchronous process-tree collection.
@@ -4861,11 +5088,13 @@ Outcomes:
 - propagate workload failure and synchronously collect the exact transient unit.
 
 All data, credentials, capabilities, services, paths, and requests are synthetic and local. The module creates no veth pair, route, firewall rule, public request, real credential, or production target. Prerequisites are Modules 01-09 and the Linux features reported by `./scripts/linux-preflight`.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 10.01
 
+<!-- source: course/module-10-complete-runtime/lesson-01/README.md format=markdown -->
 # 10.01 - Order the complete runtime by dependency
 
 ## Goal
@@ -4930,6 +5159,7 @@ test "$(python3 check_order.py repaired-plan.json)" = '{"ok": true, "violations"
 - If JSON parsing fails, restore an array of quoted step names; ordering is evaluated only after shape validation.
 - If a step appears harmless to move, identify what it creates, what syscalls it needs, and which later phase removes that authority.
 - Checkpoint: explain why `apply_landlock` before `apply_seccomp` and `enter_namespaces` before `drop_privilege` are dependencies rather than style choices.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -4937,6 +5167,7 @@ test "$(python3 check_order.py repaired-plan.json)" = '{"ok": true, "violations"
 
 Canonical path: `course/module-10-complete-runtime/lesson-01/check_order.py`
 
+<!-- source: course/module-10-complete-runtime/lesson-01/check_order.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Validate a complete-runtime launch plan against security dependencies."""
@@ -4996,6 +5227,7 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -5003,6 +5235,7 @@ if __name__ == "__main__":
 
 Canonical path: `course/module-10-complete-runtime/lesson-01/broken-plan.json`
 
+<!-- source: course/module-10-complete-runtime/lesson-01/broken-plan.json format=code -->
 ```json
 [
   "start_broker",
@@ -5015,6 +5248,7 @@ Canonical path: `course/module-10-complete-runtime/lesson-01/broken-plan.json`
   "collect_unit"
 ]
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -5022,6 +5256,7 @@ Canonical path: `course/module-10-complete-runtime/lesson-01/broken-plan.json`
 
 Canonical path: `course/module-10-complete-runtime/lesson-01/repaired-plan.json`
 
+<!-- source: course/module-10-complete-runtime/lesson-01/repaired-plan.json format=code -->
 ```json
 [
   "start_broker",
@@ -5034,11 +5269,13 @@ Canonical path: `course/module-10-complete-runtime/lesson-01/repaired-plan.json`
   "collect_unit"
 ]
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 10.02
 
+<!-- source: course/module-10-complete-runtime/lesson-02/README.md format=markdown -->
 # 10.02 - Seal filesystem and syscall policy before exec
 
 ## Goal
@@ -5062,8 +5299,9 @@ gcc -O2 -Wall -Wextra -static guard_probe.c -o guard_probe
 
 ### `runtime_guard.c`, block by block
 
-- The syscall wrappers call the Landlock ABI directly. `supported_rights` handles only rights known to the running kernel, including `REFER` and `TRUNCATE` when their ABI versions exist.
-- `install_landlock` handles the full filesystem rights set but grants the workload root only execute/read and grants `/proc` plus `/sys/fs/cgroup` only read. Unmentioned paths receive no handled access.
+- The syscall wrappers query the running Landlock ABI. `supported_rights` handles filesystem rights explicitly named by this source and available in its build headers, gated by their runtime ABI. Like Module 05, it includes `REFER`, `TRUNCATE`, and conditionally `IOCTL_DEV` and `RESOLVE_UNIX`. Newer unnamed rights are not automatically denied.
+- `install_landlock` grants the workload root execute/read access and, with ABI 9 headers and kernel support, pathname Unix-socket resolution. It grants `/proc` and `/sys/fs/cgroup` read access for observations, but no Unix-socket resolution there. These are explicit observability exceptions: this is not a private PID or mount view. Unmentioned paths receive no handled access. Device IOCTL is handled but never granted; seccomp also omits `ioctl`.
+- The ABI message identifies runtime support, not build-header completeness. On the Ubuntu baseline, newer rights that the headers cannot name remain a reviewed source property rather than a demonstrated kernel guarantee.
 - `PR_SET_NO_NEW_PRIVS` precedes `landlock_restrict_self`; a regular user cannot otherwise enforce the ruleset on itself.
 - `install_seccomp` starts from `EPERM`, adds a small static-program syscall surface, and allows `socket` only when argument zero is `AF_UNIX`. `AF_INET` and alternate socket domains therefore remain denied by the default.
 - The guard loads the filter only after Landlock setup is complete and calls `execv` with the original argv boundaries.
@@ -5125,6 +5363,7 @@ test ! -e "$DEMO" || { echo "lesson temporary directory remains" >&2; false; }
 - If Landlock reports unsupported, use the disposable VM kernel required by Module 05.
 - If `execv` returns `EPERM`, confirm the static workload executable is beneath the allowed root and Landlock was installed before seccomp.
 - Checkpoint: explain why seccomp mode 2 does not prove pathname confinement, and why a protected-file denial does not prove IP denial.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -5132,6 +5371,7 @@ test ! -e "$DEMO" || { echo "lesson temporary directory remains" >&2; false; }
 
 Canonical path: `course/module-10-complete-runtime/lesson-02/runtime_guard.c`
 
+<!-- source: course/module-10-complete-runtime/lesson-02/runtime_guard.c format=code -->
 ```c
 #define _GNU_SOURCE
 #include <errno.h>
@@ -5171,6 +5411,14 @@ static __u64 supported_rights(int abi) {
         rights |= LANDLOCK_ACCESS_FS_REFER;
     if (abi >= 3)
         rights |= LANDLOCK_ACCESS_FS_TRUNCATE;
+#ifdef LANDLOCK_ACCESS_FS_IOCTL_DEV
+    if (abi >= 5)
+        rights |= LANDLOCK_ACCESS_FS_IOCTL_DEV;
+#endif
+#ifdef LANDLOCK_ACCESS_FS_RESOLVE_UNIX
+    if (abi >= 9)
+        rights |= LANDLOCK_ACCESS_FS_RESOLVE_UNIX;
+#endif
     return rights;
 }
 
@@ -5182,6 +5430,12 @@ static int install_landlock(const char *allowed_root) {
     __u64 read_execute = LANDLOCK_ACCESS_FS_EXECUTE | LANDLOCK_ACCESS_FS_READ_FILE |
                           LANDLOCK_ACCESS_FS_READ_DIR;
     __u64 read_only = LANDLOCK_ACCESS_FS_READ_FILE | LANDLOCK_ACCESS_FS_READ_DIR;
+#ifdef LANDLOCK_ACCESS_FS_RESOLVE_UNIX
+    /* The broker is intentionally reachable only below the workload root. */
+    if (abi >= 9)
+        read_execute |= LANDLOCK_ACCESS_FS_RESOLVE_UNIX;
+#endif
+    fprintf(stderr, "Landlock ABI %d; explicit build-known filesystem policy\n", abi);
     struct landlock_ruleset_attr ruleset = {.handled_access_fs = handled};
     int ruleset_fd = create_ruleset(&ruleset, sizeof(ruleset), 0);
     if (ruleset_fd == -1)
@@ -5253,6 +5507,7 @@ int main(int argc, char **argv) {
     return 1;
 }
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -5260,6 +5515,7 @@ int main(int argc, char **argv) {
 
 Canonical path: `course/module-10-complete-runtime/lesson-02/guard_probe.c`
 
+<!-- source: course/module-10-complete-runtime/lesson-02/guard_probe.c format=code -->
 ```c
 #define _GNU_SOURCE
 #include <errno.h>
@@ -5312,11 +5568,13 @@ int main(int argc, char **argv) {
     return 0;
 }
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 10.03
 
+<!-- source: course/module-10-complete-runtime/lesson-03/README.md format=markdown -->
 # 10.03 - Launch, attest, and collect the complete runtime
 
 ## Goal
@@ -5446,6 +5704,30 @@ rm "$DEMO/spec.json" "$DEMO/result.json" "$DEMO/event.json"
 rmdir "$DEMO/allowed" "$DEMO"
 ```
 
+## Faded practice - From one job to a batch
+
+Before the cold capstone, practice orchestration without changing the controls.
+In this disposable lesson workspace, use the JSON-list validation and ordered
+trace skills from Module 04 to plan three copies of an already validated runtime
+spec. Give them distinct IDs and predict what should happen for workload exit
+statuses 0, 7, and 0. Write the prediction in `batch-notes.md`.
+
+Your independent exercise is to invoke the single-job interface sequentially,
+preserve IDs and statuses in input order, and inspect exact unit collection after
+each invocation. Use simple local static workers, not a broker that only accepts
+one connection. Change one resource budget and verify its effective cgroup value
+rather than merely inspecting the input JSON.
+
+Deliberate mistake: validate and launch the first job before looking at the
+second. Make the second job's task limit zero. Explain in `batch-notes.md` why
+partial execution is inappropriate for malformed input. Repair the sequence by
+validating all specs and unique identities before any launch. An ordinary worker
+exit of 7 is different: its spec was valid, so later jobs should still run.
+
+Checkpoint: show ordered 0/7/0 outcomes, no remaining owned units, and rejection
+of a malformed later spec before any workload runs. No batch implementation is
+provided; the capstone applies these practiced operations under fresh profiles.
+
 ## Checkpoint and troubleshooting
 
 - If the broker socket is not ready, inspect only the owned broker PID and its exact synthetic paths; do not search for or kill name-matched host processes.
@@ -5453,6 +5735,7 @@ rmdir "$DEMO/allowed" "$DEMO"
 - If the probe exits at `execv`, confirm the static workload executable resolves beneath `allowed_root`.
 - If broker access fails while `AF_INET` is denied, confirm the socket path is below the allowed root and shorter than the Unix-socket path limit.
 - Checkpoint: point to one attested field for each of privilege, filesystem, syscalls, resources, network, and credential mediation, then explain which separate evidence proves teardown.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -5460,6 +5743,7 @@ rmdir "$DEMO/allowed" "$DEMO"
 
 Canonical path: `course/module-10-complete-runtime/lesson-03/complete_runtime.py`
 
+<!-- source: course/module-10-complete-runtime/lesson-03/complete_runtime.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Launch one workload through the complete North Echo containment stack."""
@@ -5555,6 +5839,7 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -5562,6 +5847,7 @@ if __name__ == "__main__":
 
 Canonical path: `course/module-10-complete-runtime/lesson-03/runtime_probe.c`
 
+<!-- source: course/module-10-complete-runtime/lesson-03/runtime_probe.c format=code -->
 ```c
 #define _GNU_SOURCE
 #include <arpa/inet.h>
@@ -5707,6 +5993,7 @@ int main(int argc, char **argv) {
              no_new_privs == 1 && seccomp == 2 && broker_ok && credential_absent);
 }
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -5714,6 +6001,7 @@ int main(int argc, char **argv) {
 
 Canonical path: `course/module-10-complete-runtime/lesson-03/demo_broker.py`
 
+<!-- source: course/module-10-complete-runtime/lesson-03/demo_broker.py format=code -->
 ```python
 #!/usr/bin/env python3
 """One-shot synthetic operation broker for the composition lesson."""
@@ -5760,11 +6048,13 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Module 10 independent lab
 
+<!-- source: course/module-10-complete-runtime/lab/README.md format=markdown -->
 # Module 10 independent lab - Composed contained runtime
 
 Implement `complete_runtime.py`. The grader invokes:
@@ -5803,6 +6093,7 @@ python3 -m py_compile complete_runtime.py
 - Exam mode repeats fresh external checks but withholds lesson references.
 
 Use only the grader's generated local objects. Never substitute a real credential, external service, host firewall change, privileged cgroup, or production path.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -5859,6 +6150,7 @@ The method is evidence first: reproduce a bounded effect, state the invariant it
 
 ## Module overview
 
+<!-- source: course/module-11-break-fix-research/README.md format=markdown -->
 # Module 11 - Vulnerable variants and break/fix research
 
 Analyze seeded runtime weaknesses without being told which control changed. Use a deterministic non-agent harness to reproduce effects, map observations to failed invariants, repair the plan, and compare it with a hardened counterpart.
@@ -5874,11 +6166,13 @@ Outcomes:
 - prove a repair is idempotent and survives fresh randomized variants.
 
 The harness never exploits an external target and never deletes its cleanup candidates. Every credential, path, marker, resource, and socket is synthetic and confined to the disposable workspace. Prerequisites are Modules 01, 04, 05, 08, 09, and 10.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 11.01
 
+<!-- source: course/module-11-break-fix-research/lesson-01/README.md format=markdown -->
 # 11.01 - Reproduce a seeded weakness without an agent
 
 ## Goal
@@ -5942,6 +6236,7 @@ The protected file still exists because the reproducer reads but never modifies 
 - If no credential is visible in an inherited variant, confirm the explicitly fake variable prefixes the harness command.
 - Do not replace the synthetic literal with a command affecting anything outside the generated directory.
 - Checkpoint: identify one field that is configuration and one field that is reproduced evidence.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -5949,6 +6244,7 @@ The protected file still exists because the reproducer reads but never modifies 
 
 Canonical path: `course/module-11-break-fix-research/lesson-01/make_variant.py`
 
+<!-- source: course/module-11-break-fix-research/lesson-01/make_variant.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Create a reproducible vulnerable plan from an explicit integer seed."""
@@ -5978,6 +6274,7 @@ plan = {
 }
 Path(sys.argv[2]).write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -5985,6 +6282,7 @@ Path(sys.argv[2]).write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n", 
 
 Canonical path: `course/module-11-break-fix-research/lesson-01/variant_harness.py`
 
+<!-- source: course/module-11-break-fix-research/lesson-01/variant_harness.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Reproduce runtime-plan effects without an autonomous agent or external target."""
@@ -6061,11 +6359,13 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 11.02
 
+<!-- source: course/module-11-break-fix-research/lesson-02/README.md format=markdown -->
 # 11.02 - Identify invariants from an evidence matrix
 
 ## Goal
@@ -6122,6 +6422,7 @@ test "$(python3 classify_evidence.py mixed-evidence.json | grep -c 'invariant')"
 - If the count differs, inspect the complete JSON rather than changing the classifier to match a desired answer.
 - An absence of one signal proves only that probe did not observe that effect; it is not universal proof of safety.
 - Checkpoint: state the filesystem invariant without naming `lexical`, `resolved`, or a particular exploit path.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -6129,6 +6430,7 @@ test "$(python3 classify_evidence.py mixed-evidence.json | grep -c 'invariant')"
 
 Canonical path: `course/module-11-break-fix-research/lesson-02/classify_evidence.py`
 
+<!-- source: course/module-11-break-fix-research/lesson-02/classify_evidence.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Map reproduced effects to invariant statements."""
@@ -6153,6 +6455,7 @@ failed = [{"signal": name, "invariant": statement}
 print(json.dumps({"variant_id": evidence.get("variant_id"), "failed": failed}, indent=2, sort_keys=True))
 raise SystemExit(not failed)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -6160,9 +6463,11 @@ raise SystemExit(not failed)
 
 Canonical path: `course/module-11-break-fix-research/lesson-02/overfit-evidence.json`
 
+<!-- source: course/module-11-break-fix-research/lesson-02/overfit-evidence.json format=code -->
 ```json
 {"schema":1,"variant_id":"lesson-overfit","allowed_operation":true,"shell_marker_created":true,"credential_visible":false,"protected_read":false,"inet_created":false,"cleanup_decoy_selected":false}
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -6170,14 +6475,17 @@ Canonical path: `course/module-11-break-fix-research/lesson-02/overfit-evidence.
 
 Canonical path: `course/module-11-break-fix-research/lesson-02/mixed-evidence.json`
 
+<!-- source: course/module-11-break-fix-research/lesson-02/mixed-evidence.json format=code -->
 ```json
 {"schema":1,"variant_id":"lesson-mixed","allowed_operation":true,"shell_marker_created":false,"credential_visible":true,"protected_read":true,"inet_created":false,"cleanup_decoy_selected":true}
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 11.03
 
+<!-- source: course/module-11-break-fix-research/lesson-03/README.md format=markdown -->
 # 11.03 - Repair and prove the hardened counterpart
 
 ## Goal
@@ -6240,6 +6548,7 @@ rm before.json after.json second.json before-evidence.json after-evidence.json
 - If cleanup says a marker is absent, remove it conditionally; only the vulnerable execution mode creates it.
 - If relative canonical paths fail, confirm the command is run from `.student/11.03`.
 - Checkpoint: explain why preserving workload bytes and allowed behavior matters as much as making adverse signals false.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -6247,6 +6556,7 @@ rm before.json after.json second.json before-evidence.json after-evidence.json
 
 Canonical path: `course/module-11-break-fix-research/lesson-03/repair_variant.py`
 
+<!-- source: course/module-11-break-fix-research/lesson-03/repair_variant.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Repair every known weak control while preserving the workload contract."""
@@ -6301,6 +6611,7 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -6308,14 +6619,17 @@ if __name__ == "__main__":
 
 Canonical path: `course/module-11-break-fix-research/lesson-03/vulnerable-plan.json`
 
+<!-- source: course/module-11-break-fix-research/lesson-03/vulnerable-plan.json format=code -->
 ```json
 {"schema":1,"variant_id":"lesson-repair","workload":{"operation":"read","resource":"record:alpha","literal":"literal $(touch shell-marker)"},"controls":{"execution":"shell","environment":"inherit","filesystem":"lexical","network":"direct","cleanup":"prefix"}}
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Module 11 independent lab
 
+<!-- source: course/module-11-break-fix-research/lab/README.md format=markdown -->
 # Module 11 independent lab - Repair randomized runtime variants
 
 Implement `repair_variant.py`. The grader invokes:
@@ -6343,6 +6657,7 @@ python3 -m py_compile repair_variant.py
 - Exam mode repeats fresh variants while withholding repair hints.
 
 Use only generated synthetic plans. Do not turn the evidence harness into an external scanner or destructive cleanup tool.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -6382,6 +6697,7 @@ This self-contained chapter preserves every guided command and complete source f
 
 ## README.md
 
+<!-- source: course/module-12-adaptive-adversary/README.md format=markdown -->
 # Module 12 - Adaptive adversary and Boundary Atlas graduation
 
 Compare a fixed scripted baseline with a bounded adaptive policy against the same synthetic local oracle. Preserve every action and observation, distinguish non-discovery from evidence of safety, and package a reproducible candidate experiment.
@@ -6397,11 +6713,13 @@ Outcomes:
 - package hypothesis, trace, result, limits, and replay command as a Boundary Atlas candidate.
 
 All oracles and observations are synthetic and local. No public, LAN, cloud, employer, or production target is contacted. Prerequisites are Modules 04, 10, and 11.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## lesson-01/README.md
 
+<!-- source: course/module-12-adaptive-adversary/lesson-01/README.md format=markdown -->
 # 12.01 - Establish a scripted baseline and its limits
 
 ## Goal
@@ -6433,11 +6751,13 @@ rm baseline.json
 
 - Run from the lesson workspace so scenario paths resolve.
 - Checkpoint: name the two untested surfaces and explain why the baseline remains useful for comparison.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## lesson-01/local_oracle.py
 
+<!-- source: course/module-12-adaptive-adversary/lesson-01/local_oracle.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Synthetic one-weakness oracle: JSON scenario plus one named probe."""
@@ -6457,11 +6777,13 @@ else:
              "evidence": f"synthetic-{probe}-effect" if probe == weakness else None}
 print(json.dumps(value, sort_keys=True))
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## lesson-01/scripted_baseline.py
 
+<!-- source: course/module-12-adaptive-adversary/lesson-01/scripted_baseline.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Run the same fixed probes in the same order for every scenario."""
@@ -6481,19 +6803,23 @@ finding = next((row for row in trace if row["observation"].get("observed")), Non
 Path(output).write_text(json.dumps({"strategy": "scripted", "status": "observed" if finding else "not_observed",
                                    "trace": trace}, indent=2, sort_keys=True) + "\n")
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## lesson-01/network-scenario.json
 
+<!-- source: course/module-12-adaptive-adversary/lesson-01/network-scenario.json format=code -->
 ```json
 {"schema":1,"weakness":"network"}
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## lesson-02/README.md
 
+<!-- source: course/module-12-adaptive-adversary/lesson-02/README.md format=markdown -->
 # 12.02 - Adapt within an action budget
 
 ## Goal
@@ -6532,10 +6858,53 @@ Budget one cannot run the focused probe; the repair restores budget two rather t
 - If the oracle path fails, preserve the three argv elements in `oracle_command`; do not join them into a shell string.
 - Checkpoint: show which observation caused action two and which field proves the budget was respected.
 
+## Exercise 2 - Interpret incomplete evidence without an answer hint
+
+The introductory oracle names `next_probe`; that teaches bounded dispatch, not
+independent diagnosis. Now inspect four fixed local records derived from the
+control/effect distinction in Module 10. No program here runs a probe or contacts
+a target. Before execution, predict a verdict and a missing observation for each
+row. All cases have the same three-observation budget. Case labels are teaching
+ground truth, not input to the classifier's decision.
+
+```bash
+sed -n '1,180p' review_evidence.py
+python3 -m json.tool evidence-cases.json
+python3 review_evidence.py evidence-cases.json
+```
+
+### Line by line
+
+- `EXPECTED` pairs a useful operation with two intended denials. A denial-only
+  record cannot establish that useful work survived.
+- `review` rejects an exceeded budget, duplicate observations, and unknown check
+  names. Its decision reads observations, never the case label.
+- A contrary observed effect produces `observed_failure`. Missing or `unknown`
+  effects produce `inconclusive`, even when no failure was seen.
+- Complete matching observations produce `passed_observations`; the claim stays
+  scoped to those observations. The code never labels a system universally secure.
+- Sorting makes the evidence summary stable for comparison and replay.
+
+Expected statuses, in order: `passed_observations`, `observed_failure`,
+`inconclusive`, `inconclusive`. The third case illustrates a missed seeded failure;
+the fourth shows that uncertainty is also possible for a hardened case.
+
+Intentional error and repair: on a copy of the reviewer, treat missing observations
+as passed. Predict which row becomes falsely reassuring, run it, then restore
+`inconclusive`. Do not change the input to obtain the desired verdict.
+
+Faded exercise: replace one observation with `unknown` in a workspace copy of
+the JSON. Explain the smallest additional observation needed to resolve it before
+running the reviewer. Independent checkpoint: provide an evidence matrix for a
+new three-check case and explain both the verdict and its limits. Case labels and
+configured controls alone are never proof of an observed effect.
+<!-- /source -->
+
 <!-- PAGEBREAK -->
 
 ## lesson-02/adaptive_runner.py
 
+<!-- source: course/module-12-adaptive-adversary/lesson-02/adaptive_runner.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Use one inventory observation to choose one bounded focused probe."""
@@ -6578,46 +6947,126 @@ def main():
 
 if __name__ == "__main__": raise SystemExit(main())
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## lesson-02/network-spec.json
 
+<!-- source: course/module-12-adaptive-adversary/lesson-02/network-spec.json format=code -->
 ```json
 {"oracle_command":["python3","../../course/module-12-adaptive-adversary/lesson-01/local_oracle.py","../../course/module-12-adaptive-adversary/lesson-01/network-scenario.json"],"budget":2,"run_id":"lesson-network"}
 ```
+<!-- /source -->
+
+<!-- PAGEBREAK -->
+
+## Offline evidence reviewer: complete source
+
+<!-- source: course/module-12-adaptive-adversary/lesson-02/review_evidence.py format=code -->
+```python
+#!/usr/bin/env python3
+"""Interpret fixed local observations. This program never invokes a probe."""
+import json
+from pathlib import Path
+import sys
+
+EXPECTED = {"allowed_work": "success", "protected_read": "denied", "direct_ip": "denied"}
+
+
+def review(case):
+    observations = case["observations"]
+    if len(observations) > case["budget"]:
+        raise ValueError("observation budget exceeded")
+    seen = {}
+    for observation in observations:
+        name, outcome = observation["check"], observation["outcome"]
+        if name not in EXPECTED or name in seen:
+            raise ValueError("unknown or duplicate check")
+        seen[name] = outcome
+    failures = sorted(name for name, value in seen.items()
+                      if value != "unknown" and value != EXPECTED[name])
+    missing = sorted(name for name in EXPECTED if name not in seen or seen[name] == "unknown")
+    status = "observed_failure" if failures else "inconclusive" if missing else "passed_observations"
+    return {"case_id": case["case_id"], "status": status, "failures": failures,
+            "missing": missing, "claim": "limited to the supplied observations; security is not established"}
+
+
+if __name__ == "__main__":
+    cases = json.loads(Path(sys.argv[1]).read_text())
+    print(json.dumps([review(case) for case in cases], indent=2, sort_keys=True))
+```
+<!-- /source -->
+
+The `EXPECTED` mapping states the three observed outcomes needed for this limited
+comparison. `review` records each check once, separates contrary evidence from
+missing evidence, and returns the narrowest supported conclusion. The caller
+reads the fixed JSON cases and prints stable summaries; it executes no probes.
+
+<!-- source: course/module-12-adaptive-adversary/lesson-02/evidence-cases.json format=code -->
+```json
+[
+  {"case_id":"complete-hardened","budget":3,"observations":[{"check":"allowed_work","outcome":"success"},{"check":"protected_read","outcome":"denied"},{"check":"direct_ip","outcome":"denied"}]},
+  {"case_id":"complete-seeded","budget":3,"observations":[{"check":"allowed_work","outcome":"success"},{"check":"protected_read","outcome":"allowed"},{"check":"direct_ip","outcome":"denied"}]},
+  {"case_id":"incomplete-seeded","budget":3,"observations":[{"check":"allowed_work","outcome":"success"},{"check":"direct_ip","outcome":"denied"}]},
+  {"case_id":"ambiguous-hardened","budget":3,"observations":[{"check":"allowed_work","outcome":"success"},{"check":"protected_read","outcome":"unknown"},{"check":"direct_ip","outcome":"denied"}]}
+]
+```
+<!-- /source -->
+
+Each case has the same budget. The two incomplete rows intentionally do not
+support a safety conclusion, regardless of the teaching label.
 
 <!-- PAGEBREAK -->
 
 ## lesson-03/README.md
 
+<!-- source: course/module-12-adaptive-adversary/lesson-03/README.md format=markdown -->
 # 12.03 - Package a calibrated candidate experiment
 
 ## Goal
 
-Turn a bounded result into a replayable experiment candidate without expanding its claim beyond the evidence.
+Turn a bounded result into a portable experiment directory, replay it without
+the repository, and keep its claim within the evidence.
 
 ```bash
 sed -n '1,180p' package_experiment.py
-python3 ../../course/module-12-adaptive-adversary/lesson-02/adaptive_runner.py \
-  ../../course/module-12-adaptive-adversary/lesson-02/network-spec.json result.json
-python3 package_experiment.py result.json candidate-12 package.json
-python3 -m json.tool package.json
+RUNNER=../../course/module-12-adaptive-adversary/lesson-02/adaptive_runner.py
+SPEC=../../course/module-12-adaptive-adversary/lesson-02/network-spec.json
+python3 "$RUNNER" "$SPEC" result.json
+python3 package_experiment.py result.json "$SPEC" "$RUNNER" candidate-12 package
+python3 -m json.tool package/package.json
+(cd package && python3 runner.py spec.json result.json && cmp expected.json result.json)
 ```
 
 ### Line by line
 
-- The packager accepts only a schema-1 observed/not-observed result.
-- It preserves the trace and claim, adds a falsifiable bounded hypothesis, lists four interpretation limits, and supplies structured replay argv.
-- `candidate_id` labels this package; it is not a vulnerability identifier or publication claim.
+- `RUNNER` and `SPEC` name the actual source and inputs that produced the result.
+  Quotes keep each pathname one argument.
+- The packager checks result shape, run identity, and action budget. It supports
+  exactly the lesson's local Python oracle plus scenario interface; it does not
+  guess dependencies for arbitrary commands.
+- The result, runner, oracle, and scenario are copied; the spec uses relative
+  paths inside the package. A SHA-256 inventory records their exact bytes.
+- `mkdir` refuses an existing directory, so packaging never replaces student work.
+- The subshell enters only the new package, runs its own copies, and compares the
+  replay against the original result. No repository path is needed for replay.
+- `candidate_id` is a local label, not a vulnerability identifier or publication claim.
 
-Intentional mistake: remove the `non-discovery is not proof` limit. The package then invites an inference its evidence cannot support. Restore all limits and verify:
+Intentional mistake: rename `package/scenario.json` to `package/scenario.saved`.
+Replay fails because the package is incomplete. Restore the filename and replay
+successfully. A JSON summary alone is not a reproducible experiment.
+
+Now prove packaging is deterministic and clean the exact generated artifacts:
 
 ```bash
-grep -F 'non-discovery is not proof' package.json
-python3 package_experiment.py result.json candidate-12 second.json
-cmp package.json second.json
-rm result.json package.json second.json
+grep -F 'non-discovery is not proof' package/package.json
+python3 package_experiment.py result.json "$SPEC" "$RUNNER" candidate-12 second
+cmp package/package.json second/package.json
+rm package/runner.py package/oracle.py package/scenario.json package/spec.json package/expected.json package/result.json package/package.json
+rm second/runner.py second/oracle.py second/scenario.json second/spec.json second/expected.json second/package.json
+rmdir package second
+rm result.json
 ```
 
 ## Checkpoint and troubleshooting
@@ -6625,40 +7074,73 @@ rm result.json package.json second.json
 - Package the raw trace, not a prose-only summary.
 - A promising observation remains a candidate until independently reproduced under a broader protocol.
 - Checkpoint: distinguish the package hypothesis, observed result, and stated limits.
+- Independent checkpoint: move a completed package to another directory and replay
+  it there; explain why hashing the report alone would not identify its inputs.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## lesson-03/package_experiment.py
 
+<!-- source: course/module-12-adaptive-adversary/lesson-03/package_experiment.py format=code -->
 ```python
 #!/usr/bin/env python3
-"""Package a runner result as a replayable candidate experiment."""
-import json, sys
+"""Bundle explicit local inputs and sources for replay from a clean directory."""
+import hashlib
+import json
 from pathlib import Path
+import sys
 
-if len(sys.argv) != 4: raise SystemExit(2)
-result = json.loads(Path(sys.argv[1]).read_text())
-if result.get("schema") != 1 or result.get("status") not in {"observed", "not_observed"}:
-    raise SystemExit("invalid result")
-package = {"schema": 1, "candidate_id": sys.argv[2],
-           "hypothesis": "a bounded focused probe can reproduce the indicated synthetic boundary effect",
-           "result_status": result["status"], "claim": result["claim"], "trace": result["trace"],
-           "limits": ["synthetic local oracle", "single run", "bounded probe set", "non-discovery is not proof"],
-           "replay": ["python3", "adaptive_runner.py", "SPEC.json", "RESULT.json"]}
-Path(sys.argv[3]).write_text(json.dumps(package, indent=2, sort_keys=True) + "\n")
+
+def main():
+    if len(sys.argv) != 6:
+        raise SystemExit("usage: package_experiment.py RESULT SPEC RUNNER CANDIDATE_ID DIRECTORY")
+    result_path, spec_path, runner = map(Path, sys.argv[1:4])
+    result = json.loads(result_path.read_text())
+    spec = json.loads(spec_path.read_text())
+    command = spec["oracle_command"]
+    if not isinstance(command, list) or len(command) != 3:
+        raise SystemExit("packaging supports only the explicit local Python oracle plus scenario interface")
+    oracle, scenario = map(Path, command[1:])
+    trace = result.get("trace", [])
+    if (result.get("schema") != 1 or result.get("status") not in {"observed", "not_observed"}
+            or result.get("run_id") != spec["run_id"]
+            or result.get("actions_used") != len(trace) or not 1 <= len(trace) <= spec["budget"]):
+        raise SystemExit("invalid result, run identity, or budget")
+    files = {"runner.py": runner.read_bytes(), "oracle.py": oracle.read_bytes(),
+             "scenario.json": scenario.read_bytes(), "expected.json": result_path.read_bytes()}
+    portable = dict(spec, oracle_command=["python3", "oracle.py", "scenario.json"])
+    files["spec.json"] = (json.dumps(portable, indent=2, sort_keys=True) + "\n").encode()
+    package = {"schema": 2, "candidate_id": sys.argv[4], "run_id": spec["run_id"],
+               "hypothesis": "The recorded local scenario permits the reported observation within this budget.",
+               "result_status": result["status"], "claim": result["claim"],
+               "limits": ["synthetic local oracle", "single run", "bounded probe set", "non-discovery is not proof"],
+               "replay": ["python3", "runner.py", "spec.json", "result.json"],
+               "sha256": {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}}
+    output = Path(sys.argv[5])
+    output.mkdir()  # Never overwrite an existing experiment or student work.
+    for name, data in files.items():
+        (output / name).write_bytes(data)
+    (output / "package.json").write_text(json.dumps(package, indent=2, sort_keys=True) + "\n")
+
+
+if __name__ == "__main__":
+    main()
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## lab/README.md
 
+<!-- source: course/module-12-adaptive-adversary/lab/README.md format=markdown -->
 # Module 12 independent lab - Bounded adaptive runner
 
 Implement `adaptive_runner.py`; the grader calls `python3 adaptive_runner.py SPEC.json RESULT.json`. The spec contains exact `oracle_command` argv, integer action `budget`, and opaque `run_id`.
 
 Validate before acting. Invoke only `inventory`, `argv`, `credential`, `filesystem`, `network`, or `cleanup`, using exact argv without a shell and with bounded execution. Record sequential action numbers and complete parsed observations. Never exceed budget. Preserve run identity. For an observed focused effect, return its trace row as the finding. If no effect is observed, use `not_observed` and explicitly say security is not established.
 
-The grader rotates five hidden synthetic weakness classes plus a no-weakness case. It checks discovery within two actions, allowlisting, trace integrity, calibrated non-discovery, determinism, and identity preservation. The starter inventories only and therefore misses every weakness.
+The grader rotates five synthetic weakness classes plus a no-weakness case. Its oracle independently records actual calls and observations; the reported count and complete trace must match that record. This is an introductory bounded-dispatch assessment: the inventory names the focused synthetic probe. It is not evidence of independent vulnerability discovery. Lesson 12.02's separate offline evidence matrix assesses interpretation when observations are incomplete. The starter inventories only and therefore misses every weakness.
 
 ```bash
 python3 -m py_compile adaptive_runner.py
@@ -6667,6 +7149,7 @@ python3 -m py_compile adaptive_runner.py
 ```
 
 Do not inspect, modify, or target anything outside the supplied local oracle command.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -6677,3 +7160,47 @@ The scripted and adaptive runs share an oracle and evidence schema. Adaptation c
 ## Safety and graduation
 
 The oracle is local, synthetic, deterministic, and non-destructive. The module creates no network connection, credential, service, or persistent resource. A Boundary Atlas candidate is a reproducible experiment package—not a vulnerability announcement. It preserves hypothesis, trace, result, replay argv, and interpretation limits for independent review.
+
+# Cold capstone - Process an ordered batch of contained jobs
+
+Build `cold_runtime.py`. A local batch service must complete useful work under
+different resource budgets, retain each job's identity, and continue after an
+ordinary workload failure. Each job gets an independently collected runtime.
+
+Interface: `python3 cold_runtime.py BATCH.json RESULT.json`.
+
+The batch has exactly `schema: 2` and `jobs`, a list of one through eight objects.
+Each job has exactly a unique nonempty string `id` and a `runtime` object containing
+`guard`, `allowed_root`, `command`, `memory_max`, `tasks_max`, and `cpu_percent`.
+Those fields have the same meanings and bounds as the previously practiced
+single-job runtime. Validate the whole batch before launching any job. Reject
+duplicate IDs, empty batches, extra fields, and invalid runtime specifications
+without creating a result or a unit.
+
+Return `{"schema":2,"jobs":[{"id":"...","result":{...}}]}` in input order.
+Each result has schema 1, workload status, a distinct exact owned unit name,
+stdout, stderr, and the parsed final-line attestation (or null for a worker
+without one). Do not assume every worker emits attestation JSON. Continue after
+an ordinary nonzero workload exit; return nonzero overall if any job failed.
+All jobs must have CPU/memory/swap/task limits, fresh user/network namespaces,
+the privilege floor, filesystem/syscall policy, clean credential environment,
+literal argv, and exact teardown. Use the `north-echo-UID-10-lab-RANDOM.service`
+unit convention so the evaluator can inspect collection. Never stop unrelated units.
+
+The evaluator varies resource profiles, checks all kernel properties, and then
+uses a three-job success/failure/success batch to assess transfer. It also checks
+invalid batch rejection and empty runtime state. No guided solution is copied.
+
+```bash
+python3 -m py_compile cold_runtime.py
+../../lab-grade capstone
+../../lab-grade capstone --mode exam
+```
+
+Graduation also requires a short `RATIONALE.md` reviewed by a human: identify
+the authority each control removes, explain why useful work still succeeds,
+map each claim to an observation, and state the limits of that observation.
+Discuss job failure versus invalid input and why a fresh unit matters per job.
+The automated result is a runtime assessment, not a substitute for this reasoning
+rubric. Use the rubric in `docs/LEARNING_PATH.md`; no real credential or external
+target belongs in the rationale or runtime.

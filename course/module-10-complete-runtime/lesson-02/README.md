@@ -21,8 +21,9 @@ gcc -O2 -Wall -Wextra -static guard_probe.c -o guard_probe
 
 ### `runtime_guard.c`, block by block
 
-- The syscall wrappers call the Landlock ABI directly. `supported_rights` handles only rights known to the running kernel, including `REFER` and `TRUNCATE` when their ABI versions exist.
-- `install_landlock` handles the full filesystem rights set but grants the workload root only execute/read and grants `/proc` plus `/sys/fs/cgroup` only read. Unmentioned paths receive no handled access.
+- The syscall wrappers query the running Landlock ABI. `supported_rights` handles filesystem rights explicitly named by this source and available in its build headers, gated by their runtime ABI. Like Module 05, it includes `REFER`, `TRUNCATE`, and conditionally `IOCTL_DEV` and `RESOLVE_UNIX`. Newer unnamed rights are not automatically denied.
+- `install_landlock` grants the workload root execute/read access and, with ABI 9 headers and kernel support, pathname Unix-socket resolution. It grants `/proc` and `/sys/fs/cgroup` read access for observations, but no Unix-socket resolution there. These are explicit observability exceptions: this is not a private PID or mount view. Unmentioned paths receive no handled access. Device IOCTL is handled but never granted; seccomp also omits `ioctl`.
+- The ABI message identifies runtime support, not build-header completeness. On the Ubuntu baseline, newer rights that the headers cannot name remain a reviewed source property rather than a demonstrated kernel guarantee.
 - `PR_SET_NO_NEW_PRIVS` precedes `landlock_restrict_self`; a regular user cannot otherwise enforce the ruleset on itself.
 - `install_seccomp` starts from `EPERM`, adds a small static-program syscall surface, and allows `socket` only when argument zero is `AF_UNIX`. `AF_INET` and alternate socket domains therefore remain denied by the default.
 - The guard loads the filter only after Landlock setup is complete and calls `execv` with the original argv boundaries.

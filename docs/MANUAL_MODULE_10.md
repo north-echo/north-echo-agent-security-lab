@@ -8,6 +8,7 @@ The central security rule is conjunctive: the runtime is acceptable only when ev
 
 ## Module overview
 
+<!-- source: course/module-10-complete-runtime/README.md format=markdown -->
 # Module 10 - Compose a complete agent runtime
 
 Assemble the controls from Modules 01-09 in dependency order, then ask the running workload and kernel for evidence that the composition is effective. The final runtime has bounded resources, fresh user and network namespaces, empty capability sets, `no_new_privs`, Landlock filesystem policy, a default-deny seccomp filter, capability-mediated Unix-socket access, a clean credential environment, structured telemetry, and synchronous process-tree collection.
@@ -24,11 +25,13 @@ Outcomes:
 - propagate workload failure and synchronously collect the exact transient unit.
 
 All data, credentials, capabilities, services, paths, and requests are synthetic and local. The module creates no veth pair, route, firewall rule, public request, real credential, or production target. Prerequisites are Modules 01-09 and the Linux features reported by `./scripts/linux-preflight`.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 10.01
 
+<!-- source: course/module-10-complete-runtime/lesson-01/README.md format=markdown -->
 # 10.01 - Order the complete runtime by dependency
 
 ## Goal
@@ -93,6 +96,7 @@ test "$(python3 check_order.py repaired-plan.json)" = '{"ok": true, "violations"
 - If JSON parsing fails, restore an array of quoted step names; ordering is evaluated only after shape validation.
 - If a step appears harmless to move, identify what it creates, what syscalls it needs, and which later phase removes that authority.
 - Checkpoint: explain why `apply_landlock` before `apply_seccomp` and `enter_namespaces` before `drop_privilege` are dependencies rather than style choices.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -100,6 +104,7 @@ test "$(python3 check_order.py repaired-plan.json)" = '{"ok": true, "violations"
 
 Canonical path: `course/module-10-complete-runtime/lesson-01/check_order.py`
 
+<!-- source: course/module-10-complete-runtime/lesson-01/check_order.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Validate a complete-runtime launch plan against security dependencies."""
@@ -159,6 +164,7 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -166,6 +172,7 @@ if __name__ == "__main__":
 
 Canonical path: `course/module-10-complete-runtime/lesson-01/broken-plan.json`
 
+<!-- source: course/module-10-complete-runtime/lesson-01/broken-plan.json format=code -->
 ```json
 [
   "start_broker",
@@ -178,6 +185,7 @@ Canonical path: `course/module-10-complete-runtime/lesson-01/broken-plan.json`
   "collect_unit"
 ]
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -185,6 +193,7 @@ Canonical path: `course/module-10-complete-runtime/lesson-01/broken-plan.json`
 
 Canonical path: `course/module-10-complete-runtime/lesson-01/repaired-plan.json`
 
+<!-- source: course/module-10-complete-runtime/lesson-01/repaired-plan.json format=code -->
 ```json
 [
   "start_broker",
@@ -197,11 +206,13 @@ Canonical path: `course/module-10-complete-runtime/lesson-01/repaired-plan.json`
   "collect_unit"
 ]
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 10.02
 
+<!-- source: course/module-10-complete-runtime/lesson-02/README.md format=markdown -->
 # 10.02 - Seal filesystem and syscall policy before exec
 
 ## Goal
@@ -225,8 +236,9 @@ gcc -O2 -Wall -Wextra -static guard_probe.c -o guard_probe
 
 ### `runtime_guard.c`, block by block
 
-- The syscall wrappers call the Landlock ABI directly. `supported_rights` handles only rights known to the running kernel, including `REFER` and `TRUNCATE` when their ABI versions exist.
-- `install_landlock` handles the full filesystem rights set but grants the workload root only execute/read and grants `/proc` plus `/sys/fs/cgroup` only read. Unmentioned paths receive no handled access.
+- The syscall wrappers query the running Landlock ABI. `supported_rights` handles filesystem rights explicitly named by this source and available in its build headers, gated by their runtime ABI. Like Module 05, it includes `REFER`, `TRUNCATE`, and conditionally `IOCTL_DEV` and `RESOLVE_UNIX`. Newer unnamed rights are not automatically denied.
+- `install_landlock` grants the workload root execute/read access and, with ABI 9 headers and kernel support, pathname Unix-socket resolution. It grants `/proc` and `/sys/fs/cgroup` read access for observations, but no Unix-socket resolution there. These are explicit observability exceptions: this is not a private PID or mount view. Unmentioned paths receive no handled access. Device IOCTL is handled but never granted; seccomp also omits `ioctl`.
+- The ABI message identifies runtime support, not build-header completeness. On the Ubuntu baseline, newer rights that the headers cannot name remain a reviewed source property rather than a demonstrated kernel guarantee.
 - `PR_SET_NO_NEW_PRIVS` precedes `landlock_restrict_self`; a regular user cannot otherwise enforce the ruleset on itself.
 - `install_seccomp` starts from `EPERM`, adds a small static-program syscall surface, and allows `socket` only when argument zero is `AF_UNIX`. `AF_INET` and alternate socket domains therefore remain denied by the default.
 - The guard loads the filter only after Landlock setup is complete and calls `execv` with the original argv boundaries.
@@ -288,6 +300,7 @@ test ! -e "$DEMO" || { echo "lesson temporary directory remains" >&2; false; }
 - If Landlock reports unsupported, use the disposable VM kernel required by Module 05.
 - If `execv` returns `EPERM`, confirm the static workload executable is beneath the allowed root and Landlock was installed before seccomp.
 - Checkpoint: explain why seccomp mode 2 does not prove pathname confinement, and why a protected-file denial does not prove IP denial.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -295,6 +308,7 @@ test ! -e "$DEMO" || { echo "lesson temporary directory remains" >&2; false; }
 
 Canonical path: `course/module-10-complete-runtime/lesson-02/runtime_guard.c`
 
+<!-- source: course/module-10-complete-runtime/lesson-02/runtime_guard.c format=code -->
 ```c
 #define _GNU_SOURCE
 #include <errno.h>
@@ -334,6 +348,14 @@ static __u64 supported_rights(int abi) {
         rights |= LANDLOCK_ACCESS_FS_REFER;
     if (abi >= 3)
         rights |= LANDLOCK_ACCESS_FS_TRUNCATE;
+#ifdef LANDLOCK_ACCESS_FS_IOCTL_DEV
+    if (abi >= 5)
+        rights |= LANDLOCK_ACCESS_FS_IOCTL_DEV;
+#endif
+#ifdef LANDLOCK_ACCESS_FS_RESOLVE_UNIX
+    if (abi >= 9)
+        rights |= LANDLOCK_ACCESS_FS_RESOLVE_UNIX;
+#endif
     return rights;
 }
 
@@ -345,6 +367,12 @@ static int install_landlock(const char *allowed_root) {
     __u64 read_execute = LANDLOCK_ACCESS_FS_EXECUTE | LANDLOCK_ACCESS_FS_READ_FILE |
                           LANDLOCK_ACCESS_FS_READ_DIR;
     __u64 read_only = LANDLOCK_ACCESS_FS_READ_FILE | LANDLOCK_ACCESS_FS_READ_DIR;
+#ifdef LANDLOCK_ACCESS_FS_RESOLVE_UNIX
+    /* The broker is intentionally reachable only below the workload root. */
+    if (abi >= 9)
+        read_execute |= LANDLOCK_ACCESS_FS_RESOLVE_UNIX;
+#endif
+    fprintf(stderr, "Landlock ABI %d; explicit build-known filesystem policy\n", abi);
     struct landlock_ruleset_attr ruleset = {.handled_access_fs = handled};
     int ruleset_fd = create_ruleset(&ruleset, sizeof(ruleset), 0);
     if (ruleset_fd == -1)
@@ -416,6 +444,7 @@ int main(int argc, char **argv) {
     return 1;
 }
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -423,6 +452,7 @@ int main(int argc, char **argv) {
 
 Canonical path: `course/module-10-complete-runtime/lesson-02/guard_probe.c`
 
+<!-- source: course/module-10-complete-runtime/lesson-02/guard_probe.c format=code -->
 ```c
 #define _GNU_SOURCE
 #include <errno.h>
@@ -475,11 +505,13 @@ int main(int argc, char **argv) {
     return 0;
 }
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 10.03
 
+<!-- source: course/module-10-complete-runtime/lesson-03/README.md format=markdown -->
 # 10.03 - Launch, attest, and collect the complete runtime
 
 ## Goal
@@ -609,6 +641,30 @@ rm "$DEMO/spec.json" "$DEMO/result.json" "$DEMO/event.json"
 rmdir "$DEMO/allowed" "$DEMO"
 ```
 
+## Faded practice - From one job to a batch
+
+Before the cold capstone, practice orchestration without changing the controls.
+In this disposable lesson workspace, use the JSON-list validation and ordered
+trace skills from Module 04 to plan three copies of an already validated runtime
+spec. Give them distinct IDs and predict what should happen for workload exit
+statuses 0, 7, and 0. Write the prediction in `batch-notes.md`.
+
+Your independent exercise is to invoke the single-job interface sequentially,
+preserve IDs and statuses in input order, and inspect exact unit collection after
+each invocation. Use simple local static workers, not a broker that only accepts
+one connection. Change one resource budget and verify its effective cgroup value
+rather than merely inspecting the input JSON.
+
+Deliberate mistake: validate and launch the first job before looking at the
+second. Make the second job's task limit zero. Explain in `batch-notes.md` why
+partial execution is inappropriate for malformed input. Repair the sequence by
+validating all specs and unique identities before any launch. An ordinary worker
+exit of 7 is different: its spec was valid, so later jobs should still run.
+
+Checkpoint: show ordered 0/7/0 outcomes, no remaining owned units, and rejection
+of a malformed later spec before any workload runs. No batch implementation is
+provided; the capstone applies these practiced operations under fresh profiles.
+
 ## Checkpoint and troubleshooting
 
 - If the broker socket is not ready, inspect only the owned broker PID and its exact synthetic paths; do not search for or kill name-matched host processes.
@@ -616,6 +672,7 @@ rmdir "$DEMO/allowed" "$DEMO"
 - If the probe exits at `execv`, confirm the static workload executable resolves beneath `allowed_root`.
 - If broker access fails while `AF_INET` is denied, confirm the socket path is below the allowed root and shorter than the Unix-socket path limit.
 - Checkpoint: point to one attested field for each of privilege, filesystem, syscalls, resources, network, and credential mediation, then explain which separate evidence proves teardown.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -623,6 +680,7 @@ rmdir "$DEMO/allowed" "$DEMO"
 
 Canonical path: `course/module-10-complete-runtime/lesson-03/complete_runtime.py`
 
+<!-- source: course/module-10-complete-runtime/lesson-03/complete_runtime.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Launch one workload through the complete North Echo containment stack."""
@@ -718,6 +776,7 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -725,6 +784,7 @@ if __name__ == "__main__":
 
 Canonical path: `course/module-10-complete-runtime/lesson-03/runtime_probe.c`
 
+<!-- source: course/module-10-complete-runtime/lesson-03/runtime_probe.c format=code -->
 ```c
 #define _GNU_SOURCE
 #include <arpa/inet.h>
@@ -870,6 +930,7 @@ int main(int argc, char **argv) {
              no_new_privs == 1 && seccomp == 2 && broker_ok && credential_absent);
 }
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -877,6 +938,7 @@ int main(int argc, char **argv) {
 
 Canonical path: `course/module-10-complete-runtime/lesson-03/demo_broker.py`
 
+<!-- source: course/module-10-complete-runtime/lesson-03/demo_broker.py format=code -->
 ```python
 #!/usr/bin/env python3
 """One-shot synthetic operation broker for the composition lesson."""
@@ -923,11 +985,13 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Module 10 independent lab
 
+<!-- source: course/module-10-complete-runtime/lab/README.md format=markdown -->
 # Module 10 independent lab - Composed contained runtime
 
 Implement `complete_runtime.py`. The grader invokes:
@@ -966,6 +1030,7 @@ python3 -m py_compile complete_runtime.py
 - Exam mode repeats fresh external checks but withholds lesson references.
 
 Use only the grader's generated local objects. Never substitute a real credential, external service, host firewall change, privileged cgroup, or production path.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -1011,4 +1076,3 @@ Required teaching is above. Optional depth: `landlock(7)`, `seccomp(2)`, `proc_p
 ## Completion checkpoint
 
 A complete run has three evidence classes: workload attestation for effective controls, a broker event proving fake-credential use outside the workload, and post-run unit/socket checks proving teardown. Passing only one or two is not a passing composition.
-

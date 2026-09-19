@@ -1,3 +1,5 @@
 """North Echo lab control plane."""
 
-__version__ = "1.0.2"
+from pathlib import Path
+
+__version__ = (Path(__file__).resolve().parents[2] / "VERSION").read_text().strip()

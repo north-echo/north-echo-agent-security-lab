@@ -6,6 +6,7 @@ This chapter is self-contained for the guided credential-brokering exercises and
 
 ## Module overview
 
+<!-- source: course/module-09-credential-brokering/README.md format=markdown -->
 # Module 09 - Broker credentials with operation capabilities
 
 Remove fake credentials from workload environments, then place them behind a local operation broker. Signed, short-lived capabilities bind the exact operation, resource, arguments, audience, run, and one-use nonce without containing the underlying credential.
@@ -22,11 +23,13 @@ Outcomes:
 - prove a broker used a fake credential upstream without returning it to the client.
 
 Every credential, signing key, capability, resource, and upstream service is synthetic and lesson-local. Communication uses filesystem Unix sockets only; no DNS, LAN, public, cloud, employer, or production service is involved. Prerequisites are Modules 01, 04, and 08.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 09.01
 
+<!-- source: course/module-09-credential-brokering/lesson-01/README.md format=markdown -->
 # 09.01 - Remove ambient credential authority
 
 ## Goal
@@ -98,11 +101,13 @@ unset NORTH_ECHO_FAKE_CREDENTIAL
 - If the child still sees the value, confirm `env=clean` is passed to the exact `subprocess.run` call.
 - Do not inspect `/proc` entries belonging to unrelated processes; this exercise needs only its own child environment.
 - Checkpoint: explain why a shorter-lived environment credential remains ambient authority during its lifetime.
+<!-- /source -->
 
 ### Complete guided source listings
 
 #### `credential_probe.py`
 
+<!-- source: course/module-09-credential-brokering/lesson-01/credential_probe.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Observe whether a synthetic credential crossed exec."""
@@ -118,9 +123,11 @@ if len(sys.argv) == 2 and sys.argv[1] == "leak" and value is not None:
     result["leaked_value"] = value
 print(json.dumps(result, sort_keys=True))
 ```
+<!-- /source -->
 
 #### `clean_launch.py`
 
+<!-- source: course/module-09-credential-brokering/lesson-01/clean_launch.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Launch exact argv with a small, credential-free environment."""
@@ -135,11 +142,13 @@ clean = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8"}
 run = subprocess.run(sys.argv[1:], shell=False, env=clean, check=False)
 raise SystemExit(run.returncode)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 09.02
 
+<!-- source: course/module-09-credential-brokering/lesson-02/README.md format=markdown -->
 # 09.02 - Bind a signed operation capability
 
 ## Goal
@@ -233,11 +242,13 @@ test "$operation_status" -ne 0
 - If every verification reports signature mismatch, use the same unmodified key file for mint and verify.
 - If JSON input fails, quote it as one argv element; the tool hashes parsed canonical JSON.
 - Checkpoint: identify which properties are visible in the payload and which property depends on possession of the signing key.
+<!-- /source -->
 
 ### Complete guided source listings
 
 #### `capability.py`
 
+<!-- source: course/module-09-credential-brokering/lesson-02/capability.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Mint and verify one short-lived, operation-bound synthetic capability."""
@@ -330,11 +341,13 @@ if __name__ == "__main__":
         print(f"capability denied: {error}", file=sys.stderr)
         raise SystemExit(1)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 09.03
 
+<!-- source: course/module-09-credential-brokering/lesson-03/README.md format=markdown -->
 # 09.03 - Deny replay and confused-deputy substitution
 
 ## Goal
@@ -448,11 +461,13 @@ test ! -e "$UPSTREAM"
 - If a fresh token reports invalid time, confirm the VM clock is sane and the requested TTL does not exceed policy.
 - If upstream denies an exact request, compare its resource and empty input with the policy and token; do not expose the credential for debugging.
 - Checkpoint: explain why the replay set must be broker state and why signature verification alone cannot prevent replay.
+<!-- /source -->
 
 ### Complete guided source listings
 
 #### `capability_broker.py`
 
+<!-- source: course/module-09-credential-brokering/lesson-03/capability_broker.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Use fake credentials only after a capability passes every binding check."""
@@ -673,9 +688,11 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 #### `synthetic_upstream.py`
 
+<!-- source: course/module-09-credential-brokering/lesson-03/synthetic_upstream.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Synthetic credential-protected operation service over a Unix socket."""
@@ -726,9 +743,11 @@ finally:
     listener.close()
     socket_path.unlink(missing_ok=True)
 ```
+<!-- /source -->
 
 #### `mint_token.py`
 
+<!-- source: course/module-09-credential-brokering/lesson-03/mint_token.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Mint a lesson capability; signing material stays outside the client."""
@@ -772,9 +791,11 @@ signature = encode(hmac.new(key, payload.encode(), hashlib.sha256).digest())
 Path(sys.argv[2]).write_text(payload + "." + signature + "\n", encoding="utf-8")
 print("capability minted")
 ```
+<!-- /source -->
 
 #### `broker_client.py`
 
+<!-- source: course/module-09-credential-brokering/lesson-03/broker_client.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Send one capability-bound operation request."""
@@ -800,11 +821,13 @@ with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as stream:
     stream.shutdown(socket.SHUT_WR)
     print(stream.makefile("r", encoding="utf-8").readline(), end="")
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Independent lab
 
+<!-- source: course/module-09-credential-brokering/lab/README.md format=markdown -->
 # Module 09 independent lab - Capability-bound credential broker
 
 Implement `capability_broker.py`. The grader invokes:
@@ -842,6 +865,7 @@ python3 -m py_compile capability_broker.py
 - Exam mode repeats the same properties while withholding lesson references.
 
 Use only the generated fake credential and synthetic Unix-socket upstream. Never substitute a real key, token, credential, network service, or production resource.
+<!-- /source -->
 
 ## Security model summary
 

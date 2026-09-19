@@ -8,6 +8,7 @@ The method is evidence first: reproduce a bounded effect, state the invariant it
 
 ## Module overview
 
+<!-- source: course/module-11-break-fix-research/README.md format=markdown -->
 # Module 11 - Vulnerable variants and break/fix research
 
 Analyze seeded runtime weaknesses without being told which control changed. Use a deterministic non-agent harness to reproduce effects, map observations to failed invariants, repair the plan, and compare it with a hardened counterpart.
@@ -23,11 +24,13 @@ Outcomes:
 - prove a repair is idempotent and survives fresh randomized variants.
 
 The harness never exploits an external target and never deletes its cleanup candidates. Every credential, path, marker, resource, and socket is synthetic and confined to the disposable workspace. Prerequisites are Modules 01, 04, 05, 08, 09, and 10.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 11.01
 
+<!-- source: course/module-11-break-fix-research/lesson-01/README.md format=markdown -->
 # 11.01 - Reproduce a seeded weakness without an agent
 
 ## Goal
@@ -91,6 +94,7 @@ The protected file still exists because the reproducer reads but never modifies 
 - If no credential is visible in an inherited variant, confirm the explicitly fake variable prefixes the harness command.
 - Do not replace the synthetic literal with a command affecting anything outside the generated directory.
 - Checkpoint: identify one field that is configuration and one field that is reproduced evidence.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -98,6 +102,7 @@ The protected file still exists because the reproducer reads but never modifies 
 
 Canonical path: `course/module-11-break-fix-research/lesson-01/make_variant.py`
 
+<!-- source: course/module-11-break-fix-research/lesson-01/make_variant.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Create a reproducible vulnerable plan from an explicit integer seed."""
@@ -127,6 +132,7 @@ plan = {
 }
 Path(sys.argv[2]).write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -134,6 +140,7 @@ Path(sys.argv[2]).write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n", 
 
 Canonical path: `course/module-11-break-fix-research/lesson-01/variant_harness.py`
 
+<!-- source: course/module-11-break-fix-research/lesson-01/variant_harness.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Reproduce runtime-plan effects without an autonomous agent or external target."""
@@ -210,11 +217,13 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 11.02
 
+<!-- source: course/module-11-break-fix-research/lesson-02/README.md format=markdown -->
 # 11.02 - Identify invariants from an evidence matrix
 
 ## Goal
@@ -271,6 +280,7 @@ test "$(python3 classify_evidence.py mixed-evidence.json | grep -c 'invariant')"
 - If the count differs, inspect the complete JSON rather than changing the classifier to match a desired answer.
 - An absence of one signal proves only that probe did not observe that effect; it is not universal proof of safety.
 - Checkpoint: state the filesystem invariant without naming `lexical`, `resolved`, or a particular exploit path.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -278,6 +288,7 @@ test "$(python3 classify_evidence.py mixed-evidence.json | grep -c 'invariant')"
 
 Canonical path: `course/module-11-break-fix-research/lesson-02/classify_evidence.py`
 
+<!-- source: course/module-11-break-fix-research/lesson-02/classify_evidence.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Map reproduced effects to invariant statements."""
@@ -302,6 +313,7 @@ failed = [{"signal": name, "invariant": statement}
 print(json.dumps({"variant_id": evidence.get("variant_id"), "failed": failed}, indent=2, sort_keys=True))
 raise SystemExit(not failed)
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -309,9 +321,11 @@ raise SystemExit(not failed)
 
 Canonical path: `course/module-11-break-fix-research/lesson-02/overfit-evidence.json`
 
+<!-- source: course/module-11-break-fix-research/lesson-02/overfit-evidence.json format=code -->
 ```json
 {"schema":1,"variant_id":"lesson-overfit","allowed_operation":true,"shell_marker_created":true,"credential_visible":false,"protected_read":false,"inet_created":false,"cleanup_decoy_selected":false}
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -319,14 +333,17 @@ Canonical path: `course/module-11-break-fix-research/lesson-02/overfit-evidence.
 
 Canonical path: `course/module-11-break-fix-research/lesson-02/mixed-evidence.json`
 
+<!-- source: course/module-11-break-fix-research/lesson-02/mixed-evidence.json format=code -->
 ```json
 {"schema":1,"variant_id":"lesson-mixed","allowed_operation":true,"shell_marker_created":false,"credential_visible":true,"protected_read":true,"inet_created":false,"cleanup_decoy_selected":true}
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Lesson 11.03
 
+<!-- source: course/module-11-break-fix-research/lesson-03/README.md format=markdown -->
 # 11.03 - Repair and prove the hardened counterpart
 
 ## Goal
@@ -389,6 +406,7 @@ rm before.json after.json second.json before-evidence.json after-evidence.json
 - If cleanup says a marker is absent, remove it conditionally; only the vulnerable execution mode creates it.
 - If relative canonical paths fail, confirm the command is run from `.student/11.03`.
 - Checkpoint: explain why preserving workload bytes and allowed behavior matters as much as making adverse signals false.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -396,6 +414,7 @@ rm before.json after.json second.json before-evidence.json after-evidence.json
 
 Canonical path: `course/module-11-break-fix-research/lesson-03/repair_variant.py`
 
+<!-- source: course/module-11-break-fix-research/lesson-03/repair_variant.py format=code -->
 ```python
 #!/usr/bin/env python3
 """Repair every known weak control while preserving the workload contract."""
@@ -450,6 +469,7 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
@@ -457,14 +477,17 @@ if __name__ == "__main__":
 
 Canonical path: `course/module-11-break-fix-research/lesson-03/vulnerable-plan.json`
 
+<!-- source: course/module-11-break-fix-research/lesson-03/vulnerable-plan.json format=code -->
 ```json
 {"schema":1,"variant_id":"lesson-repair","workload":{"operation":"read","resource":"record:alpha","literal":"literal $(touch shell-marker)"},"controls":{"execution":"shell","environment":"inherit","filesystem":"lexical","network":"direct","cleanup":"prefix"}}
 ```
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
 ## Module 11 independent lab
 
+<!-- source: course/module-11-break-fix-research/lab/README.md format=markdown -->
 # Module 11 independent lab - Repair randomized runtime variants
 
 Implement `repair_variant.py`. The grader invokes:
@@ -492,6 +515,7 @@ python3 -m py_compile repair_variant.py
 - Exam mode repeats fresh variants while withholding repair hints.
 
 Use only generated synthetic plans. Do not turn the evidence harness into an external scanner or destructive cleanup tool.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 

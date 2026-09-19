@@ -12,6 +12,12 @@
 
 ## Post-1.0.2
 
+Audit implementation: `docs/dev/AUDIT_IMPLEMENTATION.md` records the unreleased
+cleanup/grading/readiness fixes, distinct transfer capstone, offline evidence
+comparison and replay, manual synchronization, progress transactions, and learner
+diagnostic/fading/checkpoints. Human pilot outcomes remain pending real participants;
+see `docs/dev/LEARNER_PILOT.md`. Do not treat automated passes as learning evidence.
+
 - Debian 12 baseline run on x86-64 with a recorded validation entry.
-- Module 12 depth: attestation-driven probe selection and true-negative versus false-negative comparison. See `docs/dev/SPEC_v1.0.1.md` section 5.
+- Module 12 further depth: optional future work beyond the implemented offline evidence comparison; no autonomous probing extension is required for graduation. See `docs/dev/SPEC_v1.0.1.md` section 5 for historical intent.
 - Landlock ABI 4 network rules as an optional Module 08 exercise on kernels supporting that ABI.

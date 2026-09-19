@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from northecho.grading import Check
+from northecho.grading import Check, run_bounded
 
 
 def grade(workspace: Path, fixture: dict) -> list[Check]:
@@ -15,7 +15,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
     with tempfile.TemporaryDirectory(prefix=".grade-", dir=workspace) as raw:
         evaluation = Path(raw)
         binary = evaluation / "launcher"
-        compiled = subprocess.run(
+        compiled = run_bounded(
             ["cc", "-std=c11", "-Wall", "-Wextra", "-O2", str(source), "-o", str(binary)],
             text=True,
             capture_output=True,
@@ -30,7 +30,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
         environment["NE_LAB_TOKEN"] = fixture["canary"]
         descriptor = os.open(protected, os.O_RDONLY)
         try:
-            run = subprocess.run(
+            run = run_bounded(
                 [str(binary), "python3", str(probe)],
                 env=environment,
                 pass_fds=(descriptor,),

@@ -5,10 +5,13 @@ import os
 import re
 import shutil
 import signal
+import select
 import subprocess
+import tempfile
+from dataclasses import dataclass, field
 from pathlib import Path
 
-from .paths import SafetyError, contained
+from .paths import SafetyError, contained, safe_child
 
 
 def expected_user_unit_description(root: Path, target: str) -> str:
@@ -44,22 +47,26 @@ def _user_unit_properties(unit: str) -> dict[str, str] | None:
         ],
         text=True,
         capture_output=True,
+        timeout=10,
     )
-    if run.returncode != 0:
-        return None
     properties = dict(line.split("=", 1) for line in run.stdout.splitlines() if "=" in line)
-    return None if properties.get("LoadState") == "not-found" else properties
+    if properties.get("LoadState") == "not-found":
+        return None
+    if run.returncode != 0 or not properties.get("LoadState"):
+        raise SafetyError(f"cannot establish user unit state: {unit}; registry retained")
+    return properties
 
 
 def register_user_unit(root: Path, target: str, unit: str) -> Path:
     validate_user_unit_name(target, os.getuid(), unit)
-    workspace = contained(root / ".student", root / ".student" / target)
+    workspace = safe_child(root, ".student", target)
     if not workspace.is_dir():
         raise SafetyError(f"cannot register a unit without an active workspace: {target}")
-    runtime_base = (root / ".runtime").resolve()
-    runtime_dir = contained(runtime_base, runtime_base / target)
+    runtime_dir = safe_child(root, ".runtime", target)
     runtime_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
     registry_path = runtime_dir / "resources.json"
+    if registry_path.is_symlink():
+        raise SafetyError("refusing a symlinked runtime registry")
     registry: dict[str, list] = {
         "pids": [], "mounts": [], "cgroups": [], "user_units": [], "temp_paths": []
     }
@@ -73,10 +80,15 @@ def register_user_unit(root: Path, target: str, unit: str) -> Path:
         raise SafetyError("runtime user_units registry is not a list")
     if unit not in units:
         units.append(unit)
-    temporary = runtime_dir / "resources.json.tmp"
-    temporary.write_text(json.dumps(registry, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    os.chmod(temporary, 0o600)
-    temporary.replace(registry_path)
+    fd, name = tempfile.mkstemp(prefix="resources.", dir=runtime_dir)
+    temporary = Path(name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(registry, stream, indent=2, sort_keys=True)
+            stream.write("\n")
+        temporary.replace(registry_path)
+    finally:
+        temporary.unlink(missing_ok=True)
     return registry_path
 
 
@@ -92,68 +104,119 @@ def _mountpoints() -> set[str]:
     return points
 
 
-def cleanup_target(root: Path, target: str, dry_run: bool = False) -> list[str]:
-    runtime_base = (root / ".runtime").resolve()
-    runtime_dir = contained(runtime_base, runtime_base / target)
+@dataclass
+class CleanupPlan:
+    root: Path
+    target: str
+    runtime_dir: Path
+    actions: list[str] = field(default_factory=list)
+    pids: list[tuple[int, str]] = field(default_factory=list)
+    mounts: list[Path] = field(default_factory=list)
+    units: list[tuple[str, str]] = field(default_factory=list)
+    temps: list[Path] = field(default_factory=list)
+
+
+def _pid_identity(pid: int, workspace: Path) -> str | None:
+    try:
+        directory = Path(f"/proc/{pid}")
+        fields = (directory / "stat").read_text().rsplit(")", 1)[1].split()
+        if fields[0] == "Z":
+            return None
+        argv = (directory / "cmdline").read_bytes().split(b"\0")
+        prefix = str(workspace).encode()
+        if not any(arg == prefix or arg.startswith(prefix + b"/") for arg in argv):
+            raise SafetyError(f"PID {pid} is not bound to the exact target workspace")
+        return fields[19]  # /proc/PID/stat field 22: process start time
+    except FileNotFoundError:
+        return None
+
+
+def plan_cleanup(root: Path, target: str) -> CleanupPlan:
+    runtime_dir = safe_child(root, ".runtime", target)
+    workspace = safe_child(root, ".student", target)
+    plan = CleanupPlan(root, target, runtime_dir)
     if not runtime_dir.exists():
-        return []
+        return plan
     registry_path = runtime_dir / "resources.json"
+    if registry_path.is_symlink():
+        raise SafetyError("refusing a symlinked runtime registry")
     registry = {"pids": [], "mounts": [], "cgroups": [], "user_units": [], "temp_paths": []}
     if registry_path.exists():
-        registry.update(json.loads(registry_path.read_text(encoding="utf-8")))
-    actions: list[str] = []
-
-    for raw in registry.get("pids", []):
-        pid = int(raw)
-        cmdline = Path(f"/proc/{pid}/cmdline")
-        if not cmdline.exists():
-            continue
-        command = cmdline.read_bytes().replace(b"\x00", b" ").decode(errors="replace")
-        workspace = str((root / ".student" / target).resolve())
-        if workspace not in command:
-            raise SafetyError(f"refusing to signal PID {pid}: command is not bound to {workspace}")
-        actions.append(f"terminate pid {pid}")
-        if not dry_run:
-            os.kill(pid, signal.SIGTERM)
-
-    mounted = _mountpoints()
-    for raw in sorted(registry.get("mounts", []), key=len, reverse=True):
-        mount = contained(root / ".student", Path(raw))
-        if str(mount) in mounted:
-            actions.append(f"unmount {mount}")
-            if not dry_run:
-                subprocess.run(["umount", str(mount)], check=True)
-
-    if registry.get("cgroups", []):
+        loaded = json.loads(registry_path.read_text(encoding="utf-8"))
+        if not isinstance(loaded, dict) or set(loaded) - set(registry):
+            raise SafetyError("invalid runtime registry schema")
+        registry.update(loaded)
+    if any(not isinstance(value, list) for value in registry.values()):
+        raise SafetyError("runtime resource collections must be lists")
+    if registry["cgroups"]:
         raise SafetyError("refusing direct cgroup cleanup: register the owning delegated user unit")
-
+    for pid in registry["pids"]:
+        if type(pid) is not int or pid <= 1:
+            raise SafetyError("invalid registered PID")
+        identity = _pid_identity(pid, workspace)
+        if identity is not None:
+            if not hasattr(os, "pidfd_open") or not hasattr(signal, "pidfd_send_signal"):
+                raise SafetyError("PID cleanup requires Linux pidfd support")
+            plan.pids.append((pid, identity))
+            plan.actions.append(f"terminate and wait for pid {pid}")
+    if any(not isinstance(raw, str) for raw in registry["mounts"] + registry["temp_paths"]):
+        raise SafetyError("registered paths must be strings")
+    mounted = _mountpoints()
+    for raw in sorted(registry["mounts"], key=len, reverse=True):
+        mount = contained(workspace, Path(raw))
+        if str(mount) in mounted:
+            plan.mounts.append(mount)
+            plan.actions.append(f"unmount {mount}")
     uid = os.getuid()
-    for raw in registry.get("user_units", []):
+    for raw in registry["user_units"]:
         unit = validate_user_unit_name(target, uid, raw)
         properties = _user_unit_properties(unit)
         if properties is None:
             continue
         control_group = validate_user_unit_state(root, target, uid, unit, properties)
-        actions.append(f"stop owned user unit {unit}")
-        if not dry_run:
-            subprocess.run(["systemctl", "--user", "stop", unit], check=True)
-            subprocess.run(
-                ["systemctl", "--user", "reset-failed", unit],
-                check=False,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-            cgroup = Path("/sys/fs/cgroup" + control_group)
-            if cgroup.exists():
-                raise SafetyError(f"owned user unit stopped but cgroup remains: {cgroup}")
-
-    for raw in registry.get("temp_paths", []):
+        plan.units.append((unit, control_group))
+        plan.actions.append(f"stop owned user unit {unit}")
+    for raw in registry["temp_paths"]:
         path = contained(runtime_dir, Path(raw))
-        actions.append(f"remove temp {path}")
-        if not dry_run:
-            shutil.rmtree(path) if path.is_dir() else path.unlink(missing_ok=True)
+        plan.temps.append(path)
+        plan.actions.append(f"remove temp {path}")
+    plan.actions.append(f"remove runtime registry {runtime_dir}")
+    return plan
 
-    actions.append(f"remove runtime registry {runtime_dir}")
-    if not dry_run:
-        shutil.rmtree(runtime_dir)
-    return actions
+
+def execute_cleanup(plan: CleanupPlan, dry_run: bool = False) -> list[str]:
+    if dry_run or not plan.actions:
+        return plan.actions
+    workspace = safe_child(plan.root, ".student", plan.target)
+    for pid, identity in plan.pids:
+        if _pid_identity(pid, workspace) is None:
+            continue
+        descriptor = os.pidfd_open(pid)
+        try:
+            if _pid_identity(pid, workspace) != identity:
+                raise SafetyError(f"PID {pid} changed identity; registry retained")
+            signal.pidfd_send_signal(descriptor, signal.SIGTERM)
+            if not select.select([descriptor], [], [], 5)[0]:
+                raise SafetyError(f"PID {pid} did not exit; registry retained")
+        finally:
+            os.close(descriptor)
+    for mount in plan.mounts:
+        subprocess.run(["umount", str(mount)], check=True, timeout=10)
+    for unit, control_group in plan.units:
+        properties = _user_unit_properties(unit)
+        if properties is not None:
+            validate_user_unit_state(plan.root, plan.target, os.getuid(), unit, properties)
+            subprocess.run(["systemctl", "--user", "stop", unit], check=True, timeout=15)
+            if Path("/sys/fs/cgroup" + control_group).exists():
+                raise SafetyError(f"owned user unit stopped but cgroup remains: {control_group}")
+            subprocess.run(["systemctl", "--user", "reset-failed", unit], check=False,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10)
+    for path in plan.temps:
+        if path.exists():
+            shutil.rmtree(path) if path.is_dir() else path.unlink()
+    shutil.rmtree(plan.runtime_dir)
+    return plan.actions
+
+
+def cleanup_target(root: Path, target: str, dry_run: bool = False) -> list[str]:
+    return execute_cleanup(plan_cleanup(root, target), dry_run)

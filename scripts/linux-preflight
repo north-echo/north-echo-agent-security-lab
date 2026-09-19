@@ -28,6 +28,7 @@ if [ "$(uname -s 2>/dev/null)" = Linux ]; then
     ok 'Linux kernel detected'
 else
     bad 'Linux kernel required for lessons and kernel validation'
+    exit 1
 fi
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -36,7 +37,7 @@ else
     bad 'run the course as an ordinary non-root user'
 fi
 
-for tool in python3 cc strace unshare nsenter setpriv capsh getcap setcap ps pkg-config ip systemd-run systemctl; do
+for tool in python3 cc strace unshare nsenter setpriv capsh getcap setcap ps pkg-config ip systemd-run systemctl timeout; do
     if have "$tool"; then
         ok "required course tool available: $tool"
     else
@@ -88,7 +89,20 @@ else
     bad 'capability state is not visible'
 fi
 
-printf '\n%s\n' 'Additional environment readiness (informational)'
+printf '\n%s\n' 'Full-course behavioral readiness'
+
+probe_dir=$(mktemp -d)
+trap 'rm -rf -- "$probe_dir"' EXIT HUP INT TERM
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+printf 'allowed\n' > "$probe_dir/allowed"
+printf 'denied\n' > "$probe_dir/denied"
+if cc -std=c11 -Wall -Wextra -Werror -O2 -static "$script_dir/preflight_probe.c" \
+    -o "$probe_dir/kernel-probe" -lseccomp && \
+    timeout 10 "$probe_dir/kernel-probe" "$probe_dir/allowed" "$probe_dir/denied"; then
+    ok 'Modules 05-06: static toolchain, openat2, Landlock and seccomp enforce policy'
+else
+    bad 'Modules 05-06: behavioral kernel-policy or static-toolchain check failed'
+fi
 
 for tool in nft jq; do
     if have "$tool"; then
@@ -99,15 +113,31 @@ for tool in nft jq; do
 done
 
 if [ -r /sys/fs/cgroup/cgroup.controllers ] && grep -qw cpu /sys/fs/cgroup/cgroup.controllers && grep -qw memory /sys/fs/cgroup/cgroup.controllers && grep -qw pids /sys/fs/cgroup/cgroup.controllers; then
-    info 'Module 07 cgroup v2 controllers are visible'
+    ok 'Modules 07/10: cgroup v2 controllers are visible'
 else
-    info 'Module 07 requires cgroup v2 cpu, memory, and pids controllers'
+    bad 'Modules 07/10 require cgroup v2 cpu, memory, and pids controllers'
 fi
 
 if systemctl --user show-environment >/dev/null 2>&1; then
-    info 'Module 07 delegated systemd user manager is reachable'
+    ok 'Modules 07/10: systemd user manager is reachable'
 else
-    info 'Module 07 delegated systemd user manager is not reachable in this session'
+    bad 'Modules 07/10: systemd user manager is not reachable in this session'
+fi
+
+if timeout 20 systemd-run --user --wait --pipe --collect --quiet \
+    --property=RuntimeMaxSec=10s --property=TimeoutStopSec=3s \
+    --property=CPUQuota=50% --property=MemoryMax=64M \
+    --property=MemorySwapMax=0 --property=TasksMax=16 -- sh -eu -c '
+      relative=$(sed -n "s/^0:://p" /proc/self/cgroup)
+      base=/sys/fs/cgroup$relative
+      test "$(cat "$base/cpu.max")" = "50000 100000"
+      test "$(cat "$base/memory.max")" = 67108864
+      test "$(cat "$base/memory.swap.max")" = 0
+      test "$(cat "$base/pids.max")" = 16
+    '; then
+    ok 'Modules 07/10: delegated CPU, memory, swap and task limits are effective'
+else
+    bad 'Modules 07/10: delegated resource controls did not become effective'
 fi
 
 printf '\nSUMMARY: %s required checks passed; %s required checks failed\n' "$pass" "$fail"

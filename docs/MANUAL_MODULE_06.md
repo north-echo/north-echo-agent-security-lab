@@ -1,3 +1,4 @@
+<!-- source: course/module-06-seccomp/README.md format=markdown -->
 # Module 06 - Constrain syscalls with seccomp
 
 Measure a real workload before writing policy, observe the operational difference between errno and kill actions, then launch a static child under a native-architecture default-deny libseccomp filter.
@@ -14,9 +15,11 @@ Outcomes:
 - explain why syscall filtering is not pathname authorization, resource accounting, or network destination policy.
 
 Prerequisites: Modules 01-05, Linux, `strace`, a C compiler with static libc development files, and libseccomp headers/library discoverable through `pkg-config`. All probes are local and unprivileged.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-06-seccomp/lesson-01/README.md format=markdown -->
 # 06.01 - Measure the workload before filtering
 
 ## Goal
@@ -122,9 +125,11 @@ grep -q 'read(' trace.txt
 - If `strace` is blocked, use the documented disposable VM; do not weaken a work host.
 - A libc may use `openat` even though the source says `open`; policy applies to kernel ABI calls, not C function spelling.
 - Checkpoint: name one observed loader syscall and one input-dependent syscall, and explain why measurement alone is not least privilege.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-06-seccomp/lesson-02/README.md format=markdown -->
 # 06.02 - Compare errno, kill, and blacklist bypass
 
 ## Goal
@@ -258,9 +263,11 @@ Repair the design in Lesson 06.03 with a default-deny policy whose allowlist is 
 - If `seccomp.h` or `libseccomp.pc` is absent, install the documented `libseccomp-dev` and `pkg-config` packages in the disposable VM.
 - If kill mode emits no probe line, that is expected: the kernel terminates at the denied syscall.
 - Checkpoint: explain why both observed actions enforce the same rule but have different failure semantics, and why neither blocks `socketpair`.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-06-seccomp/lesson-03/README.md format=markdown -->
 # 06.03 - Launch with a native default-deny filter
 
 ## Goal
@@ -445,9 +452,11 @@ test "$(./allowlist ./policy-probe unexpected)" = 'result=-1 errno=1'
 - If the static probe fails before output, compare its `strace` surface with the allowlist on this supported VM and add only justified startup calls.
 - `EPERM` from `seccomp_load` usually means `no_new_privs` was not set or policy setup was reordered.
 - Checkpoint: identify the functional syscalls, startup syscalls, deliberately denied syscalls, and the separate pathname assumption.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-06-seccomp/lab/README.md format=markdown -->
 # Module 06 independent lab - Default-deny syscall launcher
 
 Implement `seccomp_guard.c`. The grader builds and invokes:
@@ -482,3 +491,4 @@ cc -std=c11 -Wall -Wextra -Werror -O2 seccomp_guard.c -o seccomp-guard $(pkg-con
 - Exam mode repeats fresh behavior checks but suppresses repair-oriented references.
 
 The lab deliberately withholds a complete implementation. Start from the ordering and justified call set you measured and explained in Lesson 06.03. Seccomp is one runtime layer: this lab does not claim pathname policy, resource accounting, network destination authorization, or protection from already-open descriptors.
+<!-- /source -->

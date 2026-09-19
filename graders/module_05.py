@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from northecho.grading import Check
+from northecho.grading import Check, run_bounded
 
 
 PROBE_SOURCE = r'''
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 
 def _run(argv: list[str], *, pass_fds: tuple[int, ...] = ()) -> subprocess.CompletedProcess[str] | None:
     try:
-        return subprocess.run(argv, text=True, capture_output=True, timeout=8, pass_fds=pass_fds)
+        return run_bounded(argv, text=True, capture_output=True, timeout=8, pass_fds=pass_fds)
     except subprocess.TimeoutExpired:
         return None
 
@@ -59,7 +59,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
         shutil.copy2(source, copied)
         copied.chmod(0o444)
         binary = submission / "fs-guard"
-        compiled = subprocess.run(
+        compiled = run_bounded(
             ["cc", "-std=c11", "-Wall", "-Wextra", "-O2", str(copied), "-o", str(binary)],
             text=True,
             capture_output=True,
@@ -85,7 +85,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
         probe_source = allowed / "probe.c"
         probe = allowed / "probe"
         probe_source.write_text(PROBE_SOURCE, encoding="utf-8")
-        probe_build = subprocess.run(["cc", "-static", "-O2", str(probe_source), "-o", str(probe)], text=True, capture_output=True)
+        probe_build = run_bounded(["cc", "-static", "-O2", str(probe_source), "-o", str(probe)], text=True, capture_output=True)
         child_allowed = None
         child_denied = None
         inherited = None

@@ -13,7 +13,7 @@ import threading
 import time
 from pathlib import Path
 
-from northecho.grading import Check
+from northecho.grading import Check, run_bounded
 
 
 def _server(handler):
@@ -114,6 +114,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
     run_id = f"run-{fixture['hostname']}"
 
     checks: dict[str, bool] = {}
+    process = None
     try:
         with tempfile.TemporaryDirectory(prefix="ne08-") as raw:
             work = Path(raw)
@@ -172,7 +173,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
                 "destinations": {allowed_host: {"address": "192.0.2.1", "ports": [80]}},
             }), encoding="utf-8")
             unsafe_socket = work / "unsafe.sock"
-            unsafe = subprocess.run(
+            unsafe = run_bounded(
                 [sys.executable, str(agent), str(unsafe_policy), str(unsafe_socket)],
                 cwd=work,
                 text=True,
@@ -182,7 +183,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
             checks["loopback"] = unsafe.returncode != 0 and not unsafe_socket.exists()
 
             direct_code = "import socket,sys; socket.create_connection(('127.0.0.1',int(sys.argv[1])),.5)"
-            direct = subprocess.run(
+            direct = run_bounded(
                 ["unshare", "--user", "--map-root-user", "--net", sys.executable, "-c", direct_code, str(allowed_port)],
                 text=True,
                 capture_output=True,
@@ -190,6 +191,8 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
             )
             checks["isolated"] = direct.returncode != 0
     finally:
+        if process is not None:
+            _stopped(process)
         allowed.shutdown()
         protected.shutdown()
         allowed.server_close()

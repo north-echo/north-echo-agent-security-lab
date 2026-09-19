@@ -8,7 +8,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from northecho.grading import Check
+from northecho.grading import Check, result_object, run_bounded
 
 
 PROBE = r'''import json, os, sys
@@ -35,14 +35,16 @@ elif mode == "fail":
 
 def _run(agent: Path, spec: Path, result: Path, cwd: Path):
     try:
-        return subprocess.run([sys.executable, str(agent), str(spec), str(result)], cwd=cwd, text=True, capture_output=True, timeout=20)
+        return run_bounded([sys.executable, str(agent), str(spec), str(result)], cwd=cwd, text=True, capture_output=True, timeout=20)
     except subprocess.TimeoutExpired:
         return None
 
 
 def _result(path: Path):
-    try: return json.loads(path.read_text())
-    except (OSError, json.JSONDecodeError, TypeError): return None
+    try:
+        return result_object(path)
+    except (OSError, ValueError):
+        return None
 
 
 def grade(workspace: Path, fixture: dict) -> list[Check]:
@@ -81,7 +83,8 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
         bad.write_text(json.dumps({"command":["/bin/true"],"memory_max":0,"tasks_max":100000,"cpu_percent":0}))
         denied = _run(agent, bad, bad_result, work)
 
-        units = subprocess.run(["systemctl","--user","list-units","--all","--plain","--no-legend","north-echo-*-07-lab-*.service"], text=True, capture_output=True)
+        units = run_bounded(["systemctl", "--user", "list-units", "--all", "--plain", "--no-legend",
+                             f"north-echo-{os.getuid()}-07-lab-*.service"])
     return [
         Check("Approved workload completes with valid result", run is not None and run.returncode == 0 and isinstance(result, dict), "Module 07 lesson 01"),
         Check("Effective CPU, memory, swap, and PID limits match", limits, "Module 07 lessons 01-03"),

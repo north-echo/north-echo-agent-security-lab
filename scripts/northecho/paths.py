@@ -27,5 +27,7 @@ def safe_child(root: Path, area: str, target: str) -> Path:
         raise SafetyError(f"unknown managed area: {area}")
     if not target or any(part in target for part in ("/", "\\", "..")):
         raise SafetyError(f"unsafe target name: {target!r}")
+    if (root / area).is_symlink() or (root / area / target).is_symlink():
+        raise SafetyError(f"refusing symlink outside lab root ownership: {area}/{target}")
     base = contained(root, root / area)
     return contained(base, base / target)

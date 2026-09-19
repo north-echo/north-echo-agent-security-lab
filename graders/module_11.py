@@ -9,7 +9,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from northecho.grading import Check
+from northecho.grading import Check, result_object, run_bounded
 
 SECURE = {"execution": "argv", "environment": "minimal", "filesystem": "resolved",
           "network": "broker_only", "cleanup": "owned"}
@@ -19,7 +19,7 @@ WEAK = {"execution": "shell", "environment": "inherit", "filesystem": "lexical",
 
 def _run(agent: Path, source: Path, output: Path, cwd: Path):
     try:
-        return subprocess.run([sys.executable, str(agent), str(source), str(output)], cwd=cwd,
+        return run_bounded([sys.executable, str(agent), str(source), str(output)], cwd=cwd,
                               text=True, capture_output=True, timeout=5)
     except subprocess.TimeoutExpired:
         return None
@@ -27,8 +27,8 @@ def _run(agent: Path, source: Path, output: Path, cwd: Path):
 
 def _load(path: Path):
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+        return result_object(path)
+    except (OSError, ValueError):
         return None
 
 
@@ -76,7 +76,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
             harness_work = work / f"harness-{index}"
             environment = dict(os.environ)
             environment["NORTH_ECHO_FAKE_CREDENTIAL"] = "FAKE-" + fixture["canary"]
-            observed = subprocess.run([sys.executable, str(harness), str(output_path),
+            observed = run_bounded([sys.executable, str(harness), str(output_path),
                                        str(evidence_path), str(harness_work)], text=True,
                                       capture_output=True, timeout=5, env=environment)
             evidence = _load(evidence_path)

@@ -12,11 +12,12 @@ import stat
 import subprocess
 import sys
 import tempfile
+from contextlib import ExitStack
 import threading
 import time
 from pathlib import Path
 
-from northecho.grading import Check
+from northecho.grading import Check, stop_process
 
 
 def _canonical(value: object) -> bytes:
@@ -69,6 +70,7 @@ class Upstream:
             except TimeoutError:
                 continue
             with peer:
+                peer.settimeout(2)
                 try:
                     raw = peer.makefile("rb").readline(65536)
                     request = json.loads(raw)
@@ -140,7 +142,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
 
     results: dict[str, bool] = {}
     response_texts: list[str] = []
-    with tempfile.TemporaryDirectory(prefix="ne09-") as raw:
+    with tempfile.TemporaryDirectory(prefix="ne09-") as raw, ExitStack() as owned:
         work = Path(raw)
         agent = work / "capability_broker.py"
         shutil.copy2(source, agent)
@@ -161,6 +163,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
         credential_path.chmod(0o600)
         upstream_path = work / "upstream.sock"
         upstream = Upstream(upstream_path, credential, {resource_a: value_a, resource_b: value_b})
+        owned.callback(upstream.stop)
         policy_path = work / "policy.json"
         policy_path.write_text(json.dumps({
             "version": 1,
@@ -179,6 +182,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
             stderr=subprocess.PIPE,
             env={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1"},
         )
+        owned.callback(stop_process, process)
         ready = _wait_socket(broker_path, process)
         results["socket"] = ready and stat.S_IMODE(broker_path.stat().st_mode) == 0o600
 
@@ -250,12 +254,12 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
             stderr=subprocess.PIPE,
             env={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1"},
         )
+        owned.callback(stop_process, unsafe)
         unsafe_ready = _wait_socket(unsafe_path, unsafe)
         unsafe_stdout, unsafe_stderr = _stop_process(unsafe)
         results["secret_mode"] = not unsafe_ready and unsafe.returncode != 0 and not unsafe_path.exists()
         all_client_output += unsafe_stdout + unsafe_stderr
         results["secret"] = results["secret"] and credential not in all_client_output and key.hex() not in all_client_output
-        upstream.stop()
 
     return [
         Check("Broker creates a private Unix socket", results.get("socket", False), "Module 09 lesson 03"),

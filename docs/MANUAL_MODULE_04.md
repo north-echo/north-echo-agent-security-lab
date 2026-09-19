@@ -1,3 +1,4 @@
+<!-- source: course/module-04-minimal-agent/README.md format=markdown -->
 # Module 04 - Build a minimal tool-using agent
 
 Build a small deterministic agent loop with `read_file`, `write_file`, and argv-based command execution over synthetic tasks. Begin deliberately over-authorized, inventory inherited authority, then define and verify a narrow tool contract.
@@ -13,9 +14,11 @@ Outcomes:
 - inventory the launcher's environment, descriptors, and working directory without logging secret values;
 - remove synthetic ambient environment authority before launching a child;
 - distinguish an action request, an execution result, and evidence that the result actually occurred.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-04-minimal-agent/lesson-01/README.md format=markdown -->
 # 04.01 - Run a deterministic tool loop and record every action
 
 ## Goal
@@ -140,9 +143,11 @@ test "$(cat output.txt)" = "synthetic result"
 - If the trace says success but the file is absent, the record was emitted before the effect or without checking it.
 - If an old output survives, repeat the scoped `rm -f` command; never delete outside this lesson workspace.
 - Checkpoint: explain why the request, trace record, and filesystem observation are three distinct facts.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-04-minimal-agent/lesson-02/README.md format=markdown -->
 # 04.02 - Preserve argv boundaries and handle tool failure
 
 ## Goal
@@ -265,9 +270,11 @@ printf 'runner status=%s\n' "$STATUS"
 - If `python3` is not found, verify the fixed `PATH` for this disposable VM rather than copying the parent environment.
 - If failure JSON is empty, the runner probably raised instead of recording `returncode`, stdout, and stderr.
 - Checkpoint: explain why an argv array is a security boundary only while every layer preserves the array.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-04-minimal-agent/lesson-03/README.md format=markdown -->
 # 04.03 - Inventory and remove ambient launcher authority
 
 ## Goal
@@ -376,9 +383,11 @@ if grep -F "$NE_AGENT_SECRET" safe-output.txt; then exit 1; else echo 'AMBIENT E
 - If the unsafe grep fails, confirm the variable was exported in the same shell.
 - Remove `unsafe-output.txt` after the observation; it contains only a synthetic value, but it is still disposable fixture data.
 - Checkpoint: identify which authority is removed by the repair and name at least three channels it does not address.
+<!-- /source -->
 
 <!-- PAGEBREAK -->
 
+<!-- source: course/module-04-minimal-agent/lab/README.md format=markdown -->
 # Module 04 independent lab - Auditable local tool runner
 
 Implement `agent.py`. The grader invokes:
@@ -422,3 +431,4 @@ python3 agent.py sample-task.json trace.jsonl
 - Exam mode tests the same properties but suppresses repair-oriented references.
 
 The lab intentionally does not provide a complete implementation. Plan the dispatcher, per-tool result fields, trace write point, failure aggregation, argv launch, and child environment before coding.
+<!-- /source -->

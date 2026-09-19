@@ -18,4 +18,12 @@ End labs state functional and security properties but omit complete solutions. G
 
 AI may be used as a tutor or debugger if the learner chooses. It is never required to start, complete, or grade a lesson. The learning objective is for the student's keyboard time to build Linux/security intuition, not to operate a coding-agent workflow.
 
-Boundary Atlas is a destination, not a prerequisite. Modules 11-12 will introduce non-agent probes, seeded weaknesses, hardened counterparts, and careful interpretation of non-discovery only after the learner has direct experience with the mechanisms.
+Boundary Atlas is a destination, not a prerequisite. Modules 11-12 introduce synthetic evidence, hardened counterparts, and careful interpretation of non-discovery after the learner has direct experience with the mechanisms. Module 12 distinguishes introductory hinted dispatch from independent interpretation of incomplete offline observations.
+
+The [learning path](docs/LEARNING_PATH.md) supplies an entry diagnostic, a faded task
+for each module, cumulative checkpoints, and a human-scored reasoning rubric.
+The capstone uses independently limited ordered jobs, failure recovery, and
+per-job collection; its kernel assertions reuse Module 10, but its batch protocol
+requires transfer. Automated execution does not establish teaching effectiveness.
+Use the [learner pilot protocol](docs/dev/LEARNER_PILOT.md) before making claims
+about novice completion, retention, or course duration.

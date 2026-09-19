@@ -120,15 +120,18 @@ def parse_markdown(markdown: str, styles: dict) -> list:
     return story
 
 
-def footer(canvas, document):
-    canvas.saveState()
-    canvas.setStrokeColor(colors.HexColor("#cbd5e1"))
-    canvas.line(0.72 * inch, 0.54 * inch, 7.78 * inch, 0.54 * inch)
-    canvas.setFillColor(colors.HexColor("#475569"))
-    canvas.setFont("Helvetica", 8)
-    canvas.drawString(0.72 * inch, 0.36 * inch, "North Echo Agent Security Lab - v1.0.1 field manual")
-    canvas.drawRightString(7.78 * inch, 0.36 * inch, f"{document.page}")
-    canvas.restoreState()
+def make_footer(version: str):
+    def footer(canvas, document):
+        canvas.saveState()
+        canvas.setStrokeColor(colors.HexColor("#cbd5e1"))
+        canvas.line(0.72 * inch, 0.54 * inch, 7.78 * inch, 0.54 * inch)
+        canvas.setFillColor(colors.HexColor("#475569"))
+        canvas.setFont("Helvetica", 8)
+        canvas.drawString(0.72 * inch, 0.36 * inch, f"North Echo Agent Security Lab - v{version} field manual")
+        canvas.drawRightString(7.78 * inch, 0.36 * inch, f"{document.page}")
+        canvas.restoreState()
+
+    return footer
 
 
 def main() -> int:
@@ -137,6 +140,12 @@ def main() -> int:
         return 2
     source, output = map(Path, sys.argv[1:])
     output.parent.mkdir(parents=True, exist_ok=True)
+    markdown = source.read_text(encoding="utf-8")
+    version_match = re.search(r"^# North Echo Agent Security Lab - Complete Field Manual v([0-9]+\.[0-9]+\.[0-9]+)$", markdown, re.MULTILINE)
+    if version_match is None:
+        print("field manual title does not contain a semantic version", file=sys.stderr)
+        return 2
+    version = version_match.group(1)
     sample = getSampleStyleSheet()
     styles = {
         "Title": ParagraphStyle("NE Title", parent=sample["Title"], fontName="Helvetica-Bold", fontSize=22, leading=26, textColor=colors.HexColor("#0f172a"), alignment=TA_LEFT, spaceAfter=10),
@@ -151,11 +160,12 @@ def main() -> int:
     document = SimpleDocTemplate(
         str(output), pagesize=LETTER, leftMargin=0.72 * inch, rightMargin=0.72 * inch,
         topMargin=0.68 * inch, bottomMargin=0.72 * inch,
-        title="North Echo Agent Security Lab v1.0.1 Field Manual",
+        title=f"North Echo Agent Security Lab v{version} Field Manual",
         author="North Echo",
         subject="Hands-on Linux containment training, Modules 01-12",
     )
-    story = parse_markdown(source.read_text(encoding="utf-8"), styles)
+    story = parse_markdown(markdown, styles)
+    footer = make_footer(version)
     document.build(story, onFirstPage=footer, onLaterPages=footer)
     return 0
 

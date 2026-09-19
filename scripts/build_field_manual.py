@@ -11,7 +11,7 @@ SOURCES = [
     ROOT / "docs" / "MANUAL_MODULES_01_03.md",
     *(ROOT / "docs" / f"MANUAL_MODULE_{module:02d}.md" for module in range(4, 13)),
 ]
-HEADER = """# North Echo Agent Security Lab - Complete Field Manual v1.0.1
+HEADER = """# North Echo Agent Security Lab - Complete Field Manual v1.0.2
 
 This release manual combines the twelve validated module chapters. The cold capstone contract is in the repository and deliberately contains no guided solution.
 

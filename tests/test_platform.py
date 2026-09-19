@@ -335,6 +335,16 @@ if __name__ == "__main__":
         self.assertLess(template.index('if [[ -f "$ready_marker" ]]'), template.index("apt-get update"))
         self.assertLess(template.rindex('if [[ -f "$ready_marker" ]]'), template.index('curl --fail'))
 
+    def test_v102_release_versions_are_aligned(self):
+        root_marker = (SOURCE / ".north-echo-root").read_text(encoding="utf-8")
+        package = (SOURCE / "scripts" / "northecho" / "__init__.py").read_text(encoding="utf-8")
+        manual_builder = (SOURCE / "scripts" / "build_field_manual.py").read_text(encoding="utf-8")
+        release_builder = (SOURCE / "scripts" / "build-release").read_text(encoding="utf-8")
+        template = (SOURCE / "deploy" / "north-echo.yaml").read_text(encoding="utf-8")
+        for text in (root_marker, package, manual_builder, release_builder, template):
+            self.assertIn("1.0.2", text)
+        self.assertTrue((SOURCE / "release" / "RELEASE_NOTES_v1.0.2.md").is_file())
+
     def test_handoff_contract_is_present_and_explicit(self):
         agents = (SOURCE / "AGENTS.md").read_text(encoding="utf-8")
         handoff = (SOURCE / "docs" / "dev" / "HANDOFF.md").read_text(encoding="utf-8")

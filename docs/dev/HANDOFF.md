@@ -11,11 +11,11 @@ The next task should work in this repository rather than regenerate it from a sp
 ## Current checkpoint
 
 - Project: **North Echo Agent Security Lab**
-- Source checkpoint: v1.0.1 development based on the dual-architecture CI and framing commit `0337822`; use Git history for the final release hash
+- Source checkpoint: v1.0.2 release candidate with the pinned Lima appliance; use Git history for the final release hash
 - Modules 01-12: fully authored and Linux-validated, with thirty-six guided lessons and twelve independent labs
 - Platform lifecycle: start, status, grade, lesson/module/all reset, dry-run cleanup, randomized fixtures, practice/exam modes, and metadata-only progress are implemented
 - Field manual: Modules 01-12 have synchronized, self-contained chapters with complete guided source, local explanations, expected observations, troubleshooting, labs, and security models
-- Current automated result: 42 tests passing, course attestation passing, and continuous Ubuntu 24.04 CI passing on x86-64 and arm64
+- Current automated result: 44 tests passing, course attestation passing, and continuous Ubuntu 24.04 CI passing on x86-64 and arm64
 - Gate A record: `validation/RESULTS.md`; no required Gate A step was skipped
 - Module 04 record: `validation/module-04/RESULTS.md`; all module acceptance items passed
 - Module 05 record: `validation/module-05/RESULTS.md`; all module acceptance items passed
@@ -40,6 +40,8 @@ Gate A passed on Ubuntu 24.04.4 LTS arm64. The run covered the non-destructive p
 Gate D is complete: the cold capstone, complete Markdown/PDF manuals, release notes, and reproducible release-artifact workflow are implemented and Linux-validated. Future work is maintenance, additional architecture baselines, or post-v1 course expansion rather than an unfinished core deliverable.
 
 The v1.0.1 maintenance release clarifies the runtime-containment scope, moves development-process material under `docs/dev/`, makes PDF delivery a reproducible release-only artifact, adds continuous x86-64 and arm64 validation, and extends the Module 05 lesson through build-time-known Landlock filesystem rights at ABI 9. The exact scope and deferred Module 12 work are in `docs/dev/SPEC_v1.0.1.md`.
+
+The v1.0.2 maintenance release adds a pinned Ubuntu 24.04 Lima appliance for macOS, plain-mode isolation from host mounts and agent forwarding, idempotent checksum-verified course installation, correct-user systemd lingering, a shared CI/package manifest, readiness probing, and SSH-based evidence export. Its acceptance plan and retained pre-release evidence are under `validation/deployment-v1.0.2/`.
 
 Do not start by rewriting the platform. Preserve working behavior and add focused tests for every corrected defect.
 

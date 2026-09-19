@@ -1,4 +1,4 @@
-# North Echo Agent Security Lab - Complete Field Manual v1.0.1
+# North Echo Agent Security Lab - Complete Field Manual v1.0.2
 
 This release manual combines the twelve validated module chapters. The cold capstone contract is in the repository and deliberately contains no guided solution.
 

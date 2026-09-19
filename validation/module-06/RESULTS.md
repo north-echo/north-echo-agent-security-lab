@@ -23,4 +23,4 @@ The allowlist is intentionally tied to the supported static teaching probe and c
 
 ## Acceptance disposition
 
-All Module 06 requirements in `docs/MODULE_ACCEPTANCE_TEMPLATE.md` are satisfied.
+All Module 06 requirements in `docs/dev/MODULE_ACCEPTANCE_TEMPLATE.md` are satisfied.

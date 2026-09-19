@@ -239,6 +239,7 @@ if __name__ == "__main__":
             "Break pathname string checks",
             "Make lookup descriptor-relative with `openat2`",
             "Restrict a child with Landlock",
+            "Unhandled means allowed",
             "Module 05 independent lab",
         ):
             self.assertIn(phrase, module_five)
@@ -276,10 +277,24 @@ if __name__ == "__main__":
         for phrase in ("Establish a scripted baseline", "Adapt within an action budget", "Package a calibrated candidate experiment", "Module 12 independent lab"):
             self.assertIn(phrase, module_twelve)
 
+    def test_landlock_lesson_tracks_known_filesystem_abi_rights(self):
+        source = (SOURCE / "course" / "module-05-filesystem-landlock" / "lesson-03" / "landlock_launch.c").read_text(encoding="utf-8")
+        lesson = (SOURCE / "course" / "module-05-filesystem-landlock" / "lesson-03" / "README.md").read_text(encoding="utf-8")
+        for phrase in (
+            "LANDLOCK_ACCESS_FS_REFER",
+            "LANDLOCK_ACCESS_FS_TRUNCATE",
+            "LANDLOCK_ACCESS_FS_IOCTL_DEV",
+            "LANDLOCK_ACCESS_FS_RESOLVE_UNIX",
+            'fprintf(stderr, "Landlock ABI %d\\n", abi);',
+        ):
+            self.assertIn(phrase, source)
+        self.assertIn("Unhandled means allowed", lesson)
+        self.assertIn("build headers", lesson)
+
     def test_handoff_contract_is_present_and_explicit(self):
         agents = (SOURCE / "AGENTS.md").read_text(encoding="utf-8")
-        handoff = (SOURCE / "HANDOFF.md").read_text(encoding="utf-8")
-        acceptance = (SOURCE / "docs" / "MODULE_ACCEPTANCE_TEMPLATE.md").read_text(encoding="utf-8")
+        handoff = (SOURCE / "docs" / "dev" / "HANDOFF.md").read_text(encoding="utf-8")
+        acceptance = (SOURCE / "docs" / "dev" / "MODULE_ACCEPTANCE_TEMPLATE.md").read_text(encoding="utf-8")
         validation = (SOURCE / "docs" / "LINUX_VALIDATION.md").read_text(encoding="utf-8")
         for phrase in (
             "Never cut corners on the field manual",

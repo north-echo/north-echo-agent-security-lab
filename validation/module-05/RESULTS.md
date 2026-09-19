@@ -26,4 +26,4 @@ The lesson's resolved Python check demonstrates correct component comparison but
 
 ## Acceptance disposition
 
-All Module 05 requirements in `docs/MODULE_ACCEPTANCE_TEMPLATE.md` are satisfied. Tranche 1 remains incomplete until Module 06 passes the same gate.
+All Module 05 requirements in `docs/dev/MODULE_ACCEPTANCE_TEMPLATE.md` are satisfied. Tranche 1 remains incomplete until Module 06 passes the same gate.

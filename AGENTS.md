@@ -1,3 +1,5 @@
+Development-process instructions for AI coding agents working on this repository. Not part of the course.
+
 # North Echo repository instructions
 
 These instructions apply to every Codex task working in this repository.
@@ -12,12 +14,12 @@ The learner should spend most of their time typing commands, compiling small pro
 
 Read these files in order:
 
-1. `HANDOFF.md`
+1. `docs/dev/HANDOFF.md`
 2. `README.md`
 3. `COURSE_DESIGN.md`
 4. `ARCHITECTURE.md`
 5. `ROADMAP.md`
-6. `docs/MODULE_ACCEPTANCE_TEMPLATE.md`
+6. `docs/dev/MODULE_ACCEPTANCE_TEMPLATE.md`
 7. `docs/LINUX_VALIDATION.md`
 
 For work on Modules 01-03, also read `docs/MANUAL_MODULES_01_03.md`. For a later module, read every earlier module that supplies a skill the new module assumes.
@@ -51,7 +53,7 @@ Primary references and man pages may be linked as optional depth. They must not 
 
 ## Definition of done
 
-Use `docs/MODULE_ACCEPTANCE_TEMPLATE.md` for every module. A module is not playable merely because lesson prose or starter files exist. It needs guided lessons, an independent lab, randomized fixtures, practice and exam grading, safe reset/cleanup, automated tests, a complete manual chapter, and Linux evidence.
+Use `docs/dev/MODULE_ACCEPTANCE_TEMPLATE.md` for every module. A module is not playable merely because lesson prose or starter files exist. It needs guided lessons, an independent lab, randomized fixtures, practice and exam grading, safe reset/cleanup, automated tests, a complete manual chapter, and Linux evidence.
 
 Work in the roadmap tranches. Finish and validate the tranche acceptance gate before beginning the next one. Modules 01-03 must receive a real Linux baseline run before the course is described as Linux-validated.
 
@@ -71,4 +73,4 @@ After changing canonical course material, run `./scripts/update-course-manifest`
 
 ## Claims and hand-off discipline
 
-State exactly which checks ran, on which distribution and kernel, and which checks could not run. Do not convert a macOS control-plane test into a Linux-kernel validation claim. Do not call Modules 04-12 complete until each module meets its acceptance checklist. Keep `HANDOFF.md` and `ROADMAP.md` current at every tranche boundary.
+State exactly which checks ran, on which distribution and kernel, and which checks could not run. Do not convert a macOS control-plane test into a Linux-kernel validation claim. Do not call Modules 04-12 complete until each module meets its acceptance checklist. Keep `docs/dev/HANDOFF.md` and `ROADMAP.md` current at every tranche boundary.

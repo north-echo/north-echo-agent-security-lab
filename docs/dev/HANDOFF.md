@@ -11,11 +11,11 @@ The next task should work in this repository rather than regenerate it from a sp
 ## Current checkpoint
 
 - Project: **North Echo Agent Security Lab**
-- Source checkpoint: Gate D development based on the v0.4.0 main commit `57b422d`; use Git history for the v1.0.0 release hash
+- Source checkpoint: v1.0.1 development based on the dual-architecture CI and framing commit `0337822`; use Git history for the final release hash
 - Modules 01-12: fully authored and Linux-validated, with thirty-six guided lessons and twelve independent labs
 - Platform lifecycle: start, status, grade, lesson/module/all reset, dry-run cleanup, randomized fixtures, practice/exam modes, and metadata-only progress are implemented
 - Field manual: Modules 01-12 have synchronized, self-contained chapters with complete guided source, local explanations, expected observations, troubleshooting, labs, and security models
-- Current automated result: 41 tests passing and course attestation passing on Ubuntu 24.04.4 LTS arm64
+- Current automated result: 42 tests passing, course attestation passing, and continuous Ubuntu 24.04 CI passing on x86-64 and arm64
 - Gate A record: `validation/RESULTS.md`; no required Gate A step was skipped
 - Module 04 record: `validation/module-04/RESULTS.md`; all module acceptance items passed
 - Module 05 record: `validation/module-05/RESULTS.md`; all module acceptance items passed
@@ -38,6 +38,8 @@ The current source was assembled on macOS and kernel-validated in a disposable U
 Gate A passed on Ubuntu 24.04.4 LTS arm64. The run covered the non-destructive preflight, automated tests, attestation, all nine guided lessons, all three independent labs in practice and exam modes, randomized replay, every reset scope, cleanup containment, and final empty-state inspection. Focused fixes corrected Lesson 03.02's post-mapping `setgroups(2)` assumption and Module 02's namespace-local `NSpid` grading assumption.
 
 Gate D is complete: the cold capstone, complete Markdown/PDF manuals, release notes, and reproducible release-artifact workflow are implemented and Linux-validated. Future work is maintenance, additional architecture baselines, or post-v1 course expansion rather than an unfinished core deliverable.
+
+The v1.0.1 maintenance release clarifies the runtime-containment scope, moves development-process material under `docs/dev/`, makes PDF delivery a reproducible release-only artifact, adds continuous x86-64 and arm64 validation, and extends the Module 05 lesson through build-time-known Landlock filesystem rights at ABI 9. The exact scope and deferred Module 12 work are in `docs/dev/SPEC_v1.0.1.md`.
 
 Do not start by rewriting the platform. Preserve working behavior and add focused tests for every corrected defect.
 
@@ -75,7 +77,7 @@ Extend the runtime registry before lessons can leave any PID, mount, cgroup, nam
 
 ## Per-module acceptance gate
 
-A module is complete only when every item in `docs/MODULE_ACCEPTANCE_TEMPLATE.md` passes. In brief:
+A module is complete only when every item in `docs/dev/MODULE_ACCEPTANCE_TEMPLATE.md` passes. In brief:
 
 - at least three substantive guided lessons;
 - exact commands and complete small code listings;

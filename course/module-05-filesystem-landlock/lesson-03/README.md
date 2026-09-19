@@ -95,6 +95,14 @@ static __u64 supported_rights(int abi) {
         rights |= LANDLOCK_ACCESS_FS_REFER;
     if (abi >= 3)
         rights |= LANDLOCK_ACCESS_FS_TRUNCATE;
+#ifdef LANDLOCK_ACCESS_FS_IOCTL_DEV
+    if (abi >= 5)
+        rights |= LANDLOCK_ACCESS_FS_IOCTL_DEV;
+#endif
+#ifdef LANDLOCK_ACCESS_FS_RESOLVE_UNIX
+    if (abi >= 9)
+        rights |= LANDLOCK_ACCESS_FS_RESOLVE_UNIX;
+#endif
     return rights;
 }
 
@@ -122,6 +130,7 @@ int main(int argc, char **argv) {
         perror("Landlock ABI");
         return 1;
     }
+    fprintf(stderr, "Landlock ABI %d\n", abi);
     __u64 rights = supported_rights(abi);
     struct landlock_ruleset_attr ruleset = {.handled_access_fs = rights};
     int ruleset_fd = create_ruleset(&ruleset, sizeof(ruleset), 0);
@@ -157,14 +166,30 @@ int main(int argc, char **argv) {
 ### Source, line by line
 
 - The three small syscall wrappers keep the argument ordering visible and return raw success or failure to the caller.
-- `supported_rights` builds the ABI-1 set first. The two version tests prevent a newer right from making ruleset creation fail on an older supported kernel.
+- `supported_rights` builds the ABI-1 set first, then adds rights introduced by ABI 2, 3, 5, and 9 only when both the build headers and the running kernel support them. The preprocessor guards keep the source buildable with older distribution headers.
 - `close_inherited` prefers the kernel's range operation. `CLOSE_RANGE_CLOEXEC` preserves descriptors until `exec` but guarantees the new program cannot inherit them.
 - The fallback queries the descriptor limit and adds `FD_CLOEXEC` only to descriptors that are actually open. Any mutation error fails the launch.
-- `main` queries the ABI before it creates policy. It never treats an unavailable Landlock interface as permission to continue.
+- `main` queries and prints the ABI before it creates policy. It never treats an unavailable Landlock interface as permission to continue.
 - The ruleset declares which operations Landlock will handle; the path-beneath rule grants that same set only under `root_fd`.
 - `PR_SET_NO_NEW_PRIVS` and `restrict_self` are joined by `||`: if either fails, `execv` is unreachable.
 - The policy and root descriptors are closed before inherited descriptors are marked. Standard input, output, and error remain available.
 - `execv(argv[2], &argv[2])` preserves the caller's structured argv. Returning from `execv` is always an error and is reported.
+
+### Unhandled means allowed
+
+Landlock restricts only the access rights listed in `handled_access_fs`. With the historical exception of `LANDLOCK_ACCESS_FS_REFER`, a filesystem right the running kernel supports but the ruleset does not handle stays allowed. A launcher that stops at ABI 3 therefore under-restricts on ABI 5, where `LANDLOCK_ACCESS_FS_IOCTL_DEV` can restrict device IOCTL operations, and on ABI 9, where `LANDLOCK_ACCESS_FS_RESOLVE_UNIX` can restrict pathname UNIX-socket resolution.
+
+Version-aware code can handle only rights known to its source and build headers. The guarded ABI 5 and ABI 9 additions make this source enforce the complete filesystem-right set it knows when the headers expose those constants and the running kernel supports them. If newer headers introduce another filesystem right, this source and its stated guarantee must be reviewed again; runtime ABI detection cannot invent a constant absent at build time.
+
+Checkpoint: print the ABI reported by the running kernel and compare it with the highest filesystem ABI explicitly handled by the source:
+
+```bash
+./landlock-launch demo/allowed /bin/true 2>&1 | head -1
+grep -n 'abi >=' landlock_launch.c
+```
+
+- The first command relies on the launcher's diagnostic and may later deny `/bin/true` because that executable is outside the allowed tree; only its first line is the ABI observation.
+- The second command lists the explicit ABI gates compiled into this source. A high runtime number is not by itself proof that every future right is handled.
 
 Build it:
 
@@ -177,13 +202,14 @@ cc -std=c11 -Wall -Wextra -Werror -O2 landlock_launch.c -o landlock-launch
 ### Line by line
 
 - The compiler flags reject warnings and create the lesson-local launcher.
+- Each launch first reports `Landlock ABI N` on standard error, where `N` depends on the running kernel.
 - The first launch grants filesystem rights beneath `demo/allowed`; the static probe executes and prints `allowed`.
 - The second launches the same child under the same policy but asks it to open a protected sibling. Expected: `DENIED` and the shell message.
 
 The source performs these security-sensitive steps in order:
 
 - `landlock_create_ruleset(..., LANDLOCK_CREATE_RULESET_VERSION)` queries the running kernel ABI. Failure is reported; the launcher never silently runs unconfined.
-- `supported_rights` begins with ABI-1 filesystem rights, adds cross-directory `REFER` only for ABI 2+, and adds `TRUNCATE` only for ABI 3+.
+- `supported_rights` begins with ABI-1 filesystem rights and conditionally adds `REFER` for ABI 2+, `TRUNCATE` for ABI 3+, device `IOCTL` for ABI 5+, and pathname UNIX-socket resolution for ABI 9+ when the build headers define those rights.
 - A ruleset handles those rights. A path-beneath rule grants them only under the already-open allowed-root descriptor.
 - The root descriptor is closed after the rule is added.
 - `PR_SET_NO_NEW_PRIVS` is set before `landlock_restrict_self`; unprivileged callers need this promise that `exec` cannot grant new privilege.

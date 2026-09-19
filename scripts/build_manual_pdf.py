@@ -99,7 +99,7 @@ def parse_markdown(markdown: str, styles: dict) -> list:
         elif line.startswith("#### "):
             flush_paragraph()
             flush_bullets()
-            story.append(Paragraph(escape(line[5:]), styles["Heading4"]))
+            story.append(Paragraph(inline_markup(line[5:]), styles["Heading4"]))
             story.append(Spacer(1, 2))
         elif line.startswith("> "):
             flush_paragraph()

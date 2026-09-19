@@ -20,6 +20,15 @@ Module 05 passed its acceptance run.
 
 Raw command transcripts are stored beside this file. Host-specific repository paths and generated canaries are redacted before retention.
 
+## v1.0.1 portability addendum — 2026-09-18
+
+GitHub Actions run `35415279577` passed the complete course validation job on both supported Ubuntu 24.04 runner architectures:
+
+- `ubuntu-24.04`: Ubuntu 24.04.5 LTS, kernel 6.17.0-1022-azure, `x86_64` / `amd64`
+- `ubuntu-24.04-arm`: Ubuntu 24.04.5 LTS, kernel 6.17.0-1022-azure, `aarch64` / `arm64`
+
+Each runner passed all 42 automated tests, course attestation, all 28 required Linux preflight checks, and the empty-runtime check. Each also compiled the canonical Lesson 05.03 Landlock launcher with `cc -std=c11 -Wall -Wextra -Werror -O2`. This directly validates that the source's ABI-gated filesystem rights compile cleanly against Ubuntu 24.04 userspace headers on both architectures. Runtime properties for rights introduced after the runners' supported/header-visible set remain documented rather than claimed as externally graded.
+
 ## Known boundaries
 
 The lesson's resolved Python check demonstrates correct component comparison but is intentionally not presented as atomic authorization. `openat2` governs only brokered lookups. Landlock governs future filesystem operations but not I/O through pre-opened file descriptions, so descriptor hygiene remains a separate required layer. The static child probe keeps the lesson ruleset small; production dynamic programs would need deliberately selected read/execute rules for their runtime files.

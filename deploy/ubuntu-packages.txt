@@ -1,0 +1,13 @@
+apparmor
+build-essential
+ca-certificates
+curl
+iproute2
+libcap2-bin
+libseccomp-dev
+linux-libc-dev
+pkg-config
+procps
+python3
+strace
+util-linux

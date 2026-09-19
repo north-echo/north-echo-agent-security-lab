@@ -11,7 +11,7 @@ The next task should work in this repository rather than regenerate it from a sp
 ## Current checkpoint
 
 - Project: **North Echo Agent Security Lab**
-- Source checkpoint: v1.0.2 release candidate with the pinned Lima appliance; use Git history for the final release hash
+- Source checkpoint: published v1.0.2 release at tagged commit `036c8e6376102a7dd5b0066ed77fe903429cea06`, with the pinned Lima appliance and completed deployment validation
 - Modules 01-12: fully authored and Linux-validated, with thirty-six guided lessons and twelve independent labs
 - Platform lifecycle: start, status, grade, lesson/module/all reset, dry-run cleanup, randomized fixtures, practice/exam modes, and metadata-only progress are implemented
 - Field manual: Modules 01-12 have synchronized, self-contained chapters with complete guided source, local explanations, expected observations, troubleshooting, labs, and security models

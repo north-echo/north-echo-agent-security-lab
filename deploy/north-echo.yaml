@@ -1,0 +1,165 @@
+# North Echo v1.0.2 disposable Ubuntu appliance for Lima 2.2 or newer.
+#
+# Create:  limactl start --name north-echo deploy/north-echo.yaml
+# Enter:   limactl shell north-echo
+# Export:  limactl copy north-echo:~/north-echo-deployment-evidence.tgz .
+# Destroy: limactl delete -f north-echo
+
+minimumLimaVersion: 2.2.0
+
+images:
+  - location: https://cloud-images.ubuntu.com/releases/noble/release-20260911/ubuntu-24.04-server-cloudimg-amd64.img
+    arch: x86_64
+    digest: sha256:612b2c0cc1bc413a6cb8c38fd611794caf0f2b436c50013d8b3794db12ad7354
+  - location: https://cloud-images.ubuntu.com/releases/noble/release-20260911/ubuntu-24.04-server-cloudimg-arm64.img
+    arch: aarch64
+    digest: sha256:7b682958a67ff5de068e36de6af8b75fa645d296af5a70d6500527f6a33781db
+
+cpus: 4
+memory: 6GiB
+disk: 30GiB
+plain: true
+
+containerd:
+  system: false
+  user: false
+
+mounts: []
+
+ssh:
+  forwardAgent: false
+  loadDotSSHPubKeys: false
+
+param:
+  CourseVersion: v1.0.2
+
+provision:
+  - mode: data
+    file: ubuntu-packages.txt
+    path: /usr/local/share/north-echo/ubuntu-packages.txt
+    owner: root:root
+    permissions: 644
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+
+      ready_marker="{{.Home}}/.local/state/north-echo/${PARAM_CourseVersion}.ready"
+      if [[ -f "$ready_marker" ]]; then
+        exit 0
+      fi
+
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update
+      mapfile -t packages < <(sed -e '/^[[:space:]]*$/d' /usr/local/share/north-echo/ubuntu-packages.txt)
+      apt-get install -y "${packages[@]}"
+  - mode: user
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+
+      version="${PARAM_CourseVersion}"
+      state_dir="$HOME/.local/state/north-echo"
+      ready_marker="$state_dir/${version}.ready"
+      course_dir="$HOME/north-echo"
+      evidence_dir="$state_dir/${version}-evidence"
+      evidence_archive="$HOME/north-echo-deployment-evidence.tgz"
+
+      if [[ -f "$ready_marker" ]]; then
+        exit 0
+      fi
+      if [[ -e "$course_dir" ]]; then
+        echo >&2 "North Echo is not marked ready; refusing to overwrite $course_dir"
+        echo >&2 "Delete and recreate the disposable instance instead."
+        exit 1
+      fi
+
+      sudo loginctl enable-linger "$(id -un)"
+      systemctl --user show-environment >/dev/null
+      systemd-run --user --wait --pipe --collect --quiet -- true
+
+      archive="north-echo-agent-security-lab-${version}.tar.gz"
+      release_base="https://github.com/north-echo/north-echo-agent-security-lab/releases/download/${version}"
+      staging="$(mktemp -d "$HOME/.north-echo-bootstrap.XXXXXX")"
+      trap 'rm -rf -- "$staging"' EXIT
+
+      curl --fail --location --silent --show-error \
+        --output "$staging/SHA256SUMS" "$release_base/SHA256SUMS"
+      curl --fail --location --silent --show-error \
+        --output "$staging/$archive" "$release_base/$archive"
+
+      checksum_line="$(grep -F "  $archive" "$staging/SHA256SUMS")"
+      [[ -n "$checksum_line" ]]
+      (
+        cd "$staging"
+        printf '%s\n' "$checksum_line" | sha256sum --check -
+        tar -xzf "$archive"
+      )
+      mv "$staging/north-echo-agent-security-lab-${version}" "$course_dir"
+
+      if ! unshare --user --map-root-user true >/dev/null 2>&1; then
+        sudo install -m 0644 "$course_dir/validation/apparmor-north-echo-unshare" \
+          /etc/apparmor.d/north-echo-unshare
+        sudo apparmor_parser -r /etc/apparmor.d/north-echo-unshare
+      fi
+      unshare --user --map-root-user true
+
+      mkdir -p "$evidence_dir"
+      {
+        date -u +%Y-%m-%dT%H:%M:%SZ
+        printf '%s\n' 'Ubuntu cloud image release: 20260911'
+        uname -a
+        cat /etc/os-release
+        dpkg --print-architecture
+        python3 --version
+        cc --version | head -n 1
+      } > "$evidence_dir/environment.txt"
+
+      cd "$course_dir"
+      python3 -m unittest discover -s tests -v \
+        > "$evidence_dir/tests.txt" 2>&1
+      ./scripts/attest-course > "$evidence_dir/attestation.txt" 2>&1
+      ./scripts/linux-preflight > "$evidence_dir/preflight.txt" 2>&1
+      cc -std=c11 -Wall -Wextra -Werror -O2 \
+        course/module-05-filesystem-landlock/lesson-03/landlock_launch.c \
+        -o "$evidence_dir/north-echo-landlock-launch"
+      test -z "$(find .student .fixtures .runtime -mindepth 1 ! -name .gitkeep -print)"
+      printf '%s\n' 'EMPTY MANAGED RUNTIME: PASS' > "$evidence_dir/empty-runtime.txt"
+
+      tar -czf "$evidence_archive" -C "$evidence_dir" .
+      mkdir -p "$state_dir"
+      {
+        printf 'course_version=%s\n' "$version"
+        printf '%s\n' 'image_release=20260911'
+        printf 'ready_at=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      } > "$ready_marker.pending"
+      mv "$ready_marker.pending" "$ready_marker"
+
+probes:
+  - mode: readiness
+    description: North Echo deployment validation
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+
+      ready_marker="$HOME/.local/state/north-echo/${PARAM_CourseVersion}.ready"
+      test -f "$ready_marker"
+      test -f "$HOME/north-echo-deployment-evidence.tgz"
+      cd "$HOME/north-echo"
+      ./scripts/attest-course >/dev/null
+      systemctl --user show-environment >/dev/null
+    hint: |
+      North Echo provisioning did not complete. Inspect /var/log/cloud-init-output.log,
+      then delete and recreate the disposable instance rather than overwriting its state.
+
+message: |
+  North Echo {{.Param.CourseVersion}} is ready.
+
+  Enter the lab:
+    limactl shell {{.Name}}
+
+  Export deployment evidence:
+    limactl copy {{.Name}}:~/north-echo-deployment-evidence.tgz .
+
+  Destroy the disposable VM:
+    limactl delete -f {{.Name}}

@@ -291,6 +291,50 @@ if __name__ == "__main__":
         self.assertIn("Unhandled means allowed", lesson)
         self.assertIn("build headers", lesson)
 
+    def test_lima_appliance_is_pinned_idempotent_and_fail_closed(self):
+        template = (SOURCE / "deploy" / "north-echo.yaml").read_text(encoding="utf-8")
+        packages = (SOURCE / "deploy" / "ubuntu-packages.txt").read_text(encoding="utf-8").splitlines()
+        workflow = (SOURCE / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+
+        self.assertEqual(
+            packages,
+            [
+                "apparmor",
+                "build-essential",
+                "ca-certificates",
+                "curl",
+                "iproute2",
+                "libcap2-bin",
+                "libseccomp-dev",
+                "linux-libc-dev",
+                "pkg-config",
+                "procps",
+                "python3",
+                "strace",
+                "util-linux",
+            ],
+        )
+        self.assertIn("xargs sudo apt-get install -y < deploy/ubuntu-packages.txt", workflow)
+        for phrase in (
+            "minimumLimaVersion: 2.2.0",
+            "release-20260911/ubuntu-24.04-server-cloudimg-amd64.img",
+            "sha256:612b2c0cc1bc413a6cb8c38fd611794caf0f2b436c50013d8b3794db12ad7354",
+            "release-20260911/ubuntu-24.04-server-cloudimg-arm64.img",
+            "sha256:7b682958a67ff5de068e36de6af8b75fa645d296af5a70d6500527f6a33781db",
+            "plain: true",
+            "forwardAgent: false",
+            "file: ubuntu-packages.txt",
+            'sudo loginctl enable-linger "$(id -un)"',
+            'if [[ -f "$ready_marker" ]]',
+            "refusing to overwrite",
+            'grep -F "  $archive"',
+            "mode: readiness",
+        ):
+            self.assertIn(phrase, template)
+        self.assertNotIn("template:ubuntu-24.04", template)
+        self.assertLess(template.index('if [[ -f "$ready_marker" ]]'), template.index("apt-get update"))
+        self.assertLess(template.rindex('if [[ -f "$ready_marker" ]]'), template.index('curl --fail'))
+
     def test_handoff_contract_is_present_and_explicit(self):
         agents = (SOURCE / "AGENTS.md").read_text(encoding="utf-8")
         handoff = (SOURCE / "docs" / "dev" / "HANDOFF.md").read_text(encoding="utf-8")

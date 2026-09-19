@@ -10,6 +10,17 @@ This is an independent educational project. It contains no employer-internal mat
 
 ## Start doing the work
 
+On a macOS host with Lima 2.2 or newer, create the pinned disposable appliance without sharing any host directory:
+
+```bash
+limactl start --name north-echo deploy/north-echo.yaml
+limactl shell north-echo
+cd ~/north-echo
+./lab-start 01.01
+```
+
+The appliance pins its Ubuntu 24.04 cloud image and course release by checksum, installs the same package manifest used by CI, validates the course before declaring itself ready, and preserves student work across ordinary VM restarts. To return to a known-clean baseline, delete and recreate the VM. See [Disposable Linux VM setup](docs/VM_SETUP.md) for the complete lifecycle and evidence-export commands.
+
 On a supported Linux VM:
 
 ```bash

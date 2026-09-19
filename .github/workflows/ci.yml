@@ -37,18 +37,7 @@ jobs:
       - name: Install documented prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            apparmor \
-            build-essential \
-            iproute2 \
-            libcap2-bin \
-            libseccomp-dev \
-            linux-libc-dev \
-            pkg-config \
-            procps \
-            python3 \
-            strace \
-            util-linux
+          xargs sudo apt-get install -y < deploy/ubuntu-packages.txt
 
       - name: Permit unshare in this disposable runner when required
         run: |

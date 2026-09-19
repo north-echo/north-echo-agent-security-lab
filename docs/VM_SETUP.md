@@ -2,6 +2,34 @@
 
 Recommended: Ubuntu 24.04 or Debian 12, 2 vCPU, 4 GiB RAM, 20 GiB disk, NAT networking, and a snapshot taken immediately after package installation.
 
+## Pinned Lima appliance on macOS
+
+Lima 2.2 or newer is the shortest supported path on macOS. The template uses Lima plain mode: no host filesystem mount, dynamic port forwarding, built-in container runtime, guest agent, Rosetta, or SSH-agent forwarding. It pins dated Ubuntu 24.04 amd64 and arm64 cloud images by SHA-256 and installs the course from a checksum-verified GitHub release archive.
+
+```bash
+limactl start --name north-echo deploy/north-echo.yaml
+limactl shell north-echo
+cd ~/north-echo
+./lab-start 01.01
+```
+
+Provisioning is idempotent. A readiness marker prevents a normal restart from reinstalling packages or extracting over student work. If provisioning failed after creating `~/north-echo`, the next start refuses to overwrite it; delete and recreate the disposable instance:
+
+```bash
+limactl delete -f north-echo
+limactl start --name north-echo deploy/north-echo.yaml
+```
+
+The successful first boot writes a synthetic deployment-evidence archive outside the repository. Export it without enabling a host mount:
+
+```bash
+limactl copy north-echo:~/north-echo-deployment-evidence.tgz .
+```
+
+The Ubuntu package manifest is [deploy/ubuntu-packages.txt](../deploy/ubuntu-packages.txt). GitHub Actions and the Lima appliance both consume that exact file.
+
+## Manual VM setup
+
 Install prerequisites:
 
 ```bash

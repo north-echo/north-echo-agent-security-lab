@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-    if (argc < 3) {
+    if (argc < 3 || (strcmp(argv[1], "errno") != 0 && strcmp(argv[1], "kill") != 0)) {
         fprintf(stderr, "usage: %s errno|kill COMMAND [ARG...]\n", argv[0]);
         return 2;
     }

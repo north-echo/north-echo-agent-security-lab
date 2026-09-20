@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/landlock.h>
+#include <linux/close_range.h>
 #include <seccomp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,7 +67,7 @@ static int install_landlock(const char *allowed_root) {
     if (ruleset_fd == -1)
         return -1;
     if (add_path_rule(ruleset_fd, allowed_root, read_execute) == -1 ||
-        add_path_rule(ruleset_fd, "/proc", read_only) == -1 ||
+        add_path_rule(ruleset_fd, "/proc/self", read_only) == -1 ||
         add_path_rule(ruleset_fd, "/sys/fs/cgroup", read_only) == -1) {
         close(ruleset_fd);
         return -1;
@@ -97,17 +98,22 @@ static int install_seccomp(void) {
     if (!context)
         return -1;
     for (size_t index = 0; index < sizeof(allowed) / sizeof(allowed[0]); index++) {
-        if (allow_name(context, allowed[index]) < 0) {
+        int error = allow_name(context, allowed[index]);
+        if (error < 0) {
             seccomp_release(context);
+            errno = -error;
             return -1;
         }
     }
     int socket_number = seccomp_syscall_resolve_name("socket");
-    if (socket_number == __NR_SCMP_ERROR ||
+    int error = socket_number == __NR_SCMP_ERROR ? -EINVAL :
         seccomp_rule_add(context, SCMP_ACT_ALLOW, socket_number, 1,
-                         SCMP_A0(SCMP_CMP_EQ, AF_UNIX)) < 0 ||
-        seccomp_load(context) < 0) {
+                         SCMP_A0(SCMP_CMP_EQ, AF_UNIX));
+    if (error == 0)
+        error = seccomp_load(context);
+    if (error < 0) {
         seccomp_release(context);
+        errno = -error;
         return -1;
     }
     seccomp_release(context);
@@ -118,6 +124,10 @@ int main(int argc, char **argv) {
     if (argc < 3) {
         fprintf(stderr, "usage: %s ALLOWED_ROOT COMMAND [ARG...]\n", argv[0]);
         return 2;
+    }
+    if (syscall(SYS_close_range, 3U, ~0U, CLOSE_RANGE_CLOEXEC) == -1) {
+        perror("mark inherited descriptors close-on-exec");
+        return 1;
     }
     if (install_landlock(argv[1]) == -1) {
         perror("install Landlock");

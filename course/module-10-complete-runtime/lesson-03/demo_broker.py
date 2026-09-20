@@ -6,13 +6,20 @@ import json
 import os
 from pathlib import Path
 import socket
+import signal
 import sys
+
+
+def stop(_signum, _frame):
+    raise SystemExit(0)
 
 
 def main() -> int:
     if len(sys.argv) != 5:
         return 2
     socket_path, token_path, credential_path, event_path = map(Path, sys.argv[1:])
+    signal.signal(signal.SIGTERM, stop)
+    signal.signal(signal.SIGINT, stop)
     token = token_path.read_text(encoding="utf-8").strip()
     credential = credential_path.read_text(encoding="utf-8").strip()
     if socket_path.exists() or socket_path.is_symlink():
@@ -22,9 +29,15 @@ def main() -> int:
         listener.bind(str(socket_path))
         os.chmod(socket_path, 0o600)
         listener.listen(1)
+        listener.settimeout(300)
         peer, _ = listener.accept()
         with peer:
-            request = json.loads(peer.makefile("rb").readline(16384))
+            peer.settimeout(2)
+            with peer.makefile("rb") as incoming:
+                line = incoming.readline(16385)
+            if len(line) > 16384 or not line.endswith(b"\n"):
+                raise ValueError("request must be one bounded line")
+            request = json.loads(line)
             expected = {"operation": "read", "resource": "synthetic:record", "token": token}
             if request != expected:
                 response = {"ok": False, "error": "capability denied"}

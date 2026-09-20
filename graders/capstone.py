@@ -2,6 +2,7 @@
 import importlib.util
 import json
 import os
+import re
 import secrets
 import shutil
 import sys
@@ -47,17 +48,19 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
         allowed = work / "allowed"
         allowed.mkdir()
         worker_c = work / "worker.c"
-        worker_c.write_text('#include <stdlib.h>\n#include <stdio.h>\nint main(int n,char **v){puts("batch-work");return n>1?atoi(v[1]):0;}\n')
+        worker_c.write_text((Path(__file__).resolve().parents[1] /
+                            "course/module-10-complete-runtime/lesson-03/batch_worker.c").read_text())
         worker, guard = allowed / "worker", work / "guard"
         canonical = Path(__file__).resolve().parents[1] / "course/module-10-complete-runtime/lesson-02/runtime_guard.c"
         if not kernel._compile(worker_c, worker) or not kernel._compile(canonical, guard, "-lseccomp"):
             return checks + [Check("Batch workload compiles", False)]
         jobs = []
         ids = [secrets.token_hex(4) for _ in range(3)]
-        for identity, status in zip(ids, (0, 7, 0)):
+        memory_limits = (67108864, 50331648, 83886080)
+        for identity, status, memory in zip(ids, (0, 7, 0), memory_limits):
             jobs.append({"id": identity, "runtime": {
                 "guard": str(guard), "allowed_root": str(allowed),
-                "command": [str(worker), str(status)], "memory_max": 67108864,
+                "command": [str(worker), str(status)], "memory_max": memory,
                 "tasks_max": 16, "cpu_percent": 40,
             }})
         batch, output = work / "batch.json", work / "result.json"
@@ -70,9 +73,38 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
                             [row.get("id") for row in rows] == ids and
                             [row.get("result", {}).get("status") for row in rows] == [0, 7, 0]))
         unit_names = [row.get("result", {}).get("unit") for row in rows]
+        expected_unit = re.compile(rf"north-echo-{os.getuid()}-10-lab-[0-9a-f]{{8,24}}\.service")
         checks.append(Check("Each job has a distinct owned unit",
-                            len(unit_names) == 3 and all(isinstance(unit, str) for unit in unit_names) and
+                            len(unit_names) == 3 and all(isinstance(unit, str) and expected_unit.fullmatch(unit)
+                                                        for unit in unit_names) and
                             len(set(unit_names)) == 3))
+        observed_memory = [row.get("result", {}).get("attestation") for row in rows]
+        checks.append(Check("Each batch job observes its own memory ceiling",
+                            len(observed_memory) == 3 and all(
+                                isinstance(value, dict) and value.get("memory") == memory
+                                for value, memory in zip(observed_memory, memory_limits))))
+        absent = bool(unit_names)
+        for unit in unit_names:
+            if not isinstance(unit, str) or not expected_unit.fullmatch(unit):
+                absent = False
+                continue
+            observed = run_bounded(["systemctl", "--user", "show", unit, "--property=LoadState"])
+            absent &= observed.stdout.strip() == "LoadState=not-found"
+        checks.append(Check("Every exact batch unit is absent after collection", absent))
+
+        # Observe guard entry, before its read-only filesystem policy. A worker
+        # cannot create a marker under that policy, which would hide early launch.
+        marker = work / "unexpected-start"
+        marker_c, marker_guard = work / "marker.c", work / "marker-guard"
+        marker_c.write_text('#include <stdio.h>\n#include <unistd.h>\n'
+                            'int main(int n,char **v){if(n<3)return 2;'
+                            f'FILE *f=fopen({json.dumps(str(marker))},"wx");'
+                            'if(!f)return 1;fputs("started",f);if(fclose(f))return 1;'
+                            f'execv({json.dumps(str(guard))},v);return 127;}}\n')
+        if not kernel._compile(marker_c, marker_guard):
+            return checks + [Check("Validation-order observer compiles", False)]
+        marked_first = dict(jobs[0], runtime=dict(jobs[0]["runtime"],
+                            guard=str(marker_guard)))
         bad_runtime = dict(jobs[1], runtime=dict(jobs[1]["runtime"], tasks_max=0))
         invalid_cases = (
             ("duplicate identity", [jobs[0], jobs[0]]),
@@ -80,14 +112,12 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
             ("oversized batch", [dict(jobs[0], id=str(index)) for index in range(9)]),
             ("extra job field", [dict(jobs[0], unexpected=True)]),
             ("empty identity", [dict(jobs[0], id="")]),
-            ("later runtime", [jobs[0], bad_runtime]),
+            ("later runtime", [marked_first, bad_runtime]),
         )
         for label, invalid in invalid_cases:
             batch.write_text(json.dumps({"schema": 2, "jobs": invalid}))
             output.unlink(missing_ok=True)
             run = run_bounded([sys.executable, str(student), str(batch), str(output)], timeout=10)
             checks.append(Check(f"Invalid {label} is rejected without a result", run.returncode != 0 and not output.exists()))
-        units = run_bounded(["systemctl", "--user", "list-units", "--all", "--plain", "--no-legend",
-                             f"north-echo-{os.getuid()}-10-lab-*.service"])
-        checks.append(Check("Batch completion leaves no runtime unit", units.returncode == 0 and not units.stdout.strip()))
+        checks.append(Check("A later invalid job prevents earlier guard entry", not marker.exists()))
     return checks

@@ -22,6 +22,7 @@ socket_path = Path(sys.argv[4])
 if socket_path.exists() or socket_path.is_symlink():
     raise SystemExit("socket path already exists")
 signal.signal(signal.SIGTERM, stop)
+signal.signal(signal.SIGINT, stop)
 listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 listener.bind(str(socket_path))
 os.chmod(socket_path, 0o600)
@@ -34,8 +35,12 @@ try:
         except TimeoutError:
             continue
         with peer:
-            peer.recv(16384)
-            peer.sendall(json.dumps({"ok": False, "error": "capability policy is not implemented"}).encode() + b"\n")
+            peer.settimeout(2)
+            try:
+                peer.recv(16384)
+                peer.sendall(json.dumps({"ok": False, "error": "capability policy is not implemented"}).encode() + b"\n")
+            except OSError:
+                pass
 finally:
     listener.close()
     socket_path.unlink(missing_ok=True)

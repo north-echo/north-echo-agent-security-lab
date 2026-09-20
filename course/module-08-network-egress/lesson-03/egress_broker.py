@@ -25,7 +25,7 @@ class Denied(Exception):
 
 def load_policy(path: Path) -> dict:
     raw = json.loads(path.read_text(encoding="utf-8"))
-    if set(raw) != {"run_id", "destinations"} or not isinstance(raw["run_id"], str):
+    if not isinstance(raw, dict) or set(raw) != {"run_id", "destinations"} or not isinstance(raw["run_id"], str):
         raise Denied("invalid policy shape")
     if not raw["run_id"] or len(raw["run_id"]) > 128 or not isinstance(raw["destinations"], dict):
         raise Denied("invalid policy values")
@@ -50,15 +50,22 @@ def load_policy(path: Path) -> dict:
 def authorize(policy: dict, run_id: object, url: str) -> tuple[str, str, int, str]:
     if run_id != policy["run_id"]:
         raise Denied("run identity is not authorized")
-    parsed = urlsplit(url)
+    if any(ord(character) <= 32 or ord(character) == 127 for character in url):
+        raise Denied("whitespace and control characters are not permitted")
+    try:
+        parsed = urlsplit(url)
+    except ValueError as error:
+        raise Denied("invalid destination URL") from error
     if parsed.scheme != "http" or parsed.username is not None or parsed.password is not None:
         raise Denied("only credential-free HTTP URLs are permitted")
-    if parsed.fragment or not parsed.hostname or parsed.hostname != parsed.hostname.lower():
+    if parsed.fragment or not parsed.hostname:
         raise Denied("invalid destination URL")
     try:
-        port = parsed.port or 80
+        port = 80 if parsed.port is None else parsed.port
     except ValueError as error:
         raise Denied("invalid destination port") from error
+    if not 1 <= port <= 65535:
+        raise Denied("invalid destination port")
     rule = policy["destinations"].get(parsed.hostname)
     if rule is None or port not in rule["ports"]:
         raise Denied("destination is not authorized")
@@ -77,6 +84,10 @@ def fetch(policy: dict, request: dict) -> dict:
     host, port, path = request["host"], request["port"], request["path"]
     if not isinstance(host, str) or type(port) is not int or not isinstance(path, str):
         raise Denied("invalid request values")
+    if host not in policy["destinations"]:
+        raise Denied("destination is not authorized")
+    if not 1 <= port <= 65535 or not path.startswith("/") or path.startswith("//"):
+        raise Denied("invalid request port or path")
     url = f"http://{host}:{port}{path}"
     for redirects in range(MAX_REDIRECTS + 1):
         address, authority, port, request_path = authorize(policy, request["run_id"], url)
@@ -126,12 +137,16 @@ def serve(policy: dict, socket_path: Path) -> None:
             except TimeoutError:
                 continue
             with peer:
+                peer.settimeout(2)
                 try:
                     request = json.loads(receive_line(peer))
                     response = fetch(policy, request)
                 except (Denied, json.JSONDecodeError, UnicodeError, OSError, http.client.HTTPException) as error:
                     response = {"ok": False, "error": str(error)}
-                peer.sendall(json.dumps(response, sort_keys=True).encode() + b"\n")
+                try:
+                    peer.sendall(json.dumps(response, sort_keys=True).encode() + b"\n")
+                except OSError:
+                    pass  # A disconnected client must not stop the listening service.
     finally:
         listener.close()
         socket_path.unlink(missing_ok=True)

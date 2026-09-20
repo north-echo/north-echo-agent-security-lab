@@ -16,6 +16,16 @@ Outcomes:
 Prerequisites: Modules 01-04, Linux, a C compiler, Linux UAPI headers containing `openat2.h` and `landlock.h`, and a kernel with `openat2` and Landlock. The lessons require no root privilege, mount, network access, or host policy change.
 
 Cross-layer boundary: `openat2` protects individual brokered lookups. Landlock restricts future filesystem operations by the launched process. Neither one closes an already-open descriptor; descriptor hygiene from Module 01 remains necessary.
+
+## Learning route and limits
+
+Prerequisites: Modules 01-04. Continue as your ordinary account inside the disposable Linux VM. The guided lessons introduce their new syntax and interfaces before the independent lab combines them.
+
+05.01 distinguishes path spelling, component ancestry, and lookup results. 05.02 practices descriptor-relative reads and writes. 05.03 restricts a launched child and revisits authority already held in descriptors.
+
+Keep two questions separate: did the broker resolve this request safely, and is the entire child restricted when it opens files itself? The first is an openat2 question; the second is a Landlock question. Record the running ABI and build headers rather than relying on the distro name.
+
+Before moving on, demonstrate both useful allowed work and the intended restriction, and explain the difference in your own words. A failed compiler command or missing input is not a security success. Use the independent lab's practice feedback to revisit a specific lesson; passing checks does not replace understanding or make the combined program production-ready.
 <!-- /source -->
 
 <!-- PAGEBREAK -->
@@ -26,6 +36,25 @@ Cross-layer boundary: `openat2` protects individual brokered lookups. Landlock r
 ## Goal
 
 Observe that a pathname is a lookup request, not an object identity. Break a plausible string-prefix policy with a similarly named sibling and with a symlink, then repair those demonstrations with resolved-object containment while naming the remaining race.
+
+## Concepts and preparation
+
+Complete Module 04 first. A **pathname** is instructions for lookup: start here, walk these directory components, and possibly follow links. A **file descriptor** is a reference obtained after an object has been opened. Comparing the spelling of a request is not the same as authorizing the object eventually reached.
+
+A symbolic link stores another pathname; lookup can follow it out of the apparent directory. The component `..` means the parent directory, while a shared character prefix says nothing about directory ancestry. This lesson uses only tiny synthetic sibling directories inside your workspace. Predict which requests a character-prefix test might mistake for children of the allowed tree.
+
+From the course root in the disposable VM:
+
+```bash
+./lab-start 05.01
+cd .student/05.01
+pwd
+ls -l naive_open.py resolved_open.py
+cat naive_open.py
+cat resolved_open.py
+```
+
+`lab-start` prepares the student copy. The next commands enter and inspect it; each `cat` reads a supplied source before execution. Missing files usually mean the wrong working directory or lesson number. Edit only these student copies with `nano FILENAME`, save with `Ctrl-O`, `Enter`, and exit with `Ctrl-X`. Recompile after every C edit. An old binary does not automatically track a changed source.
 
 ## Exercise 1 - Build only synthetic local paths
 
@@ -47,7 +76,7 @@ python3 naive_open.py demo/allowed note.txt
 - `ln -s` places a pathname inside the allowed tree whose target object is outside it.
 - The final command asks the naive broker for an ordinary allowed file. Expected: `allowed`.
 
-## Exercise 2 - Exploit the lexical policy
+## Exercise 2 - Test the lexical policy against known synthetic cases
 
 Complete source of `naive_open.py`:
 
@@ -100,6 +129,43 @@ python3 naive_open.py demo/allowed link.txt
 
 `resolved_open.py` resolves both root and candidate, then uses `relative_to` as a path-component comparison:
 
+```python
+#!/usr/bin/env python3
+import sys
+from pathlib import Path
+
+
+def main() -> int:
+    if len(sys.argv) != 3:
+        print(f"usage: {sys.argv[0]} ROOT REQUEST", file=sys.stderr)
+        return 2
+    root = Path(sys.argv[1]).resolve(strict=True)
+    candidate = (root / sys.argv[2]).resolve(strict=True)
+    try:
+        candidate.relative_to(root)
+    except ValueError:
+        print("DENIED: resolved object is outside root", file=sys.stderr)
+        return 1
+    print(candidate.read_text(encoding="utf-8"), end="")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+```
+
+### Source, line by line
+
+- The imports provide argv and path operations; the usage guard requires a root and one request.
+- `resolve(strict=True)` follows existing links and requires the referenced components to exist. Missing paths raise an exception rather than becoming a policy grant.
+- The `/` operator on `Path` joins path components. It is not numeric division here. An absolute right-hand path can replace the left-hand prefix, so joining alone is not containment.
+- `candidate.relative_to(root)` asks whether the resolved candidate can be expressed beneath the resolved root. A sibling with a similar name is not a child component.
+- `except ValueError` handles that failed relationship check, prints a denial on stderr, and returns 1.
+- `read_text` still performs its own later lookup. The successful relationship check did not hand it an already-authorized open descriptor.
+- `end=""` preserves the supplied text's newline; `SystemExit` carries the function's result to the shell.
+
+Run the supplied repaired comparison:
+
 ```bash
 python3 resolved_open.py demo/allowed note.txt
 python3 resolved_open.py demo/allowed ../allowed-escape/secret.txt || echo 'traversal denied'
@@ -114,7 +180,7 @@ python3 resolved_open.py demo/allowed link.txt || echo 'symlink escape denied'
 - `|| echo` runs only after the expected nonzero denial; it makes the result visible without hiding success as failure.
 - Expected: the allowed read succeeds and both escapes print `DENIED` plus the matching shell message.
 
-Intentional failure: replace `candidate.relative_to(root)` with the original `startswith` check and rerun the traversal. Restore the component-aware version before the checkpoint.
+The earlier naive implementation is the intentional incomplete control. Compare its results with this repaired component check; do not splice an expression into the `try` block and assume it has the same failure behavior as a raised exception. A false Boolean that nobody checks is not a denial.
 
 This repair is useful application validation, but it still separates checking from opening. Another process could exchange a checked component before `read_text` opens it. Lesson 05.02 asks the kernel to resolve and open in one operation.
 
@@ -130,6 +196,12 @@ test "$(python3 resolved_open.py demo/allowed note.txt)" = allowed
 - If `ln` says the link exists, rerun the scoped `rm -rf demo` setup.
 - If `resolve(strict=True)` reports a missing file, verify the setup paths rather than weakening strict resolution.
 - Checkpoint: explain why component-aware resolution repairs these examples but is not atomic authorization.
+
+## Replay and source truth
+
+The demo contains only lesson-created synthetic files. Do not substitute personal directories or real credentials. From this workspace, `cd ../..` then `./lab-reset 05.01` discards this lesson's edits and fixtures after confirmation. No host mount, filesystem permission, or global security setting needs changing.
+
+[Python pathlib](https://docs.python.org/3.14/library/pathlib.html) documents lexical and resolved path operations. Component validation is useful, but this lesson's check-then-open sequence is not an atomic kernel authorization boundary.
 <!-- /source -->
 
 <!-- PAGEBREAK -->
@@ -140,6 +212,24 @@ test "$(python3 resolved_open.py demo/allowed note.txt)" = allowed
 ## Goal
 
 Replace check-then-open pathname logic with one kernel operation anchored to an already-open directory. Require resolution to remain beneath that descriptor and reject symlinks.
+
+## Concepts and preparation
+
+Complete 05.01 and recall descriptor authority from 01.03. The previous checker resolved a path, decided it was acceptable, and later opened it. Those are separate operations. Here the broker gives the kernel both the root descriptor and resolution constraints in the **same open request**. There is no separate approved pathname to reopen.
+
+`openat2` is a Linux syscall, not a shell command. A C structure carries its options. Fields omitted from the designated initializer are zero-initialized; that matters because the kernel expects unused fields to be zero. This policy constrains lookup, not future edits to the contents of an allowed file, and not arbitrary opens made elsewhere in the process.
+
+From the course root in the disposable VM:
+
+```bash
+./lab-start 05.02
+cd .student/05.02
+pwd
+ls -l safe_open.c
+cat safe_open.c
+```
+
+`lab-start` prepares the student copy. The next commands enter and inspect it; each `cat` reads a supplied source before execution. Missing files usually mean the wrong working directory or lesson number. Edit only these student copies with `nano FILENAME`, save with `Ctrl-O`, `Enter`, and exit with `Ctrl-X`. Recompile after every C edit. An old binary does not automatically track a changed source.
 
 ## Exercise 1 - Compile the brokered open
 
@@ -206,6 +296,8 @@ int main(int argc, char **argv) {
 - The read/write loop copies observed bytes to standard output. It checks both input and output errors.
 - Both descriptors are closed on every explicit completion path.
 
+The leading `&` passes a structure's address; `sizeof(how)` tells the kernel how many bytes of that structure are supplied. The `|` operators combine independent flag bits. `ssize_t` can represent a byte count or the negative error value; `size_t` is an unsigned size, so the code casts only after a positive read. The assignment in the `while` condition stores the count before testing it. This teaching copy loop fails on a short write rather than retrying it; it is not a complete general-purpose I/O library.
+
 Build it:
 
 ```bash
@@ -260,6 +352,81 @@ cc -std=c11 -Wall -Wextra -Werror -O2 unsafe_open.c -o unsafe-open
 
 `openat2` constrains only lookups made through this broker. A child can still call ordinary `open` itself. Lesson 05.03 adds process-wide future-access restrictions.
 
+## Exercise 4 - Practice a descriptor-relative write
+
+The independent lab needs both reads and writes. Practice the creation flags in a smaller fixed-content program, not a combined lab solution:
+
+```bash
+ls -l safe_write.c
+cat safe_write.c
+```
+
+`ls` confirms the source in this workspace; `cat` displays it before compiling.
+
+```c
+#define _GNU_SOURCE
+#include <fcntl.h>
+#include <linux/openat2.h>
+#include <stdio.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+
+int main(int argc, char **argv) {
+    if (argc != 3) {
+        fprintf(stderr, "usage: %s ROOT RELATIVE_PATH\n", argv[0]);
+        return 2;
+    }
+    int root_fd = open(argv[1], O_PATH | O_DIRECTORY | O_CLOEXEC);
+    if (root_fd == -1) {
+        perror("open root");
+        return 1;
+    }
+    struct open_how how = {
+        .flags = O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC,
+        .mode = 0600,
+        .resolve = RESOLVE_BENEATH | RESOLVE_NO_MAGICLINKS | RESOLVE_NO_SYMLINKS,
+    };
+    int fd = syscall(SYS_openat2, root_fd, argv[2], &how, sizeof(how));
+    if (fd == -1) {
+        perror("openat2");
+        close(root_fd);
+        return 1;
+    }
+    close(root_fd);
+    const char content[] = "created through an anchored descriptor\n";
+    int failed = write(fd, content, sizeof(content) - 1) != (ssize_t)(sizeof(content) - 1);
+    if (failed)
+        fprintf(stderr, "write did not complete\n");
+    if (close(fd) == -1) {
+        perror("close output");
+        failed = 1;
+    }
+    return failed;
+}
+```
+
+### Source, line by line
+
+- The headers and argument guard serve the same roles as in `safe_open.c`.
+- The root is opened as a directory reference and marked close-on-exec. An error stops the operation.
+- `O_WRONLY` requests writing; `O_CREAT` permits a new file; `O_TRUNC` replaces existing contents. These are different choices from append mode.
+- `mode = 0600` requests owner read/write permissions for a newly created file, further restricted by the process umask. The leading zero denotes an octal permission constant. `mode` must be zero when no creation flag is used.
+- The same resolution flags apply to creation, so a write does not get a weaker lookup rule than a read.
+- The fixed payload includes a newline. `sizeof(content) - 1` excludes the C string's terminating zero byte.
+- A short or failed write is reported as failure. The output descriptor is closed, and a close error also fails the operation; this still does not promise durable storage without an explicit synchronization policy.
+- All successful setup paths close the root descriptor. Returning nonzero stops the caller from treating a failed write as a valid result.
+
+```bash
+cc -std=c11 -Wall -Wextra -Werror -O2 safe_write.c -o safe-write
+./safe-write demo/allowed created.txt
+cat demo/allowed/created.txt
+printf 'old contents deliberately longer than the replacement payload to expose missing truncation\n' > demo/allowed/created.txt
+./safe-write demo/allowed created.txt
+test "$(cat demo/allowed/created.txt)" = 'created through an anchored descriptor'
+```
+
+The compile command builds the new program. The first write creates a file and the following `cat` observes it. The second run replaces longer old content; the final equality check catches a missing truncation flag that would leave trailing bytes. The payload and destination are local synthetic data. In the independent lab, adapt the mechanism to the specified content argument yourself.
+
 ## Checkpoint and troubleshooting
 
 ```bash
@@ -272,6 +439,12 @@ test "$(./safe-open demo/allowed note.txt)" = allowed
 - `ENOSYS` means the running kernel lacks `openat2`; record the exact kernel and use a supported disposable VM.
 - If the safe link succeeds, confirm the repaired binary was rebuilt from `safe_open.c`.
 - Checkpoint: point to the directory descriptor, the kernel resolution flags, and the single operation that joins authorization to use.
+
+## Replay and source truth
+
+The demo contains only lesson-created synthetic files. Do not substitute personal directories or real credentials. From this workspace, `cd ../..` then `./lab-reset 05.02` discards this lesson's edits and fixtures after confirmation. No host mount, filesystem permission, or global security setting needs changing.
+
+[openat2(2)](https://man7.org/linux/man-pages/man2/openat2.2.html) defines the structure, resolution flags, and error cases; it was introduced in Linux 5.6. The lesson uses flags available on both course baselines, not newer flags merely present in current online documentation.
 <!-- /source -->
 
 <!-- PAGEBREAK -->
@@ -282,6 +455,28 @@ test "$(./safe-open demo/allowed note.txt)" = allowed
 ## Goal
 
 Apply an unprivileged Landlock ruleset before `exec`, then prove both its protection and its pre-opened-descriptor limit. Compose Landlock with descriptor hygiene rather than mistaking either control for the other.
+
+## Concepts and preparation
+
+Complete 05.02 and recall `no_new_privs` from 03.03. A cooperative broker can use a safe open operation, but an arbitrary child can issue its own file operations. **Landlock** adds kernel-enforced restrictions to the calling thread and its future descendants. An unprivileged program can reduce its access; it cannot use a Landlock rule to override existing permissions.
+
+A **ruleset** declares the categories of access it handles. A **rule** grants selected handled accesses beneath a directory. A handled access with no applicable grant is denied; an unhandled category is generally outside that policy. The **ABI version** is the kernel interface generation, not the distribution version. New headers do not make an older running kernel support new rights.
+
+We intentionally use a static, tiny child so its program and runtime code fit in one allowed tree. This keeps dynamic-loader permissions out of the first example. It does not mean static linking itself is a sandbox. Predict whether a file already opened before the restriction will lose its read authority.
+
+From the course root in the disposable VM:
+
+```bash
+./lab-start 05.03
+cd .student/05.03
+pwd
+ls -l fd_probe.c landlock_launch.c pass_fd.py
+cat fd_probe.c
+cat landlock_launch.c
+cat pass_fd.py
+```
+
+`lab-start` prepares the student copy. The next commands enter and inspect it; each `cat` reads a supplied source before execution. Missing files usually mean the wrong working directory or lesson number. Edit only these student copies with `nano FILENAME`, save with `Ctrl-O`, `Enter`, and exit with `Ctrl-X`. Recompile after every C edit. An old binary does not automatically track a changed source.
 
 ## Exercise 1 - Build a static observation probe
 
@@ -386,17 +581,9 @@ static __u64 supported_rights(int abi) {
 }
 
 static int close_inherited(void) {
-    if (syscall(SYS_close_range, 3U, ~0U, CLOSE_RANGE_CLOEXEC) == 0)
-        return 0;
-    if (errno != ENOSYS)
-        return -1;
-    long maximum = sysconf(_SC_OPEN_MAX);
-    for (int fd = 3; fd < maximum; fd++) {
-        int flags = fcntl(fd, F_GETFD);
-        if (flags != -1 && fcntl(fd, F_SETFD, flags | FD_CLOEXEC) == -1)
-            return -1;
-    }
-    return 0;
+    /* Both course baselines support this operation. Do not weaken the
+       descriptor guarantee with a fallback bounded by a mutable soft limit. */
+    return syscall(SYS_close_range, 3U, ~0U, CLOSE_RANGE_CLOEXEC);
 }
 
 int main(int argc, char **argv) {
@@ -446,8 +633,8 @@ int main(int argc, char **argv) {
 
 - The three small syscall wrappers keep the argument ordering visible and return raw success or failure to the caller.
 - `supported_rights` builds the ABI-1 set first, then adds rights introduced by ABI 2, 3, 5, and 9 only when both the build headers and the running kernel support them. The preprocessor guards keep the source buildable with older distribution headers.
-- `close_inherited` prefers the kernel's range operation. `CLOSE_RANGE_CLOEXEC` preserves descriptors until `exec` but guarantees the new program cannot inherit them.
-- The fallback queries the descriptor limit and adds `FD_CLOEXEC` only to descriptors that are actually open. Any mutation error fails the launch.
+- `close_inherited` requires the kernel's range operation. `CLOSE_RANGE_CLOEXEC` preserves descriptors until `exec` but prevents the new program from inheriting them.
+- Failure stops the launch, including an unsupported operation. The course baselines support this flag (introduced in Linux 5.11); there is no weaker fallback bounded by a process's mutable descriptor soft limit.
 - `main` queries and prints the ABI before it creates policy. It never treats an unavailable Landlock interface as permission to continue.
 - The ruleset declares which operations Landlock will handle; the path-beneath rule grants that same set only under `root_fd`.
 - `PR_SET_NO_NEW_PRIVS` and `restrict_self` are joined by `||`: if either fails, `execv` is unreachable.
@@ -456,6 +643,20 @@ int main(int argc, char **argv) {
 
 ### Unhandled means allowed
 
+### Read the policy structures without guessing
+
+The `__u64` type is an unsigned 64-bit value used for the access mask. A `|` combines right bits; `|=` adds bits to an existing mask. `#ifdef` is a compile-time test for a header definition, whereas `if (abi >= ...)` is a runtime test. Both must agree before this binary requests a newer right.
+
+`create_ruleset(NULL, 0, LANDLOCK_CREATE_RULESET_VERSION)` is a query: no policy structure is supplied. The next call passes an initialized `landlock_ruleset_attr` and its size to create a policy descriptor. The `landlock_path_beneath_attr` holds the rights granted under the already-open root. `&rule` passes its address to the add-rule operation.
+
+The lesson grants **all handled rights under the allowed tree**, not read-only access. Those grants only remove Landlock's denial for that tree; normal permissions and other security modules can still deny access. Restricting this process does not change global SELinux policy. On Fedora, keep SELinux enforcing throughout.
+
+The `||` condition short-circuits: if setting `no_new_privs` fails, the second call is not attempted and the error path returns. If installing Landlock fails, execution also stops. Closing the ruleset descriptor afterward releases the userspace handle, not the installed restriction. Like the no-new-privileges bit, the resulting access reduction is not something this child can casually undo.
+
+The tiny observation probe's conditional expression selects either a new path open or an already-supplied integer descriptor. Its fixed 256-byte read is enough for the supplied short fixtures, not a general file-copy contract. Use exactly the documented modes; the probe is not a production input parser.
+
+### Compare handled rights with the running ABI
+
 Landlock restricts only the access rights listed in `handled_access_fs`. With the historical exception of `LANDLOCK_ACCESS_FS_REFER`, a filesystem right the running kernel supports but the ruleset does not handle stays allowed. A launcher that stops at ABI 3 therefore under-restricts on ABI 5, where `LANDLOCK_ACCESS_FS_IOCTL_DEV` can restrict device IOCTL operations, and on ABI 9, where `LANDLOCK_ACCESS_FS_RESOLVE_UNIX` can restrict pathname UNIX-socket resolution.
 
 Version-aware code can handle only rights known to its source and build headers. The guarded ABI 5 and ABI 9 additions make this source enforce the complete filesystem-right set it knows when the headers expose those constants and the running kernel supports them. If newer headers introduce another filesystem right, this source and its stated guarantee must be reviewed again; runtime ABI detection cannot invent a constant absent at build time.
@@ -463,12 +664,14 @@ Version-aware code can handle only rights known to its source and build headers.
 Checkpoint: print the ABI reported by the running kernel and compare it with the highest filesystem ABI explicitly handled by the source:
 
 ```bash
+cc -std=c11 -Wall -Wextra -Werror -O2 landlock_launch.c -o landlock-launch
 ./landlock-launch demo/allowed /bin/true 2>&1 | head -1
 grep -n 'abi >=' landlock_launch.c
 ```
 
-- The first command relies on the launcher's diagnostic and may later deny `/bin/true` because that executable is outside the allowed tree; only its first line is the ABI observation.
-- The second command lists the explicit ABI gates compiled into this source. A high runtime number is not by itself proof that every future right is handled.
+- Compile first: a freshly prepared lesson has source files, not a prebuilt launcher.
+- The next command relies on the launcher's diagnostic and may later deny `/bin/true` because that executable is outside the allowed tree; only its first line is the ABI observation. The pipeline's status is not a launch-success assertion.
+- `grep` lists the explicit ABI gates in the source. A high runtime number is not by itself proof that every future right is handled.
 
 Build it:
 
@@ -524,7 +727,7 @@ raise SystemExit(run.returncode)
 - The launcher receives the allowed root, exact probe path, `fd` mode, and descriptor number as distinct argv elements.
 - The wrapper returns the observed child status.
 
-The repaired launcher calls `close_inherited` after using its policy descriptors and before `execv`. `close_range(..., CLOSE_RANGE_CLOEXEC)` atomically marks every descriptor from 3 upward close-on-exec; an older-kernel fallback applies `FD_CLOEXEC` one descriptor at a time.
+The repaired launcher calls `close_inherited` after using its policy descriptors and before `execv`. `close_range(..., CLOSE_RANGE_CLOEXEC)` marks every descriptor from 3 upward close-on-exec. This single-threaded launcher creates no later descriptors before exec; it does not claim to solve concurrent descriptor creation in a multithreaded launcher.
 
 Run the repaired result:
 
@@ -543,7 +746,7 @@ cc -std=c11 -Wall -Wextra -Wno-unused-function -O2 unsafe_launch.c -o unsafe-lau
 
 - The addressed `sed` range removes the four-line call/error block from the temporary source only.
 - `-Wno-unused-function` permits the deliberately orphaned helper; it does not suppress other warning classes.
-- Substitute `./unsafe-launch` for `./landlock-launch` in the wrapper command. The synthetic secret prints even though the path rule is active.
+- The executable name is inside `pass_fd.py`, not an argument to its command. Open your student copy with `nano pass_fd.py`, change only that executable string for the supplied synthetic comparison, save, and repeat the same Python invocation. Restore the original string immediately afterward. The protected fixture is not a real credential.
 - Delete the temporary files, return to the shipped launcher, and confirm denial.
 
 Landlock mediates new filesystem operations by path; reading an already-open file description is not a new path lookup.
@@ -560,12 +763,86 @@ test "$(./landlock-launch "$PWD/demo/allowed" "$PWD/demo/allowed/fd-probe" path 
 - `Permission denied` on the allowed executable usually means the probe is outside the allowed tree or was not compiled successfully.
 - A visible synthetic secret in the final command means inherited descriptors were not marked close-on-exec.
 - Checkpoint: identify which assertion tests Landlock and which tests the independent descriptor-hygiene layer.
+
+## Replay and source truth
+
+The demo contains only lesson-created synthetic files. Do not substitute personal directories or real credentials. From this workspace, `cd ../..` then `./lab-reset 05.03` discards this lesson's edits and fixtures after confirmation. No host mount, filesystem permission, or global security setting needs changing.
+
+The kernel's [Landlock userspace guide](https://cdn.kernel.org/doc/html/latest/userspace-api/landlock.html) documents handled rights, ABI additions, and inherited restrictions. [close_range(2)](https://man7.org/linux/man-pages/man2/close_range.2.html) documents the separate descriptor control. Record build headers and the running ABI; neither alone proves which rights this binary enforces.
 <!-- /source -->
 
 <!-- PAGEBREAK -->
 
 <!-- source: course/module-05-filesystem-landlock/lab/README.md format=markdown -->
 # Module 05 independent lab - Filesystem guard
+
+## Preparation and practiced skills
+
+Complete 05.01-05.03 first. Map read lookup and creation/truncation to 05.02's two small C programs; map child restriction and inherited-descriptor handling to 05.03. 05.01 explains why replacing a character-prefix test with another string manipulation is not the whole answer.
+
+The starter branches on `argv[1]`. Its `run` branch executes without policy. Its other branches concatenate root and request into a string, then use ordinary stream operations. `fread` and `fwrite` operate on streams; `snprintf` formats text and does not validate a resolved object. The starter's single read also has a fixed buffer limit. Preserve the interface, not these shortcuts.
+
+The contract describes mechanisms as well as outcomes. A black-box pass cannot prove that a read used one descriptor-relative kernel operation, or that every future ABI right was handled. Review the source against that stated design as well as checking the grader's observed outcomes.
+
+From the course root:
+
+```bash
+./lab-start module-05
+cd .student/05.lab
+pwd
+ls -l fs_guard.c
+cat fs_guard.c
+nano fs_guard.c
+```
+
+The commands prepare your editable lab, enter and inspect it, then open the starter for reading and editing. Save in nano with `Ctrl-O`, `Enter`, and exit with `Ctrl-X`. Rebuild after each C edit using the compiler command below. Keep the canonical files and grader unchanged.
+
+```c
+#define _GNU_SOURCE
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
+int main(int argc, char **argv) {
+    if (argc < 4) {
+        fprintf(stderr, "usage: %s read ROOT PATH | write ROOT PATH CONTENT | run ROOT COMMAND [ARG...]\n", argv[0]);
+        return 2;
+    }
+    if (strcmp(argv[1], "run") == 0) {
+        execv(argv[3], &argv[3]);
+        perror("execv");
+        return 1;
+    }
+    char path[4096];
+    snprintf(path, sizeof(path), "%s/%s", argv[2], argv[3]);
+    if (strcmp(argv[1], "read") == 0) {
+        FILE *stream = fopen(path, "r");
+        if (!stream) {
+            perror("fopen");
+            return 1;
+        }
+        char buffer[4096];
+        size_t count = fread(buffer, 1, sizeof(buffer), stream);
+        fwrite(buffer, 1, count, stdout);
+        return ferror(stream) != 0;
+    }
+    if (strcmp(argv[1], "write") == 0 && argc == 5) {
+        FILE *stream = fopen(path, "w");
+        if (!stream) {
+            perror("fopen");
+            return 1;
+        }
+        fputs(argv[4], stream);
+        return fclose(stream) == EOF;
+    }
+    fprintf(stderr, "unknown mode\n");
+    return 2;
+}
+```
+
+## Contract
+
 
 Implement `fs_guard.c`. The grader builds one executable and invokes these interfaces:
 
@@ -585,7 +862,7 @@ Required security properties:
 - inherited descriptors numbered 3 and above are closed on `exec`, preventing a pre-opened protected file from bypassing the pathname policy;
 - malformed or unknown modes fail closed with a nonzero status.
 
-The external grader observes the common path, traversal, symlink, execution, protected-open, and inherited-descriptor properties. ABI 5 device IOCTL and ABI 9 pathname UNIX-socket handling are stated source properties rather than externally graded properties on the Ubuntu 24.04 baseline: observing them safely requires matching newer headers plus controlled device or socket fixtures. Review the guarded rights table and the lesson's ABI checkpoint instead of treating a baseline grader pass as evidence for unavailable kernel features.
+The external grader observes the common path, traversal, symlink, execution, protected-open, and inherited-descriptor properties. ABI 5 device IOCTL and ABI 9 pathname UNIX-socket handling are stated source properties rather than externally graded properties: observing them requires matching runtime support plus controlled device or socket fixtures. The Fedora trial reports runtime ABI 7, so ABI 9 enforcement is not demonstrated there even when newer headers define the constant. Review the guarded rights table and the lesson's ABI checkpoint instead of treating a grader pass as evidence for untested kernel features.
 
 The grader changes directory names, relative paths, contents, and synthetic canaries on every run. It compiles its observation child statically inside the allowed tree, creates a symlink to a protected sibling, passes a protected descriptor deliberately, and evaluates a read-only copy of your source.
 
@@ -618,4 +895,12 @@ test "$(cat sample-root/output.txt)" = sample-output
 The lab does not provide a completed implementation. Plan separate read/write and run paths, keep the root descriptor alive only as long as needed, make every setup failure stop the command, and preserve the required order: inspect ABI, create ruleset, add rule, set `no_new_privs`, restrict, close inherited authority, then `exec`.
 
 This is an unprivileged local exercise. Do not add `sudo`, mounts, external paths, network access, or real secrets.
+
+## Verify, explain, and replay
+
+Run the starter and record its failed properties before editing. After repair, preserve both successful useful work and the expected denials/errors; a launcher that refuses everything does not pass. A compiler failure, missing executable, or missing fixture is not the desired security outcome.
+
+For each passing property, explain which earlier lesson supplied the mechanism and what the observation does **not** establish. Keep an unresolved property unresolved rather than weakening its expected result. The lab intentionally withholds a combined implementation.
+
+From this workspace, `cd ../..` returns to the course root. `./lab-reset module-05` removes this module's student work and generated fixtures after confirmation; preserve notes first. Start the module again for a fresh randomized attempt. Never substitute real credentials, personal directories, or external services for the synthetic fixtures.
 <!-- /source -->

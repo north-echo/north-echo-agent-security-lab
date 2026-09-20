@@ -4,7 +4,7 @@ Run this matrix only in a disposable Linux VM with synthetic data and no persona
 
 ## Supported baseline
 
-The validated baseline is Ubuntu 24.04 on x86-64 and arm64; individual records identify the exact source, image, and kernel tested. Debian 12 remains an unvalidated candidate, not an equivalent supported baseline. Record the exact environment:
+The v2 learner-review beta prefers Fedora 44 ARM64 on Apple Silicon, with SELinux enforcing. Ubuntu 24.04 remains the compatibility and dual-architecture CI baseline. Individual records identify the exact source, image, and kernel tested; historical v1.x results do not certify the rewritten v2 source. Fedora x86-64 and Debian 12 remain unvalidated, not equivalent supported baselines. See `validation/beta-20260920/RESULTS.md` for the beta candidate and release gates. Record the exact environment:
 
 ```bash
 mkdir -p validation
@@ -195,11 +195,11 @@ Gate A passes only when Modules 01-03 work end to end on Linux and cleanup leave
 
 The historical Gates 2–3 above define the original foundation acceptance, not a full-course maintenance pass. For changes after v1.0.2:
 
-- Run strict tests across Modules 01–12 and the distinct ordered-batch capstone on Ubuntu x86-64 and arm64. Reference implementations are test fixtures, not evidence of human learning.
+- Run strict tests across B0/B1, Modules 01–12, and the distinct ordered-batch capstone on Fedora ARM64 and Ubuntu x86-64/arm64. Reference implementations are test fixtures, not evidence of human learning.
 - Re-exercise each changed guided interface, intentional failure, repair, and checkpoint in a fresh student workspace. Retain outcome logs, never student solutions.
 - Compile changed native sources with `-Wall -Wextra -Werror` and the lesson's other flags.
 - Verify portable Module 12 evidence replay after moving the bundle to a new directory, with a complete hash inventory.
 - Check latest-failure versus historical-pass status, concurrent progress updates, invalid-resource no-mutation behavior, and timeout registry retention.
 - Rebuild the manual from canonical includes, check synchronization, and render/inspect the PDF before releasing it.
-- For deployment changes, record the exact image digests and installed package revisions; test marker-preserving reboot, plain-mode evidence copy, and a deliberately failing readiness probe. Do not imply that a pinned image pins later apt packages.
+- For deployment changes, record the exact image digests and installed package revisions; test marker-preserving reboot, plain-mode evidence copy, and a deliberately failing readiness probe. Do not imply that a pinned image pins later apt/dnf packages. Require managed directories to exist and be nonsymlinks; check the exit status of `find` separately from its empty output.
 - Record the source commit or candidate archive digest, all skips, and any untested architecture. Follow `docs/dev/LEARNER_PILOT.md` separately for human learning evidence.

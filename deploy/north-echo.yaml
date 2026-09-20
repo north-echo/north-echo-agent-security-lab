@@ -1,4 +1,4 @@
-# North Echo v1.0.2 disposable Ubuntu appliance for Lima 2.2 or newer.
+# North Echo v2.0.0-beta.1 disposable Ubuntu appliance for Lima 2.2 or newer.
 #
 # Create:  limactl start --name north-echo deploy/north-echo.yaml
 # Enter:   limactl shell north-echo
@@ -31,7 +31,7 @@ ssh:
   loadDotSSHPubKeys: false
 
 param:
-  CourseVersion: v1.0.2
+  CourseVersion: v2.0.0-beta.1
 
 provision:
   - mode: data
@@ -44,6 +44,7 @@ provision:
       #!/bin/bash
       set -euo pipefail
 
+      [[ "$PARAM_CourseVersion" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-beta\.[1-9][0-9]*)?$ ]]
       ready_marker="{{.Home}}/.local/state/north-echo/${PARAM_CourseVersion}.ready"
       if [[ -f "$ready_marker" ]]; then
         exit 0
@@ -59,6 +60,7 @@ provision:
       set -euo pipefail
 
       version="${PARAM_CourseVersion}"
+      [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-beta\.[1-9][0-9]*)?$ ]]
       state_dir="$HOME/.local/state/north-echo"
       ready_marker="$state_dir/${version}.ready"
       course_dir="$HOME/north-echo"
@@ -68,12 +70,13 @@ provision:
       if [[ -f "$ready_marker" ]]; then
         exit 0
       fi
-      if [[ -e "$course_dir" ]]; then
+      if [[ -e "$course_dir" || -L "$course_dir" ]]; then
         echo >&2 "North Echo is not marked ready; refusing to overwrite $course_dir"
         echo >&2 "Delete and recreate the disposable instance instead."
         exit 1
       fi
 
+      test "$(id -u)" -ne 0
       sudo loginctl enable-linger "$(id -un)"
       systemctl --user show-environment >/dev/null
       systemd-run --user --wait --pipe --collect --quiet -- true
@@ -83,18 +86,46 @@ provision:
       staging="$(mktemp -d "$HOME/.north-echo-bootstrap.XXXXXX")"
       trap 'rm -rf -- "$staging"' EXIT
 
-      curl --fail --location --silent --show-error \
+      curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' \
+        --connect-timeout 20 --max-time 300 --retry 2 \
         --output "$staging/SHA256SUMS" "$release_base/SHA256SUMS"
-      curl --fail --location --silent --show-error \
+      curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' \
+        --connect-timeout 20 --max-time 300 --retry 2 \
         --output "$staging/$archive" "$release_base/$archive"
 
-      checksum_line="$(grep -F "  $archive" "$staging/SHA256SUMS")"
-      [[ -n "$checksum_line" ]]
-      (
-        cd "$staging"
-        printf '%s\n' "$checksum_line" | sha256sum --check -
-        tar -xzf "$archive"
-      )
+      # Select exactly this artifact; verify before extracting or running it.
+      python3 - "$staging" "$archive" "north-echo-agent-security-lab-${version}" <<'PY'
+      import hashlib
+      from pathlib import Path, PurePosixPath
+      import re
+      import sys
+      import tarfile
+
+      staging, archive, expected_root = sys.argv[1:]
+      staging = Path(staging)
+      matches = []
+      for line in (staging / "SHA256SUMS").read_text().splitlines():
+          fields = line.split()
+          if len(fields) == 2 and fields[1] == archive:
+              matches.append(fields[0])
+      if len(matches) != 1 or not re.fullmatch(r"[0-9a-fA-F]{64}", matches[0]):
+          raise SystemExit("Expected exactly one valid checksum for the course archive")
+      with (staging / archive).open("rb") as stream:
+          digest = hashlib.file_digest(stream, "sha256").hexdigest()
+      if digest != matches[0].lower():
+          raise SystemExit("Course archive checksum mismatch")
+      with tarfile.open(staging / archive, "r:gz") as bundle:
+          members = bundle.getmembers()
+          for member in members:
+              path = PurePosixPath(member.name)
+              if (path.is_absolute() or ".." in path.parts or not path.parts
+                      or path.parts[0] != expected_root
+                      or not (member.isfile() or member.isdir())):
+                  raise SystemExit("Unexpected archive member")
+          bundle.extractall(staging, members=members, filter="data")
+      print("COURSE ARCHIVE CHECKSUM AND EXTRACTION: PASS")
+      PY
+      test -f "$staging/north-echo-agent-security-lab-${version}/.north-echo-root"
       mv "$staging/north-echo-agent-security-lab-${version}" "$course_dir"
 
       if ! unshare --user --map-root-user true >/dev/null 2>&1; then
@@ -123,14 +154,19 @@ provision:
       python3 - > "$evidence_dir/tests.txt" 2>&1 <<'PY'
       import sys, unittest
       result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.discover("tests"))
-      sys.exit(0 if result.wasSuccessful() and not result.skipped else 1)
+      sys.exit(0 if result.wasSuccessful() and not result.skipped and result.testsRun else 1)
       PY
       ./scripts/attest-course > "$evidence_dir/attestation.txt" 2>&1
+      python3 scripts/build_field_manual.py --check > "$evidence_dir/manual.txt" 2>&1
       ./scripts/linux-preflight > "$evidence_dir/preflight.txt" 2>&1
       cc -std=c11 -Wall -Wextra -Werror -O2 \
         course/module-05-filesystem-landlock/lesson-03/landlock_launch.c \
         -o "$evidence_dir/north-echo-landlock-launch"
-      test -z "$(find .student .fixtures .runtime -mindepth 1 ! -name .gitkeep -print)"
+      for managed in .student .fixtures .runtime; do
+        test -d "$managed" && test ! -L "$managed"
+      done
+      runtime_entries="$(find .student .fixtures .runtime -mindepth 1 ! -name .gitkeep -print)"
+      test -z "$runtime_entries"
       printf '%s\n' 'EMPTY MANAGED RUNTIME: PASS' > "$evidence_dir/empty-runtime.txt"
 
       tar -czf "$evidence_archive" -C "$evidence_dir" .
@@ -154,7 +190,7 @@ probes:
       test -f "$HOME/north-echo-deployment-evidence.tgz"
       cd "$HOME/north-echo"
       ./scripts/attest-course >/dev/null
-      systemctl --user show-environment >/dev/null
+      ./scripts/linux-preflight >/dev/null
     hint: |
       North Echo provisioning did not complete. Inspect /var/log/cloud-init-output.log,
       then delete and recreate the disposable instance rather than overwriting its state.

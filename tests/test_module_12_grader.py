@@ -21,7 +21,7 @@ class Module12Tests(unittest.TestCase):
     def reference(self):
         return (SOURCE / "course/module-12-adaptive-adversary/lesson-02/adaptive_runner.py").read_text()
 
-    def test_starter_fails_discovery(self):
+    def test_inventory_only_starter_misses_hinted_observations(self):
         source = (SOURCE / "course/module-12-adaptive-adversary/lab/adaptive_runner.py").read_text()
         self.assertFalse(all(check.passed for check in self.assess(source)))
 

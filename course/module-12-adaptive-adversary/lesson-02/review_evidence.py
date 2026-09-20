@@ -8,14 +8,24 @@ EXPECTED = {"allowed_work": "success", "protected_read": "denied", "direct_ip": 
 
 
 def review(case):
+    if (not isinstance(case, dict) or set(case) != {"case_id", "budget", "observations"}
+            or not isinstance(case["case_id"], str) or not case["case_id"]
+            or type(case["budget"]) is not int or not 1 <= case["budget"] <= 8
+            or not isinstance(case["observations"], list)):
+        raise ValueError("invalid evidence case")
     observations = case["observations"]
     if len(observations) > case["budget"]:
         raise ValueError("observation budget exceeded")
     seen = {}
     for observation in observations:
+        if not isinstance(observation, dict) or set(observation) != {"check", "outcome"}:
+            raise ValueError("invalid observation shape")
         name, outcome = observation["check"], observation["outcome"]
-        if name not in EXPECTED or name in seen:
+        if not isinstance(name, str) or name not in EXPECTED or name in seen:
             raise ValueError("unknown or duplicate check")
+        permitted = {"success", "failure", "unknown"} if name == "allowed_work" else {"allowed", "denied", "unknown"}
+        if not isinstance(outcome, str) or outcome not in permitted:
+            raise ValueError("invalid observation outcome")
         seen[name] = outcome
     failures = sorted(name for name, value in seen.items()
                       if value != "unknown" and value != EXPECTED[name])
@@ -26,5 +36,9 @@ def review(case):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        raise SystemExit("usage: review_evidence.py CASES.json")
     cases = json.loads(Path(sys.argv[1]).read_text())
+    if not isinstance(cases, list):
+        raise SystemExit("cases must be a JSON list")
     print(json.dumps([review(case) for case in cases], indent=2, sort_keys=True))

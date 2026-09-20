@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 SOURCE = Path(__file__).resolve().parents[1]
@@ -17,6 +19,11 @@ import module_08  # noqa: E402
 @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
 class Module08GraderTests(unittest.TestCase):
     fixture = {"hostname": "grade-test08", "canary": "GRADE-test-only"}
+
+    def test_failed_namespace_setup_is_not_accepted_as_isolation(self):
+        with patch.object(module_08, "run_bounded", return_value=subprocess.CompletedProcess(
+                [], 1, "", "unshare: Operation not permitted")):
+            self.assertFalse(module_08._direct_isolated(45000))
 
     def test_starter_fails_closed_and_does_not_pass(self):
         with tempfile.TemporaryDirectory() as raw:

@@ -24,6 +24,7 @@ socket_path = Path(socket_text)
 if socket_path.exists() or socket_path.is_symlink():
     raise SystemExit("upstream socket path already exists")
 signal.signal(signal.SIGTERM, stop)
+signal.signal(signal.SIGINT, stop)
 listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 listener.bind(str(socket_path))
 os.chmod(socket_path, 0o600)
@@ -36,13 +37,21 @@ try:
         except TimeoutError:
             continue
         with peer:
+            peer.settimeout(2)
             try:
-                request = json.loads(peer.makefile("rb").readline(16384))
+                with peer.makefile("rb") as incoming:
+                    line = incoming.readline(16385)
+                if len(line) > 16384 or not line.endswith(b"\n"):
+                    raise ValueError("request must be one bounded line")
+                request = json.loads(line)
                 allowed = request == {"credential": credential, "operation": "read", "resource": resource, "input": {}}
                 response = {"ok": True, "result": {"value": value}} if allowed else {"ok": False, "error": "upstream denied"}
-            except (json.JSONDecodeError, OSError):
+            except (ValueError, UnicodeError, OSError):
                 response = {"ok": False, "error": "invalid upstream request"}
-            peer.sendall(json.dumps(response, sort_keys=True).encode() + b"\n")
+            try:
+                peer.sendall(json.dumps(response, sort_keys=True).encode() + b"\n")
+            except OSError:
+                pass
 finally:
     listener.close()
     socket_path.unlink(missing_ok=True)

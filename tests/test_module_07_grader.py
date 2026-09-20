@@ -26,10 +26,19 @@ def main():
     memory=integer(spec.get("memory_max"),16*1024*1024,256*1024*1024)
     tasks=integer(spec.get("tasks_max"),4,64); cpu=integer(spec.get("cpu_percent"),10,100)
     unit=f"north-echo-{os.getuid()}-07-lab-{secrets.token_hex(4)}.service"
-    argv=["systemd-run","--user","--wait","--pipe","--collect","--quiet",f"--unit={unit[:-8]}",f"--property=MemoryMax={memory}","--property=MemorySwapMax=0",f"--property=TasksMax={tasks}",f"--property=CPUQuota={cpu}%","--",*command]
+    description=f"North Echo 07.lab workspace={Path.cwd().resolve()}"
+    owner={"unit":unit,"description":description,"uid":os.getuid()}
+    argv=["systemd-run","--user","--wait","--pipe","--collect","--quiet","--expand-environment=no",f"--unit={owner['unit']}",f"--description={owner['description']}",f"--property=MemoryMax={memory}","--property=MemorySwapMax=0",f"--property=TasksMax={tasks}",f"--property=CPUQuota={cpu}%","--property=CPUQuotaPeriodSec=100ms","--property=RuntimeMaxSec=10s","--property=TimeoutStopSec=1s","--",*command]
     try: run=subprocess.run(argv,text=True,capture_output=True,timeout=15)
     except subprocess.TimeoutExpired:
-        subprocess.run(["systemctl","--user","stop",unit],check=False); return 1
+        inspected=subprocess.run(["systemctl","--user","show",unit,"--property=LoadState","--property=Description","--property=ControlGroup"],text=True,capture_output=True,timeout=5)
+        properties=dict(line.split("=",1) for line in inspected.stdout.splitlines() if "=" in line)
+        if properties.get("LoadState") == "not-found": return 1
+        group=properties.get("ControlGroup","")
+        if inspected.returncode or properties.get("Description") != owner["description"] or not group.startswith(f"/user.slice/user-{owner['uid']}.slice/user@{owner['uid']}.service/") or not group.endswith("/"+unit):
+            raise RuntimeError("unit ownership could not be established")
+        subprocess.run(["systemctl","--user","stop",unit],check=True,timeout=5)
+        return 1
     result_path.write_text(json.dumps({"status":run.returncode,"stdout":run.stdout,"stderr":run.stderr})+"\n")
     return 0 if run.returncode == 0 else 1
 if __name__ == "__main__": raise SystemExit(main())
@@ -51,4 +60,13 @@ class Module07GraderTests(unittest.TestCase):
             w=Path(raw); (w/"resource_runner.py").write_text(REFERENCE)
             checks=module_07.grade(w,self.fixture)
         self.assertTrue(all(c.passed for c in checks),json.dumps([(c.name,c.passed) for c in checks]))
+
+    def test_default_manager_expansion_does_not_preserve_literal_argv(self):
+        with tempfile.TemporaryDirectory() as raw:
+            workspace = Path(raw)
+            source = REFERENCE.replace('"--expand-environment=no",', '')
+            (workspace / "resource_runner.py").write_text(source)
+            checks = module_07.grade(workspace, self.fixture)
+        literal = next(check for check in checks if check.name == "Literal argv is preserved without a shell")
+        self.assertFalse(literal.passed)
 if __name__ == "__main__": unittest.main()

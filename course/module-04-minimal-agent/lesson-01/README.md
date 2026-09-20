@@ -4,6 +4,28 @@
 
 Turn a local JSON task into explicit tool actions and a complete JSON-lines trace. The JSON task is a deterministic stand-in for a model: it makes the control flow reproducible and requires no network or credential.
 
+## Concepts and preparation
+
+Complete B0/B1 and Modules 01-03 first. Here an **agent loop** means a program that receives a requested action, chooses a named tool, executes it, and records a result. We use a fixed task instead of a model so every decision is visible. This teaches the execution boundary, not model reasoning or prompt resistance.
+
+A JSON **object** contains named fields in braces; an **array** contains ordered values in brackets. In Python these become a dictionary and a list. `task["actions"]` retrieves the list; `for action in ...` processes each dictionary in order. A **dispatcher** chooses a function based on the tool name. None of these data structures grants permission: the process still has its ordinary Linux authority.
+
+The trace uses JSON Lines: one complete object per physical line. A task JSON document and a JSONL trace are different formats. Parsing the entire multi-record trace as one ordinary JSON object would be a format error.
+
+From the course root:
+
+```bash
+./lab-start 04.01
+cd .student/04.01
+pwd
+ls -l agent_loop.py task.json input.txt
+cat agent_loop.py
+cat task.json
+cat input.txt
+```
+
+The first command prepares your student copy. `cd` enters it; `pwd` and `ls -l` verify location and filenames; the `cat` commands read the supplied files before you run them. If a file is absent, check the lesson number and working directory rather than creating a substitute with guessed contents. To edit a source below, use `nano FILENAME` with the actual filename, save with `Ctrl-O`, `Enter`, and exit with `Ctrl-X`. Python runs the saved file directly; there is no compile step.
+
 ## Exercise 1 - Inspect the request before execution
 
 ```bash
@@ -23,6 +45,7 @@ Expected: two actions appear in order: `read_file` for `input.txt`, then `write_
 
 Complete source:
 
+<!-- source: course/module-04-minimal-agent/lesson-01/agent_loop.py format=code -->
 ```python
 #!/usr/bin/env python3
 import json
@@ -62,6 +85,7 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
+<!-- /source -->
 
 ### Source, line by line
 
@@ -111,6 +135,40 @@ test -f output.txt
 
 The intentional mistake is not a missing log decoration. It removes the evidence needed to connect requested actions to observed results.
 
+### Follow one action through the program
+
+For the first action, read `tool`, enter the `read_file` branch, and retrieve the named path's text. The returned dictionary becomes the record's `result`. For the second, `write_text` creates or replaces the requested output before the function returns a byte count. The supplied content ends with a newline; that byte is part of the result.
+
+`def` defines a function but does not run its body. The annotations `: dict` and `-> dict` describe intended types; Python does not enforce a schema merely because they are present. The indentation determines which statements belong to each branch. `return` leaves the function, so a successful known tool does not reach the final `raise`.
+
+`record.update(...)` adds fields to a dictionary. Python evaluates `perform(action)` before performing that update, so an exception does not first install a false success result. `except Exception` handles ordinary action errors, not every possible interruption or output-write failure. `with` closes the trace when the block exits. `flush` pushes Python's buffered output onward; it is not a promise of durable storage or a tamper-proof audit log.
+
+This first example deliberately returns 0 after recording action failures. It separates "the loop completed" from "every action succeeded." The independent lab requires the stronger aggregate-status rule. Practice that small change below before combining tools.
+
+## Exercise 4 - Make action failure affect the process result
+
+Before changing the program, create a tiny task containing an unknown tool:
+
+```bash
+printf '%s\n' '{"actions":[{"id":"unknown-1","tool":"not_a_tool"}]}' > failure-task.json
+python3 agent_loop.py failure-task.json failure-trace.jsonl
+STATUS=$?
+cat failure-trace.jsonl
+printf 'loop status=%s\n' "$STATUS"
+```
+
+`printf` writes only a synthetic task in this workspace. The loop records `ok: false` and an unknown-tool error, but the status is initially 0. Saving `$?` immediately prevents the later `cat` from replacing that observation.
+
+Open `nano agent_loop.py` and make these three small edits:
+
+- Before opening the trace, initialize `failed = False` at the same indentation as `trace_path = ...`.
+- After the `try`/`except` block, inside the action loop and before `trace.write`, add `failed = failed or not record["ok"]`.
+- Replace `main`'s final `return 0` with `return 1 if failed else 0`.
+
+The Boolean starts false. `not record["ok"]` becomes true for a failed action. `or` retains any earlier failure, so a later success cannot erase it. The final return summarizes the whole run without discarding individual records. Save, inspect with `cat agent_loop.py`, and repeat both the failure task and the original task. Expect one failed record with status 1 for the former, and two successful records with status 0 for the latter.
+
+This is aggregation, not rollback. If one action writes a file and a later action fails, the earlier file still exists. Do not claim all-or-nothing behavior that the code does not implement.
+
 ## Checkpoint and troubleshooting
 
 ```bash
@@ -122,3 +180,9 @@ test "$(cat output.txt)" = "synthetic result"
 - If the trace says success but the file is absent, the record was emitted before the effect or without checking it.
 - If an old output survives, repeat the scoped `rm -f` command; never delete outside this lesson workspace.
 - Checkpoint: explain why the request, trace record, and filesystem observation are three distinct facts.
+
+## Replay and source truth
+
+From this workspace, `cd ../..` returns to the course root. `./lab-reset 04.01` discards only this lesson's student workspace and generated fixtures after confirmation. Save any notes elsewhere in the disposable VM first. Do not edit canonical `course/` files to repair your attempt.
+
+Python's [JSON documentation](https://docs.python.org/3.14/library/json.html) defines parsing and serialization, and [pathlib](https://docs.python.org/3.14/library/pathlib.html) defines the text-file operations. The course adds the one-object-per-line framing; ordinary JSON is not itself a multi-record framing protocol.

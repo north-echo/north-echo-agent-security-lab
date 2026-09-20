@@ -9,7 +9,7 @@ oracle, scenario, output = sys.argv[1:]
 trace = []
 for probe in ("argv", "credential", "filesystem"):
     run = subprocess.run([sys.executable, oracle, scenario, probe], text=True,
-                         capture_output=True, check=False)
+                         capture_output=True, check=True, timeout=3)
     observation = json.loads(run.stdout)
     trace.append({"probe": probe, "observation": observation})
 finding = next((row for row in trace if row["observation"].get("observed")), None)

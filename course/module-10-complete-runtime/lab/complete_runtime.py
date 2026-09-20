@@ -12,7 +12,7 @@ def main() -> int:
         return 2
     spec = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
     command = [spec["guard"], spec["allowed_root"], *spec["command"]]
-    run = subprocess.run(command, text=True, capture_output=True, check=False)
+    run = subprocess.run(command, text=True, capture_output=True, check=False, timeout=20)
     Path(sys.argv[2]).write_text(json.dumps({
         "schema": 1, "status": run.returncode, "unit": None,
         "stdout": run.stdout, "stderr": run.stderr, "attestation": None,

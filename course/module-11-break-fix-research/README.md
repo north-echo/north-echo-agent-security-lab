@@ -1,15 +1,17 @@
-# Module 11 - Vulnerable variants and break/fix research
+# Module 11 - Compare and repair a small containment model
 
-Analyze seeded runtime weaknesses without being told which control changed. Use a deterministic non-agent harness to reproduce effects, map observations to failed invariants, repair the plan, and compare it with a hardened counterpart.
+Complete Modules 01-10 first. Work through `11.01`, `11.02`, `11.03`, then `module-11`.
 
-Play in order: `11.01`, `11.02`, `11.03`, then `module-11`.
+The earlier modules attempted operations under Linux controls. This chapter changes scale: you inspect a deliberately small, fixed local model to practice evidence classification, complete repair, preservation, and replay. It is not an external vulnerability-discovery exercise and does not reproduce arbitrary vulnerabilities.
 
-Outcomes:
+By the end you should be able to:
 
-- distinguish a configuration difference from evidence of security impact;
-- reproduce ambient credentials, shell interpretation, symlink escape, direct IP authority, and unsafe cleanup selection using synthetic local objects;
-- map observed effects to stable cross-layer invariants rather than variant labels;
-- repair multiple simultaneous weaknesses while preserving the allowed operation and opaque run identity;
-- prove a repair is idempotent and survives fresh randomized variants.
+- distinguish configuration choices, actual local effects, modeled decisions, and unobserved properties;
+- generate and replay a seeded combination without treating its name as a diagnosis;
+- classify every supplied observation and reject missing evidence;
+- repair all known model choices while preserving the allowed operation and opaque identity;
+- test idempotence and explain what a successful model comparison does **not** establish.
 
-The harness never exploits an external target and never deletes its cleanup candidates. Every credential, path, marker, resource, and socket is synthetic and confined to the disposable workspace. Prerequisites are Modules 01, 04, 05, 08, 09, and 10.
+The harness uses a constant shell marker fixture, one explicitly fake variable, generated sibling files, an unconnected socket, and string-only cleanup candidates. It never interprets arbitrary plan text, contacts a target, or deletes a cleanup candidate. The broker-only branch skips socket creation; it does not install kernel confinement. The resolved-path branch is not race-free, and cleanup selection is not real resource collection. Keep those limitations beside every conclusion.
+
+Estimated work: three guided sessions plus an independent repair lab. Save short evidence notes as you go; a passing JSON comparison is not a substitute for explaining the observation.

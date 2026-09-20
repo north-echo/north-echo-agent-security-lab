@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import re
 import sys
+from html import escape as html_escape
 from pathlib import Path
 
 from reportlab.lib import colors
@@ -11,6 +12,7 @@ from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import ListFlowable, ListItem, PageBreak, Paragraph, Preformatted, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus.tableofcontents import TableOfContents
 
 
 def escape(text: str) -> str:
@@ -19,9 +21,37 @@ def escape(text: str) -> str:
 
 def inline_markup(text: str) -> str:
     value = escape(text)
+    def link(match):
+        label, target = match.groups()
+        if target.startswith(("https://", "http://")):
+            return f'<link href="{html_escape(target, quote=True)}" color="#075985">{label}</link>'
+        # Resolve known repository links against the two assembled-document roots.
+        root = Path(__file__).resolve().parents[1]
+        path, separator, fragment = target.partition("#")
+        for base in (root, root / "docs"):
+            candidate = (base / path).resolve()
+            if candidate.is_file() and root in candidate.parents:
+                version = (root / "VERSION").read_text().strip()
+                url = ("https://github.com/north-echo/north-echo-agent-security-lab/blob/v"
+                       + version + "/" + candidate.relative_to(root).as_posix()
+                       + (separator + fragment if separator else ""))
+                return f'<link href="{html_escape(url, quote=True)}" color="#075985">{label}</link>'
+        return label + " (" + target + ")"
+    value = re.sub(r"\[([^\]]+)\]\(([^\s)]+)\)", link, value)
     value = re.sub(r"`([^`]+)`", r"<font name='Courier'>\1</font>", value)
     value = re.sub(r"\*\*([^*]+)\*\*", r"<b>\1</b>", value)
     return value
+
+
+class ManualDocument(SimpleDocTemplate):
+    def afterFlowable(self, flowable):
+        entry = getattr(flowable, "ne_contents", None)
+        if entry is None:
+            return
+        level, title, key = entry
+        self.canv.bookmarkPage(key)
+        self.canv.addOutlineEntry(title.replace("`", ""), key, level=level, closed=False)
+        self.notify("TOCEntry", (level, inline_markup(title), self.page, key))
 
 
 def parse_markdown(markdown: str, styles: dict) -> list:
@@ -33,6 +63,7 @@ def parse_markdown(markdown: str, styles: dict) -> list:
     table: list[list[str]] = []
     in_code = False
     included_markdown = False
+    contents_modules = set()
 
     def flush_paragraph():
         if paragraph:
@@ -84,6 +115,25 @@ def parse_markdown(markdown: str, styles: dict) -> list:
         if story and not isinstance(story[-1], PageBreak):
             story.append(PageBreak())
 
+    def heading(title, style):
+        if re.match(r"^(?:[0-9]{2}\.[0-9]{2}|B[01]\.[0-9]{2}|Module [0-9]{2} independent lab|B[01] practical)", title):
+            page_break()
+        item = Paragraph(inline_markup(title), styles[style])
+        # Navigation follows course units, not every repeated "Line by line".
+        if not title.startswith("North Echo Agent Security Lab - Complete Field Manual"):
+            module = re.match(r"^Module ([0-9]{2}) -", title)
+            if re.match(r"^(?:[0-9]{2}\.[0-9]{2}|B[01]\.[0-9]{2})\s", title):
+                item.ne_contents = (1, title, f"ne-heading-{len(story)}")
+            elif re.match(r"^(?:Module [0-9]{2} independent lab|B[01] practical)", title):
+                item.ne_contents = (1, title, f"ne-heading-{len(story)}")
+            elif module:
+                if module.group(1) not in contents_modules:
+                    contents_modules.add(module.group(1))
+                    item.ne_contents = (0, title, f"ne-heading-{len(story)}")
+            elif style == "Title" or re.match(r"^(?:B[01] -|Cold capstone)", title):
+                item.ne_contents = (0, title, f"ne-heading-{len(story)}")
+        story.append(item)
+
     for line in lines:
         if not in_code and line.startswith("|") and line.rstrip().endswith("|"):
             flush_paragraph()
@@ -119,8 +169,8 @@ def parse_markdown(markdown: str, styles: dict) -> list:
             included_markdown = False
             continue
         if included_markdown and re.match(r"^#{1,4} ", line):
-            heading, title = line.split(" ", 1)
-            line = "#" * min(4, len(heading) + 1) + " " + title
+            heading_marker, title = line.split(" ", 1)
+            line = "#" * min(4, len(heading_marker) + 1) + " " + title
         if line.strip() == "<!-- PAGEBREAK -->":
             flush_paragraph()
             flush_bullets()
@@ -130,12 +180,12 @@ def parse_markdown(markdown: str, styles: dict) -> list:
             flush_paragraph()
             flush_bullets()
             page_break()
-            story.append(Paragraph(escape(line[2:]), styles["Title"]))
+            heading(line[2:], "Title")
             story.append(Spacer(1, 12))
         elif line.startswith("## "):
             flush_paragraph()
             flush_bullets()
-            story.append(Paragraph(escape(line[3:]), styles["Heading2"]))
+            heading(line[3:], "Heading2")
         elif line.startswith("### "):
             flush_paragraph()
             flush_bullets()
@@ -187,7 +237,8 @@ def main() -> int:
     source, output = map(Path, sys.argv[1:])
     output.parent.mkdir(parents=True, exist_ok=True)
     markdown = source.read_text(encoding="utf-8")
-    version_match = re.search(r"^# North Echo Agent Security Lab - Complete Field Manual v([0-9]+\.[0-9]+\.[0-9]+)$", markdown, re.MULTILINE)
+    markdown = re.sub("[\u2010-\u2015]", "-", markdown)
+    version_match = re.search(r"^# North Echo Agent Security Lab - Complete Field Manual v([0-9]+\.[0-9]+\.[0-9]+(?:-beta\.[1-9][0-9]*)?)$", markdown, re.MULTILINE)
     if version_match is None:
         print("field manual title does not contain a semantic version", file=sys.stderr)
         return 2
@@ -203,16 +254,26 @@ def main() -> int:
         "Callout": ParagraphStyle("NE Callout", parent=sample["BodyText"], fontName="Helvetica", fontSize=9.1, leading=13.2, textColor=colors.HexColor("#0f172a"), backColor=colors.HexColor("#e0f2fe"), borderColor=colors.HexColor("#7dd3fc"), borderWidth=0.6, borderPadding=7, spaceBefore=3, spaceAfter=4),
         "CodeBlock": ParagraphStyle("NE Code", fontName="Courier", fontSize=7.5, leading=9.5, leftIndent=8, rightIndent=8, borderColor=colors.HexColor("#cbd5e1"), borderWidth=0.5, borderPadding=7, backColor=colors.HexColor("#f8fafc"), textColor=colors.HexColor("#0f172a")),
     }
-    document = SimpleDocTemplate(
+    document = ManualDocument(
         str(output), pagesize=LETTER, leftMargin=0.72 * inch, rightMargin=0.72 * inch,
         topMargin=0.68 * inch, bottomMargin=0.72 * inch,
         title=f"North Echo Agent Security Lab v{version} Field Manual",
         author="North Echo",
-        subject="Hands-on Linux containment training, Modules 01-12",
+        subject="Beginner-first Linux containment, B0/B1, Modules 01-12, and capstone",
     )
     story = parse_markdown(markdown, styles)
+    contents = TableOfContents()
+    contents.levelStyles = [
+        ParagraphStyle("Contents chapter", fontName="Helvetica-Bold", fontSize=10,
+                       leading=14, spaceBefore=5),
+        ParagraphStyle("Contents lesson", fontName="Helvetica", fontSize=9.4,
+                       leading=13, leftIndent=12),
+    ]
+    first_break = next(index for index, item in enumerate(story) if isinstance(item, PageBreak))
+    story[first_break + 1:first_break + 1] = [
+        Paragraph("Contents", styles["Title"]), contents, PageBreak()]
     footer = make_footer(version)
-    document.build(story, onFirstPage=footer, onLaterPages=footer)
+    document.multiBuild(story, onFirstPage=footer, onLaterPages=footer)
     return 0
 
 

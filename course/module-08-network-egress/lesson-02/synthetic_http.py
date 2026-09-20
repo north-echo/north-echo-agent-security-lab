@@ -3,6 +3,7 @@
 
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+import signal
 import sys
 
 
@@ -18,8 +19,14 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
+def stop(_signum, _frame):
+    raise SystemExit(0)
+
+
 if len(sys.argv) != 3:
     raise SystemExit(f"usage: {sys.argv[0]} PORT READY_FILE")
+signal.signal(signal.SIGTERM, stop)
+signal.signal(signal.SIGINT, stop)
 ready = Path(sys.argv[2])
 if ready.exists() or ready.is_symlink():
     raise SystemExit("ready path already exists")

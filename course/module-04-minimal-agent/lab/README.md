@@ -1,5 +1,60 @@
 # Module 04 independent lab - Auditable local tool runner
 
+## Preparation and practiced skills
+
+Complete 04.01-04.03 first. You practiced dispatch and trace framing in 04.01, including aggregate failure status; argv and child-result handling in 04.02; and environment allowlisting in 04.03. Combine these responsibilities without changing the external interface.
+
+The starter parses a task, loops over its actions, and only handles one tool. It joins arguments into shell text, inherits the full environment, omits required result fields, and always returns success. Its imports and file-writing syntax are familiar from the guided examples. A runnable starter is not a secure reference implementation.
+
+The grader accepts tool-result fields either inside a `result` object, as in 04.01, or at the record's top level. Use one consistent format. Required fields are `content` for reads, `bytes_written` for writes, and `status`, `stdout`, and `stderr` for command results. Unknown tools still need an action record with `ok: false`. File paths are relative to the evaluation working directory, which need not be the directory holding your Python source.
+
+From the course root:
+
+```bash
+./lab-start module-04
+cd .student/04.lab
+pwd
+ls -l agent.py
+cat agent.py
+nano agent.py
+```
+
+The commands prepare your editable lab, enter and inspect it, then open the starter for reading and editing. Save in nano with `Ctrl-O`, `Enter`, and exit with `Ctrl-X`. Python executes the saved file directly. Keep the canonical files and grader unchanged.
+
+<!-- source: course/module-04-minimal-agent/lab/agent.py format=code -->
+```python
+#!/usr/bin/env python3
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+
+def main() -> int:
+    if len(sys.argv) != 3:
+        print(f"usage: {sys.argv[0]} TASK.json TRACE.jsonl", file=sys.stderr)
+        return 2
+    task = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+    trace = Path(sys.argv[2])
+    records = []
+    for action in task.get("actions", []):
+        if action.get("tool") == "run_argv":
+            command = " ".join(action["argv"])
+            run = subprocess.run(command, shell=True, text=True, capture_output=True, env=os.environ.copy())
+            records.append({"id": action.get("id"), "tool": "run_argv", "ok": run.returncode == 0, "status": run.returncode, "stdout": run.stdout})
+    trace.write_text("".join(json.dumps(record) + "\n" for record in records), encoding="utf-8")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+```
+<!-- /source -->
+
+## Contract
+
+
 Implement `agent.py`. The grader invokes:
 
 ```text
@@ -41,3 +96,11 @@ python3 agent.py sample-task.json trace.jsonl
 - Exam mode tests the same properties but suppresses repair-oriented references.
 
 The lab intentionally does not provide a complete implementation. Plan the dispatcher, per-tool result fields, trace write point, failure aggregation, argv launch, and child environment before coding.
+
+## Verify, explain, and replay
+
+Run the starter and record its failed properties before editing. After repair, preserve both successful useful work and the expected denials/errors; a launcher that refuses everything does not pass. A compiler failure, missing executable, or missing fixture is not the desired security outcome.
+
+For each passing property, explain which earlier lesson supplied the mechanism and what the observation does **not** establish. Keep an unresolved property unresolved rather than weakening its expected result. The lab intentionally withholds a combined implementation.
+
+From this workspace, `cd ../..` returns to the course root. `./lab-reset module-04` removes this module's student work and generated fixtures after confirmation; preserve notes first. Start the module again for a fresh randomized attempt. Never substitute real credentials, personal directories, or external services for the synthetic fixtures.

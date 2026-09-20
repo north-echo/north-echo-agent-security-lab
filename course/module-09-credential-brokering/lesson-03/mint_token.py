@@ -22,6 +22,9 @@ def canonical(value):
 if len(sys.argv) != 9:
     raise SystemExit(f"usage: {sys.argv[0]} KEY TOKEN OP RESOURCE AUDIENCE RUN TTL INPUT_JSON")
 key = Path(sys.argv[1]).read_bytes()
+ttl = int(sys.argv[7])
+if not 1 <= ttl <= 300:
+    raise SystemExit("TTL must be 1..300 seconds")
 issued = int(time.time())
 input_value = json.loads(sys.argv[8])
 claims = {
@@ -31,7 +34,7 @@ claims = {
     "audience": sys.argv[5],
     "run_id": sys.argv[6],
     "issued_at": issued,
-    "expires_at": issued + int(sys.argv[7]),
+    "expires_at": issued + ttl,
     "nonce": secrets.token_hex(16),
     "input_sha256": hashlib.sha256(canonical(input_value)).hexdigest(),
 }

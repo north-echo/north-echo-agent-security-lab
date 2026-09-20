@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import socket
 import stat
@@ -108,7 +109,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
         if not compiled:
             return [Check("Native composition probes compile", False, "Module 10 lessons 02-03")]
 
-        allowed = work / "allowed literal $(not-a-shell)"
+        allowed = work / "literal ${NE_LITERAL_NOT_EXPANDED}"
         allowed.mkdir(mode=0o700)
         workload = allowed / "runtime_probe"
         shutil.copy2(probe, workload)
@@ -163,7 +164,8 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
                                  broker.used_credentials == [credential])
         results["credential"] = bool(attestation and attestation.get("credential_absent") is True and
                                      credential not in output and fixture["canary"] not in output)
-        results["literal"] = not (work / "not-a-shell").exists()
+        results["literal"] = bool(results["result"] and attestation
+                                  and attestation.get("allowed_read") is True)
 
         failing = allowed / "failing_probe"
         failing_source = work / "failing_probe.c"
@@ -201,12 +203,18 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
             bad_limit_run and bad_limit_run.returncode != 0 and not bad_limit_result.exists()
         )
 
-        units = run_bounded(
-            ["systemctl", "--user", "list-units", "--all", "--plain", "--no-legend",
-             f"north-echo-{os.getuid()}-10-lab-*.service"],
-            text=True, capture_output=True, check=False,
-        )
-        results["cleanup"] = units.returncode == 0 and not units.stdout.strip()
+        results["cleanup"] = True
+        for recorded in (result, fail_result):
+            unit = recorded.get("unit") if isinstance(recorded, dict) else None
+            if not isinstance(unit, str) or re.fullmatch(
+                    rf"north-echo-{os.getuid()}-10-lab-[a-z0-9]{{8,32}}\.service", unit) is None:
+                results["cleanup"] = False
+                continue
+            state = run_bounded(
+                ["systemctl", "--user", "show", unit, "--property=LoadState"],
+                text=True, capture_output=True, check=False,
+            )
+            results["cleanup"] = results["cleanup"] and state.stdout.strip() == "LoadState=not-found"
         broker.stop()
         broker = None
         results["socket_cleanup"] = not broker_path.exists()

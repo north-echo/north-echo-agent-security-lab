@@ -76,12 +76,27 @@ static int broker_request(const char *socket_path, const char *request_path,
         return 0;
     }
     shutdown(fd, SHUT_WR);
-    ssize_t count = read(fd, response, size - 1);
+    size_t used = 0;
+    while (used < size - 1) {
+        ssize_t count = read(fd, response + used, size - 1 - used);
+        if (count == -1 && errno == EINTR)
+            continue;
+        if (count < 0) {
+            close(fd);
+            return 0;
+        }
+        if (count == 0)
+            break;
+        used += (size_t)count;
+        if (memchr(response, '\n', used))
+            break;
+    }
     close(fd);
-    if (count <= 0)
+    if (used == 0 || used == size - 1)
         return 0;
-    response[count] = '\0';
-    return strstr(response, "\"ok\":true") != NULL && strstr(response, forbidden_marker) == NULL;
+    response[used] = '\0';
+    return strcmp(response, "{\"ok\":true,\"result\":{\"value\":\"synthetic-result\"}}\n") == 0
+           && strstr(response, forbidden_marker) == NULL;
 }
 
 int main(int argc, char **argv) {
@@ -111,12 +126,14 @@ int main(int argc, char **argv) {
     int private_user = stat("/proc/self/ns/user", &user_stat) == 0 &&
                        (unsigned long long)user_stat.st_ino != host_user;
 
-    unsigned long long cap_eff = 1, cap_bnd = 1, cap_amb = 1;
+    unsigned long long cap_eff = 1, cap_bnd = 1, cap_amb = 1, cap_prm = 1, cap_inh = 1;
     int no_new_privs = 0, seccomp = 0;
     int status_ok = read_text("/proc/self/status", status, sizeof(status)) == 0 &&
                     status_value(status, "CapEff:\t", &cap_eff) == 0 &&
                     status_value(status, "CapBnd:\t", &cap_bnd) == 0 &&
                     status_value(status, "CapAmb:\t", &cap_amb) == 0 &&
+                    status_value(status, "CapPrm:\t", &cap_prm) == 0 &&
+                    status_value(status, "CapInh:\t", &cap_inh) == 0 &&
                     status_decimal(status, "NoNewPrivs:\t", &no_new_privs) == 0 &&
                     status_decimal(status, "Seccomp:\t", &seccomp) == 0;
     read_cgroup_value("cpu.max", cpu, sizeof(cpu));
@@ -134,10 +151,12 @@ int main(int argc, char **argv) {
            allowed_read ? "true" : "false", protected_denied ? "true" : "false",
            inet_denied ? "true" : "false", private_net ? "true" : "false",
            private_user ? "true" : "false",
-           status_ok && cap_eff == 0 && cap_bnd == 0 && cap_amb == 0 ? "true" : "false",
+           status_ok && cap_eff == 0 && cap_bnd == 0 && cap_amb == 0 &&
+           cap_prm == 0 && cap_inh == 0 ? "true" : "false",
            no_new_privs, seccomp, cpu, memory, swap, pids,
            broker_ok ? "true" : "false", credential_absent ? "true" : "false");
     return !(allowed_read && protected_denied && inet_denied && private_net && private_user &&
              status_ok && cap_eff == 0 && cap_bnd == 0 && cap_amb == 0 &&
+             cap_prm == 0 && cap_inh == 0 &&
              no_new_privs == 1 && seccomp == 2 && broker_ok && credential_absent);
 }

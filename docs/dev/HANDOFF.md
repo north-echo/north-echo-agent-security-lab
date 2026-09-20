@@ -10,6 +10,67 @@ The next task should work in this repository rather than regenerate it from a sp
 
 ## Current checkpoint
 
+**User-authorized v2.0.0-beta.1 learner-review release (2026-09-20).**
+The full rewrite supersedes the historical B0/B1-only restriction below.
+Fedora 44 ARM64 is the preferred new-install baseline; Ubuntu remains available.
+The user's original learner VM has not been modified.
+
+B0/B1, all 36 numbered guided lessons, module introductions, independent
+practicals, capstone, setup, learning path, and assembled manual are reconciled.
+The approved B0.02 source remains unchanged. Exact file access, local source
+explanations, failure/repair/checkpoint, scope limits, and reset guide the rewrite.
+See `docs/SOURCE_TRUTH.md` for version-qualified primary references and the
+claim/mechanism/evidence map. This is not a formal audit or human-learning result.
+
+New regressions replay documented guided commands, all 15 independent preparation
+paths, and ownership/cleanup failures. The final candidate and artifact checks
+are recorded in `validation/beta-20260920/RESULTS.md`; earlier per-module records
+retain their own exact archive hashes and counts. Never transfer old counts to
+new source. Both installers now pin the beta and accept strict beta version names.
+
+The 271-page candidate PDF has a linked contents section, bookmarks, complete
+sources, and version-pinned repository links. All pages were rendered for layout
+inspection, representative pages reviewed at reading resolution, and automated
+text/navigation/geometry checks passed. Recheck the final release-built PDF.
+
+Publication gates still open at this checkpoint: final candidate results,
+commit/push and dual-architecture CI, tagged artifact build/publication, then
+clean installation of the actual published beta archive with preservation,
+negative readiness, and plain-mode evidence export. The earlier Fedora v1.0.2
+bootstrap passed those deployment checks but cannot certify the beta archive.
+The current ledger is `docs/dev/V2_REWRITE.md`.
+
+Stable v2.0.0 requires learner walkthrough, independent practice, feedback repair,
+and delayed replay; no automated suite can establish those outcomes. Preserve
+synthetic defensive scope and do not expand autonomous offensive workflows.
+
+### Earlier pilot checkpoint (historical; scope restriction superseded above)
+
+Beginner pilot mechanically accepted: `docs/dev/BEGINNER_REBUILD.md` describes a bounded
+B0/B1 pilot based on the user's learning feedback and read-only review of their
+successful course references. `docs/BEGINNER_FIELD_MANUAL.md` is the learner
+entry. Preserve the numbered track. Do not extend the rebuild to all modules
+until the learner has tried the first practical. Do not confuse Linux tests
+with that human acceptance gate. The default appliance remains pinned to
+v1.0.2; use a separate working-copy transfer for unreleased pilot work.
+Initial evidence is `validation/beginner-pilot-20260919/RESULTS.md`. The subsequent
+depth/source pass is in `validation/beginner-pilot-20260919/DEPTH_AND_SOURCES.md`:
+Ubuntu 24.04.5 arm64, 76 tests passing without skips, attestation/manual
+synchronization passing, and 33 preflight checks passing. Claim-level review:
+`docs/dev/BEGINNER_SOURCE_REVIEW.md`. File access and read/edit/run distinctions
+are explicit; text and exit-status claims have precise limits. Human acceptance
+is still pending, and Modules 01-12 have not had this new claim-level review.
+
+The user positively reviewed the revised B0.02 Desktop copy on 2026-09-19;
+use that level of file-access guidance and explanation as the depth target.
+This is prose feedback, not yet an independent-practical or delayed-replay pass.
+The separate Fedora 44 ARM64 trial passed 76 strict tests and 33 preflight
+checks with SELinux enforcing and no course-code changes. Record and remaining
+gates: `validation/fedora-trial-20260919/RESULTS.md`. Experimental OS bootstrap:
+`deploy/experimental/`. Ubuntu remains the default; do not infer authority to
+migrate, publish, or extend support. Fedora `/tmp` is volatile: keep course work
+in the guest home. The trial VM is stopped and its test lesson was reset.
+
 Unreleased audit implementation is tracked in `docs/dev/AUDIT_IMPLEMENTATION.md`.
 It hardens cleanup and grading, introduces behavioral preflight and strict tests,
 replaces the copied single-job capstone with ordered-batch transfer assessment,

@@ -104,7 +104,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
         Check("Literal argv cannot create a shell marker", results["shell"], "Module 11 lesson 01; Module 04"),
         Check("The child cannot observe the fake ambient credential", results["environment"], "Module 11 lesson 02; Module 09"),
         Check("The protected symlink target cannot be read", results["filesystem"], "Module 11 lesson 02; Module 05"),
-        Check("The workload receives no direct IPv4 socket authority", results["network"], "Module 11 lesson 02; Module 08"),
+        Check("The model selects the broker-only network branch", results["network"], "Module 11 lesson 02; Module 08"),
         Check("Cleanup excludes the unowned prefix-matching decoy", results["cleanup"], "Module 11 lesson 02; platform cleanup contract"),
         Check("All simultaneous seeded weaknesses are repaired", results["all"], "Module 11 lesson 03"),
         Check("Repair is idempotent on a hardened plan", results["idempotent"], "Module 11 lesson 03"),

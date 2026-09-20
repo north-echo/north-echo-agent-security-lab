@@ -1,6 +1,14 @@
 from __future__ import annotations
 
 CATALOG = {
+    "b0.01": ("b0", "Basics: find and read a report", True),
+    "b0.02": ("b0", "Basics: a program runs as a process", True),
+    "b0.03": ("b0", "Basics: make a small, testable edit", True),
+    "b0.lab": ("b0", "Basics practical: read an unfamiliar report", True),
+    "b1.01": ("b1", "First boundary: what did the reader receive?", True),
+    "b1.02": ("b1", "First boundary: repair the handoff", True),
+    "b1.03": ("b1", "First boundary: test a changed case", True),
+    "b1.lab": ("b1", "First boundary practical: useful work, less inherited data", True),
     "capstone": ("capstone", "Cold-start contained runtime", True),
     "01.01": ("01", "Processes are the boundary you actually launched", True),
     "01.02": ("01", "Environment inheritance is authority", True),
@@ -35,26 +43,28 @@ CATALOG = {
     "08.03": ("08", "Reauthorize names, ports, redirects, and runs", True),
     "08.lab": ("08", "Independent lab: policy-bound egress broker", True),
     "09.01": ("09", "Remove ambient credential authority", True),
-    "09.02": ("09", "Bind a signed operation capability", True),
+    "09.02": ("09", "Bind an HMAC-authenticated operation capability", True),
     "09.03": ("09", "Deny replay and confused-deputy substitution", True),
     "09.lab": ("09", "Independent lab: capability-bound credential broker", True),
     "10.01": ("10", "Order the complete runtime by dependency", True),
     "10.02": ("10", "Seal filesystem and syscall policy before exec", True),
-    "10.03": ("10", "Launch, attest, and collect the complete runtime", True),
+    "10.03": ("10", "Launch, observe, and collect the composed runtime", True),
     "10.lab": ("10", "Independent lab: composed contained runtime", True),
     "11.01": ("11", "Reproduce a seeded weakness without an agent", True),
     "11.02": ("11", "Identify invariants from an evidence matrix", True),
     "11.03": ("11", "Repair and prove the hardened counterpart", True),
-    "11.lab": ("11", "Independent lab: repair randomized runtime variants", True),
+    "11.lab": ("11", "Independent lab: repair randomized model variants", True),
     "12.01": ("12", "Establish a scripted baseline and its limits", True),
     "12.02": ("12", "Adapt within an action budget", True),
     "12.03": ("12", "Package a calibrated candidate experiment", True),
-    "12.lab": ("12", "Independent lab: bounded adaptive runner", True),
+    "12.lab": ("12", "Independent lab: bounded synthetic dispatch", True),
 }
 
 SCAFFOLDS = {}
 
 MODULE_SLUGS = {
+    "b0": "basics",
+    "b1": "first-boundary",
     "01": "process-authority",
     "02": "namespaces",
     "03": "privilege",

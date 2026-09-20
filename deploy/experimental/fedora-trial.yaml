@@ -1,0 +1,53 @@
+# Experimental ARM64 compatibility VM, NOT a course release installer.
+# Ubuntu remains the supported deployment. Copy a reviewed source snapshot over
+# SSH, then run the course checks; this probe establishes OS readiness only.
+# Image pin: Lima 2.2.0's bundled _images/fedora-44.yaml.
+minimumLimaVersion: 2.2.0
+images:
+  - location: https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/aarch64/images/Fedora-Cloud-Base-Generic-44-1.7.aarch64.qcow2
+    arch: aarch64
+    digest: sha256:55c60a3b80d3616a08705afd0459e75fe9f03c54aba7a46e4002a41a72fa0d5b
+cpus: 4
+memory: 6GiB
+disk: 30GiB
+plain: true
+mounts: []
+containerd:
+  system: false
+  user: false
+ssh:
+  forwardAgent: false
+  loadDotSSHPubKeys: false
+provision:
+  - mode: data
+    file: fedora-packages.txt
+    path: /usr/local/share/north-echo/fedora-packages.txt
+    owner: root:root
+    permissions: 644
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+      marker=/var/lib/north-echo-trial/packages.ready
+      if [[ -f "$marker" ]]; then exit 0; fi
+      mapfile -t packages < /usr/local/share/north-echo/fedora-packages.txt
+      dnf install -y "${packages[@]}"
+      test "$(getenforce)" = Enforcing
+      install -d -m 0755 /var/lib/north-echo-trial
+      touch "$marker"
+  - mode: user
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+      sudo loginctl enable-linger "$(id -un)"
+      systemctl --user show-environment >/dev/null
+probes:
+  - mode: readiness
+    description: Fedora trial OS prerequisites (not course acceptance)
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+      test -f /var/lib/north-echo-trial/packages.ready
+      test "$(getenforce)" = Enforcing
+      systemd-run --user --wait --pipe --collect --quiet -- true
+    hint: Inspect provisioning logs; do not disable SELinux to force readiness.

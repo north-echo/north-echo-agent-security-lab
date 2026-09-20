@@ -1,6 +1,79 @@
-# 01.01 - Processes are the boundary you actually launched
+# 01.01 - Follow a program into the kernel
 
-Goal: connect a source-level operation to a process, an `execve` transition, and syscalls. Work only inside this generated workspace.
+## Outcomes and prerequisites
+
+Identify your shell and its parent, compile a supplied C program, and connect
+its output to observed system calls. Use the B0 skills of locating files,
+saving edits, and checking exit status. Complete B1 before this security track.
+The C features needed here are introduced locally; you do not need to write
+the program from a blank file.
+
+## Understand first
+
+Python reads source through an interpreter. A C compiler translates source
+into an executable first. Saving a source edit does not change an executable
+already built from it. Compile again before testing that edit.
+
+A process normally executes instructions in user space. A system call is a
+controlled entry into the kernel to request an operation such as writing bytes.
+A library function can make several syscalls or postpone one. Its source name
+does not tell you exactly what the kernel observed.
+
+`strace` starts our small program and reports selected system calls. This is
+observation, not confinement: tracing does not install a rule denying writes.
+Module 06 will use this distinction when building a syscall policy.
+
+## Prepare and locate the supplied file
+
+From the repository root inside the disposable VM:
+
+```bash
+./lab-start 01.01
+cd .student/01.01
+pwd
+ls -l hello-syscall.c
+cat hello-syscall.c
+```
+
+`lab-start` creates or resumes the lesson. `cd` enters its editable copy.
+`pwd` must end in `.student/01.01`; stop otherwise. `ls -l` shows metadata;
+`cat` reads the text without compiling or executing it. Do not create a blank
+replacement if the supplied file is missing.
+
+## Read the small C program
+
+<!-- source: course/module-01-process-authority/lesson-01/hello-syscall.c format=code -->
+```c
+#include <stdio.h>
+#include <unistd.h>
+
+int main(void) {
+    setvbuf(stdout, NULL, _IONBF, 0);
+    puts("userspace: about to write");
+    const char message[] = "kernel-visible write\n";
+    if (write(STDOUT_FILENO, message, sizeof(message) - 1) < 0) {
+        perror("write");
+        return 1;
+    }
+    return 0;
+}
+```
+<!-- /source -->
+
+`#include` supplies declarations so the compiler knows the named functions
+and constants. `int main(void)` defines the entry function with no arguments
+in this example and an integer exit result. Braces group statements;
+semicolons terminate them. Unlike Python, indentation does not define blocks.
+
+`stdout` is a C-library stream; a descriptor is a process-local reference to
+an open object. The stream can buffer bytes before a syscall transfers them.
+`const char message[]` is an array of characters; `const` prevents modification
+through that declaration. The string contains a newline and a terminating
+zero byte. The later source commentary connects these pieces to each call.
+
+This is not a general-purpose write-all routine: `write` can successfully
+transfer fewer bytes than requested. Production copying must handle partial
+writes and interruptions. Our short message makes the observation manageable.
 
 ## Exercise 1 - Establish the process facts
 
@@ -61,7 +134,7 @@ kernel-visible write
 ### Source, line by line
 
 - `#include <stdio.h>` declares `puts`, `setvbuf`, and `perror`; `#include <unistd.h>` declares `write` and `STDOUT_FILENO`.
-- `int main(void)` is the process entry point and promises an integer exit status with no command-line arguments.
+- `int main(void)` defines the C entry function with no arguments in this example and an integer exit result.
 - `setvbuf(stdout, NULL, _IONBF, 0)` disables userspace buffering for `stdout`, making the observation easier to reason about.
 - `puts(...)` is a C library call; it eventually needs a kernel write to make bytes visible.
 - `const char message[] = ...` creates immutable message bytes in process memory; `\n` is one newline byte.
@@ -86,7 +159,8 @@ Expected pattern: an `execve(...) = 0`, one or more `write(...)` calls, then `ex
 
 ## Exercise 3 - Make and correct an intentional prediction error
 
-Before running this, predict “one `printf` means one `write` syscall.” Then run:
+Before running this, predict whether the first source output statement must
+produce the first visible line. Run the unchanged program first:
 
 ```bash
 strace -e trace=write ./hello-syscall 2>&1 | grep write
@@ -99,6 +173,52 @@ strace -e trace=write ./hello-syscall 2>&1 | grep write
 - `|` connects that stream to the next command.
 - `grep write` keeps lines containing the word `write`; it is a display filter, not part of the traced program.
 
-If buffering combines or rearranges output, your prediction fails. Change `setvbuf(stdout, NULL, _IONBF, 0);` to use `_IOFBF`, rebuild, and trace again. The lesson is not the buffering trivia: source-level operations and kernel operations are different layers. Restore `_IONBF` before finishing.
+Now open the supplied source:
 
-Checkpoint: you should be able to point to the process, the `execve`, and the syscall that produced the visible effect.
+```bash
+nano hello-syscall.c
+```
+
+Change only `_IONBF` to `_IOFBF`, selecting full buffering. Save with Ctrl+O,
+confirm the existing filename with Enter, and exit with Ctrl+X. These use
+Control, not the Mac's Command key. Check the saved file, rebuild, and trace:
+
+```bash
+cat hello-syscall.c
+cc -std=c11 -Wall -Wextra -O2 hello-syscall.c -o hello-syscall
+strace -e trace=write ./hello-syscall
+```
+
+Stop on compilation errors: an older executable can otherwise conceal a bad
+edit. The direct write can now appear before the earlier `puts` output,
+because the C stream retains its bytes until a later flush. Compare actual
+events with source order; do not memorize a libc-specific syscall count.
+Restore `_IONBF`, save, rebuild, and trace again. Explain why saving without
+rebuilding would not repair the executable.
+
+## Checkpoint and troubleshooting
+
+Identify the shell/parent relationship, distinguish source from executable,
+and point to the syscall that produced output. Name one fact the trace proves
+and one containment claim it does not.
+
+- Missing source: check `pwd` and the prepared workspace; do not edit `course/`.
+- Compiler error: inspect the first diagnostic and the edited punctuation;
+  do not continue using a stale binary.
+- Different write grouping: compare buffering and bytes, not fixed addresses
+  or an exact syscall count.
+- Tracing denied: rerun preflight in the disposable VM. Do not use sudo,
+  disable SELinux, or trace unrelated processes to force progress.
+
+To discard this lesson only, return to the repository root, preview
+`./lab-reset 01.01 --dry-run`, then confirm with `./lab-reset 01.01 --yes`
+if the listed work is disposable. Reset removes its edits and binaries.
+
+## Sources and scope
+
+The Linux man-pages project's [execve](https://man7.org/linux/man-pages/man2/execve.2.html)
+documents image replacement; [write](https://man7.org/linux/man-pages/man2/write.2.html)
+documents partial transfers; [setvbuf](https://man7.org/linux/man-pages/man3/setbuf.3.html)
+documents buffering. Consult `man strace`, `man ps`, and `man proc` in the guest
+for the installed tools. Exact PIDs, namespace numbers, paths, and write
+grouping are baseline observations, not universal constants.

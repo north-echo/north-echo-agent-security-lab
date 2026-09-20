@@ -205,10 +205,13 @@ if __name__ == "__main__":
 
     def test_every_guided_lesson_has_local_line_explanations(self):
         lessons = sorted((SOURCE / "course").glob("module-*/lesson-*/README.md"))
-        self.assertEqual(len(lessons), 36)
+        self.assertEqual(len(lessons), 42)  # numbered track plus six pilot lessons
         for lesson in lessons:
             text = lesson.read_text(encoding="utf-8")
-            self.assertIn("### Line by line", text, str(lesson))
+            self.assertTrue(any(phrase in text for phrase in (
+                "### Line by line", "Line by line:", "What each line does",
+                "What each part does", "Source, line by line",
+            )), str(lesson))
 
     def test_field_manual_is_self_contained_and_substantial(self):
         manual = (SOURCE / "docs" / "MANUAL_MODULES_01_03.md").read_text(encoding="utf-8")
@@ -217,9 +220,9 @@ if __name__ == "__main__":
             "Reading command and code blocks",
             "Complete source:",
             "Troubleshooting and checkpoint",
-            "Module 01 independent practical",
-            "Module 02 independent practical",
-            "Module 03 independent practical",
+            "Module 01 independent lab - Hygienic launcher",
+            "Module 02 independent lab - Namespace launcher",
+            "Module 03 independent lab - Privilege floor",
             "Integrated understanding",
             "Glossary",
         ):
@@ -262,11 +265,11 @@ if __name__ == "__main__":
             self.assertIn(phrase, module_eight)
 
         module_nine = (SOURCE / "docs" / "MANUAL_MODULE_09.md").read_text(encoding="utf-8")
-        for phrase in ("Remove ambient credential authority", "Bind a signed operation capability", "Deny replay and confused-deputy substitution", "Module 09 independent lab"):
+        for phrase in ("Remove ambient credential authority", "Bind an HMAC-authenticated operation capability", "Deny replay and confused-deputy substitution", "Module 09 independent lab"):
             self.assertIn(phrase, module_nine)
 
         module_ten = (SOURCE / "docs" / "MANUAL_MODULE_10.md").read_text(encoding="utf-8")
-        for phrase in ("Order the complete runtime by dependency", "Seal filesystem and syscall policy before exec", "Launch, attest, and collect the complete runtime", "Module 10 independent lab"):
+        for phrase in ("Order the complete runtime by dependency", "Seal filesystem and syscall policy before exec", "Launch, observe, and collect the composed runtime", "Module 10 independent lab"):
             self.assertIn(phrase, module_ten)
 
         module_eleven = (SOURCE / "docs" / "MANUAL_MODULE_11.md").read_text(encoding="utf-8")
@@ -307,6 +310,7 @@ if __name__ == "__main__":
                 "libcap2-bin",
                 "libseccomp-dev",
                 "linux-libc-dev",
+                "nano",
                 "pkg-config",
                 "procps",
                 "python3",
@@ -327,7 +331,7 @@ if __name__ == "__main__":
             'sudo loginctl enable-linger "$(id -un)"',
             'if [[ -f "$ready_marker" ]]',
             "refusing to overwrite",
-            'grep -F "  $archive"',
+            'Expected exactly one valid checksum for the course archive',
             "mode: readiness",
         ):
             self.assertIn(phrase, template)

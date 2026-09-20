@@ -4,10 +4,33 @@
 
 Apply an unprivileged Landlock ruleset before `exec`, then prove both its protection and its pre-opened-descriptor limit. Compose Landlock with descriptor hygiene rather than mistaking either control for the other.
 
+## Concepts and preparation
+
+Complete 05.02 and recall `no_new_privs` from 03.03. A cooperative broker can use a safe open operation, but an arbitrary child can issue its own file operations. **Landlock** adds kernel-enforced restrictions to the calling thread and its future descendants. An unprivileged program can reduce its access; it cannot use a Landlock rule to override existing permissions.
+
+A **ruleset** declares the categories of access it handles. A **rule** grants selected handled accesses beneath a directory. A handled access with no applicable grant is denied; an unhandled category is generally outside that policy. The **ABI version** is the kernel interface generation, not the distribution version. New headers do not make an older running kernel support new rights.
+
+We intentionally use a static, tiny child so its program and runtime code fit in one allowed tree. This keeps dynamic-loader permissions out of the first example. It does not mean static linking itself is a sandbox. Predict whether a file already opened before the restriction will lose its read authority.
+
+From the course root in the disposable VM:
+
+```bash
+./lab-start 05.03
+cd .student/05.03
+pwd
+ls -l fd_probe.c landlock_launch.c pass_fd.py
+cat fd_probe.c
+cat landlock_launch.c
+cat pass_fd.py
+```
+
+`lab-start` prepares the student copy. The next commands enter and inspect it; each `cat` reads a supplied source before execution. Missing files usually mean the wrong working directory or lesson number. Edit only these student copies with `nano FILENAME`, save with `Ctrl-O`, `Enter`, and exit with `Ctrl-X`. Recompile after every C edit. An old binary does not automatically track a changed source.
+
 ## Exercise 1 - Build a static observation probe
 
 `fd_probe.c` opens a named path or reads an existing descriptor. Its complete source is:
 
+<!-- source: course/module-05-filesystem-landlock/lesson-03/fd_probe.c format=code -->
 ```c
 #include <errno.h>
 #include <fcntl.h>
@@ -31,6 +54,7 @@ int main(int argc, char **argv) {
     return write(STDOUT_FILENO, buffer, (size_t)count) == count ? 0 : 1;
 }
 ```
+<!-- /source -->
 
 ### Source, line by line
 
@@ -59,6 +83,7 @@ cc -std=c11 -Wall -Wextra -Werror -O2 -static fd_probe.c -o demo/allowed/fd-prob
 
 Complete source of `landlock_launch.c`:
 
+<!-- source: course/module-05-filesystem-landlock/lesson-03/landlock_launch.c format=code -->
 ```c
 #define _GNU_SOURCE
 #include <errno.h>
@@ -107,17 +132,9 @@ static __u64 supported_rights(int abi) {
 }
 
 static int close_inherited(void) {
-    if (syscall(SYS_close_range, 3U, ~0U, CLOSE_RANGE_CLOEXEC) == 0)
-        return 0;
-    if (errno != ENOSYS)
-        return -1;
-    long maximum = sysconf(_SC_OPEN_MAX);
-    for (int fd = 3; fd < maximum; fd++) {
-        int flags = fcntl(fd, F_GETFD);
-        if (flags != -1 && fcntl(fd, F_SETFD, flags | FD_CLOEXEC) == -1)
-            return -1;
-    }
-    return 0;
+    /* Both course baselines support this operation. Do not weaken the
+       descriptor guarantee with a fallback bounded by a mutable soft limit. */
+    return syscall(SYS_close_range, 3U, ~0U, CLOSE_RANGE_CLOEXEC);
 }
 
 int main(int argc, char **argv) {
@@ -162,13 +179,14 @@ int main(int argc, char **argv) {
     return 1;
 }
 ```
+<!-- /source -->
 
 ### Source, line by line
 
 - The three small syscall wrappers keep the argument ordering visible and return raw success or failure to the caller.
 - `supported_rights` builds the ABI-1 set first, then adds rights introduced by ABI 2, 3, 5, and 9 only when both the build headers and the running kernel support them. The preprocessor guards keep the source buildable with older distribution headers.
-- `close_inherited` prefers the kernel's range operation. `CLOSE_RANGE_CLOEXEC` preserves descriptors until `exec` but guarantees the new program cannot inherit them.
-- The fallback queries the descriptor limit and adds `FD_CLOEXEC` only to descriptors that are actually open. Any mutation error fails the launch.
+- `close_inherited` requires the kernel's range operation. `CLOSE_RANGE_CLOEXEC` preserves descriptors until `exec` but prevents the new program from inheriting them.
+- Failure stops the launch, including an unsupported operation. The course baselines support this flag (introduced in Linux 5.11); there is no weaker fallback bounded by a process's mutable descriptor soft limit.
 - `main` queries and prints the ABI before it creates policy. It never treats an unavailable Landlock interface as permission to continue.
 - The ruleset declares which operations Landlock will handle; the path-beneath rule grants that same set only under `root_fd`.
 - `PR_SET_NO_NEW_PRIVS` and `restrict_self` are joined by `||`: if either fails, `execv` is unreachable.
@@ -177,6 +195,20 @@ int main(int argc, char **argv) {
 
 ### Unhandled means allowed
 
+### Read the policy structures without guessing
+
+The `__u64` type is an unsigned 64-bit value used for the access mask. A `|` combines right bits; `|=` adds bits to an existing mask. `#ifdef` is a compile-time test for a header definition, whereas `if (abi >= ...)` is a runtime test. Both must agree before this binary requests a newer right.
+
+`create_ruleset(NULL, 0, LANDLOCK_CREATE_RULESET_VERSION)` is a query: no policy structure is supplied. The next call passes an initialized `landlock_ruleset_attr` and its size to create a policy descriptor. The `landlock_path_beneath_attr` holds the rights granted under the already-open root. `&rule` passes its address to the add-rule operation.
+
+The lesson grants **all handled rights under the allowed tree**, not read-only access. Those grants only remove Landlock's denial for that tree; normal permissions and other security modules can still deny access. Restricting this process does not change global SELinux policy. On Fedora, keep SELinux enforcing throughout.
+
+The `||` condition short-circuits: if setting `no_new_privs` fails, the second call is not attempted and the error path returns. If installing Landlock fails, execution also stops. Closing the ruleset descriptor afterward releases the userspace handle, not the installed restriction. Like the no-new-privileges bit, the resulting access reduction is not something this child can casually undo.
+
+The tiny observation probe's conditional expression selects either a new path open or an already-supplied integer descriptor. Its fixed 256-byte read is enough for the supplied short fixtures, not a general file-copy contract. Use exactly the documented modes; the probe is not a production input parser.
+
+### Compare handled rights with the running ABI
+
 Landlock restricts only the access rights listed in `handled_access_fs`. With the historical exception of `LANDLOCK_ACCESS_FS_REFER`, a filesystem right the running kernel supports but the ruleset does not handle stays allowed. A launcher that stops at ABI 3 therefore under-restricts on ABI 5, where `LANDLOCK_ACCESS_FS_IOCTL_DEV` can restrict device IOCTL operations, and on ABI 9, where `LANDLOCK_ACCESS_FS_RESOLVE_UNIX` can restrict pathname UNIX-socket resolution.
 
 Version-aware code can handle only rights known to its source and build headers. The guarded ABI 5 and ABI 9 additions make this source enforce the complete filesystem-right set it knows when the headers expose those constants and the running kernel supports them. If newer headers introduce another filesystem right, this source and its stated guarantee must be reviewed again; runtime ABI detection cannot invent a constant absent at build time.
@@ -184,12 +216,14 @@ Version-aware code can handle only rights known to its source and build headers.
 Checkpoint: print the ABI reported by the running kernel and compare it with the highest filesystem ABI explicitly handled by the source:
 
 ```bash
+cc -std=c11 -Wall -Wextra -Werror -O2 landlock_launch.c -o landlock-launch
 ./landlock-launch demo/allowed /bin/true 2>&1 | head -1
 grep -n 'abi >=' landlock_launch.c
 ```
 
-- The first command relies on the launcher's diagnostic and may later deny `/bin/true` because that executable is outside the allowed tree; only its first line is the ABI observation.
-- The second command lists the explicit ABI gates compiled into this source. A high runtime number is not by itself proof that every future right is handled.
+- Compile first: a freshly prepared lesson has source files, not a prebuilt launcher.
+- The next command relies on the launcher's diagnostic and may later deny `/bin/true` because that executable is outside the allowed tree; only its first line is the ABI observation. The pipeline's status is not a launch-success assertion.
+- `grep` lists the explicit ABI gates in the source. A high runtime number is not by itself proof that every future right is handled.
 
 Build it:
 
@@ -222,6 +256,7 @@ This proves future path access is constrained. It does not prove existing descri
 
 `pass_fd.py` deliberately opens the protected file before launching:
 
+<!-- source: course/module-05-filesystem-landlock/lesson-03/pass_fd.py format=code -->
 ```python
 #!/usr/bin/env python3
 import os
@@ -237,6 +272,7 @@ with open(sys.argv[1], "rb") as stream:
     )
 raise SystemExit(run.returncode)
 ```
+<!-- /source -->
 
 ### Source, line by line
 
@@ -245,7 +281,7 @@ raise SystemExit(run.returncode)
 - The launcher receives the allowed root, exact probe path, `fd` mode, and descriptor number as distinct argv elements.
 - The wrapper returns the observed child status.
 
-The repaired launcher calls `close_inherited` after using its policy descriptors and before `execv`. `close_range(..., CLOSE_RANGE_CLOEXEC)` atomically marks every descriptor from 3 upward close-on-exec; an older-kernel fallback applies `FD_CLOEXEC` one descriptor at a time.
+The repaired launcher calls `close_inherited` after using its policy descriptors and before `execv`. `close_range(..., CLOSE_RANGE_CLOEXEC)` marks every descriptor from 3 upward close-on-exec. This single-threaded launcher creates no later descriptors before exec; it does not claim to solve concurrent descriptor creation in a multithreaded launcher.
 
 Run the repaired result:
 
@@ -264,7 +300,7 @@ cc -std=c11 -Wall -Wextra -Wno-unused-function -O2 unsafe_launch.c -o unsafe-lau
 
 - The addressed `sed` range removes the four-line call/error block from the temporary source only.
 - `-Wno-unused-function` permits the deliberately orphaned helper; it does not suppress other warning classes.
-- Substitute `./unsafe-launch` for `./landlock-launch` in the wrapper command. The synthetic secret prints even though the path rule is active.
+- The executable name is inside `pass_fd.py`, not an argument to its command. Open your student copy with `nano pass_fd.py`, change only that executable string for the supplied synthetic comparison, save, and repeat the same Python invocation. Restore the original string immediately afterward. The protected fixture is not a real credential.
 - Delete the temporary files, return to the shipped launcher, and confirm denial.
 
 Landlock mediates new filesystem operations by path; reading an already-open file description is not a new path lookup.
@@ -281,3 +317,9 @@ test "$(./landlock-launch "$PWD/demo/allowed" "$PWD/demo/allowed/fd-probe" path 
 - `Permission denied` on the allowed executable usually means the probe is outside the allowed tree or was not compiled successfully.
 - A visible synthetic secret in the final command means inherited descriptors were not marked close-on-exec.
 - Checkpoint: identify which assertion tests Landlock and which tests the independent descriptor-hygiene layer.
+
+## Replay and source truth
+
+The demo contains only lesson-created synthetic files. Do not substitute personal directories or real credentials. From this workspace, `cd ../..` then `./lab-reset 05.03` discards this lesson's edits and fixtures after confirmation. No host mount, filesystem permission, or global security setting needs changing.
+
+The kernel's [Landlock userspace guide](https://cdn.kernel.org/doc/html/latest/userspace-api/landlock.html) documents handled rights, ABI additions, and inherited restrictions. [close_range(2)](https://man7.org/linux/man-pages/man2/close_range.2.html) documents the separate descriptor control. Record build headers and the running ABI; neither alone proves which rights this binary enforces.

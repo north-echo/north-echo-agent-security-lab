@@ -65,3 +65,17 @@ class CapstoneTests(unittest.TestCase):
             (work / "cold_runtime.py").write_text(reference_source())
             checks = evaluate(capstone, work, self.fixture)
         self.assertTrue(all(c.passed for c in checks), json.dumps([(c.name, c.passed) for c in checks]))
+
+    def test_early_execution_before_later_validation_is_detected(self):
+        eager = '''
+        if len(jobs) == 2 and jobs[1].get("runtime", {}).get("tasks_max") == 0:
+            early = jobs[0]["runtime"]
+            subprocess.run([early["guard"], early["allowed_root"], *early["command"]], timeout=5)
+'''
+        source = reference_source().replace("        ids = []", eager + "        ids = []")
+        with tempfile.TemporaryDirectory() as raw:
+            work = Path(raw)
+            (work / "cold_runtime.py").write_text(source)
+            checks = evaluate(capstone, work, self.fixture)
+        check = next(c for c in checks if c.name == "A later invalid job prevents earlier guard entry")
+        self.assertFalse(check.passed)

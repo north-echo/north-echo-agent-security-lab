@@ -61,6 +61,34 @@ def _stopped(process: subprocess.Popen) -> None:
             process.wait(timeout=3)
 
 
+def _direct_isolated(port: int) -> bool:
+    code = """
+import json, os, socket, sys
+result = {"network_namespace": os.readlink("/proc/self/ns/net"), "connected": False}
+try:
+    with socket.create_connection(("127.0.0.1", int(sys.argv[1])), .5):
+        result["connected"] = True
+except OSError:
+    pass
+print(json.dumps(result))
+"""
+    run = run_bounded(
+        ["unshare", "--user", "--map-root-user", "--net", sys.executable, "-c", code, str(port)],
+        text=True, capture_output=True, timeout=3,
+    )
+    try:
+        observed = json.loads(run.stdout)
+        return bool(
+            run.returncode == 0 and isinstance(observed, dict)
+            and observed.get("connected") is False
+            and isinstance(observed.get("network_namespace"), str)
+            and observed["network_namespace"].startswith("net:[")
+            and observed["network_namespace"] != os.readlink("/proc/self/ns/net")
+        )
+    except (ValueError, TypeError):
+        return False
+
+
 def grade(workspace: Path, fixture: dict) -> list[Check]:
     source = workspace / "egress_broker.py"
     if not source.is_file():
@@ -182,14 +210,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
             )
             checks["loopback"] = unsafe.returncode != 0 and not unsafe_socket.exists()
 
-            direct_code = "import socket,sys; socket.create_connection(('127.0.0.1',int(sys.argv[1])),.5)"
-            direct = run_bounded(
-                ["unshare", "--user", "--map-root-user", "--net", sys.executable, "-c", direct_code, str(allowed_port)],
-                text=True,
-                capture_output=True,
-                timeout=3,
-            )
-            checks["isolated"] = direct.returncode != 0
+            checks["isolated"] = _direct_isolated(allowed_port)
     finally:
         if process is not None:
             _stopped(process)

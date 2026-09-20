@@ -46,9 +46,15 @@ Any failed containment proof aborts cleanup. A failed systemd query is not evide
 
 Module 07 uses transient services in the ordinary user's delegated systemd manager. Before launch, the internal `register-unit` transaction records a narrowly formatted unit name under the active target. Cleanup trusts neither that name nor the registry alone: the live unit must also have the exact workspace-bound description and an effective cgroup below `user-UID.slice/user@UID.service`, ending in that unit name. Direct cgroup-path entries are rejected so systemd, rather than recursive course code, owns subtree removal.
 
-Module 08 creates no persistent network object. Each `unshare --net` namespace exists only for its foreground client process; no veth, route, firewall rule, namespace pin, or DNS configuration is created. Synthetic services and brokers are started with exact saved PIDs under shell traps or by the external grader. Unix sockets and readiness files use exact paths inside disposable workspaces or grader temporary directories, and the completed broker removes its socket on clean termination. If a future module introduces a network object that can outlive its launching process, the runtime registry must gain a separately tested ownership proof before that object is created.
+Module 08 creates no persistent network object. Each `unshare --net` namespace exists only for its foreground client process; no veth, route, firewall rule, namespace pin, or DNS configuration is created. Guided synthetic services and brokers use registered, bounded user units with exact workspace descriptions. External grader fixtures have separately owned lifecycles. Unix sockets and readiness files use exact paths inside disposable workspaces or grader temporary directories, and the broker removes its socket on clean termination. No name-prefix cleanup is permitted.
 
-Module 09 keeps every credential and signing key synthetic. The workload receives a signed bearer capability but neither secret. A local broker validates operation, resource, canonical input, audience, run, time bounds, policy, and one-use nonce before placing the fake credential on a separate synthetic upstream Unix socket. Broker and upstream state exist only in exact-PID foreground processes; sockets and secret files remain inside disposable workspaces or grader temporary directories. No credential service, key store, network endpoint, or persistent replay database is created.
+Module 09 keeps every credential and shared HMAC key synthetic. The workload receives an authenticated bearer capability but neither secret through the intended interface; same-UID mode-0600 files do not isolate these roles against malicious code. The broker loads secrets at trusted startup and uses the fake upstream credential only after operation, resource, input, audience, run, time, policy, and nonce validation. Guided broker/upstream processes use registered bounded user units. Nonce state is process-local and is consumed before the upstream attempt; it is not durable exactly-once delivery. Files and sockets stay inside disposable workspaces or owned grader directories.
+
+Modules 11-12 teach bounded evidence interpretation with fixed local models.
+Their configuration choices and oracle labels are not kernel enforcement
+observations. Module 12 inventory supplies the focused label; no independent
+discovery or autonomous offensive workflow is implemented. Package integrity
+checks execute no supplied code and do not establish authenticity.
 
 ## Limits
 

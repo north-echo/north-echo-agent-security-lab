@@ -12,12 +12,21 @@ def main():
     result_path, spec_path, runner = map(Path, sys.argv[1:4])
     result = json.loads(result_path.read_text())
     spec = json.loads(spec_path.read_text())
+    if (not isinstance(spec, dict) or set(spec) != {"oracle_command", "budget", "run_id"}
+            or type(spec["budget"]) is not int or not 1 <= spec["budget"] <= 8
+            or not isinstance(spec["run_id"], str)
+            or not isinstance(result, dict)):
+        raise SystemExit("invalid spec or result shape")
     command = spec["oracle_command"]
-    if not isinstance(command, list) or len(command) != 3:
+    if (not isinstance(command, list) or len(command) != 3
+            or any(not isinstance(item, str) or not item for item in command)):
         raise SystemExit("packaging supports only the explicit local Python oracle plus scenario interface")
     oracle, scenario = map(Path, command[1:])
     trace = result.get("trace", [])
-    if (result.get("schema") != 1 or result.get("status") not in {"observed", "not_observed"}
+    if (type(result.get("schema")) is not int or result.get("schema") != 1
+            or result.get("status") not in ("observed", "not_observed")
+            or not isinstance(trace, list) or not isinstance(result.get("claim"), str)
+            or type(result.get("actions_used")) is not int
             or result.get("run_id") != spec["run_id"]
             or result.get("actions_used") != len(trace) or not 1 <= len(trace) <= spec["budget"]):
         raise SystemExit("invalid result, run identity, or budget")

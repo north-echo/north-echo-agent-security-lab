@@ -15,3 +15,13 @@ Outcomes:
 Prerequisites: Modules 01-04, Linux, a C compiler, Linux UAPI headers containing `openat2.h` and `landlock.h`, and a kernel with `openat2` and Landlock. The lessons require no root privilege, mount, network access, or host policy change.
 
 Cross-layer boundary: `openat2` protects individual brokered lookups. Landlock restricts future filesystem operations by the launched process. Neither one closes an already-open descriptor; descriptor hygiene from Module 01 remains necessary.
+
+## Learning route and limits
+
+Prerequisites: Modules 01-04. Continue as your ordinary account inside the disposable Linux VM. The guided lessons introduce their new syntax and interfaces before the independent lab combines them.
+
+05.01 distinguishes path spelling, component ancestry, and lookup results. 05.02 practices descriptor-relative reads and writes. 05.03 restricts a launched child and revisits authority already held in descriptors.
+
+Keep two questions separate: did the broker resolve this request safely, and is the entire child restricted when it opens files itself? The first is an openat2 question; the second is a Landlock question. Record the running ABI and build headers rather than relying on the distro name.
+
+Before moving on, demonstrate both useful allowed work and the intended restriction, and explain the difference in your own words. A failed compiler command or missing input is not a security success. Use the independent lab's practice feedback to revisit a specific lesson; passing checks does not replace understanding or make the combined program production-ready.

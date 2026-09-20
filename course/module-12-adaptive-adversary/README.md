@@ -1,15 +1,18 @@
-# Module 12 - Adaptive adversary and Boundary Atlas graduation
+# Module 12 - Bounded decisions, evidence, and reproducible review
 
-Compare a fixed scripted baseline with a bounded adaptive policy against the same synthetic local oracle. Preserve every action and observation, distinguish non-discovery from evidence of safety, and package a reproducible candidate experiment.
+Complete Modules 04, 10, and 11, then work through `12.01`, `12.02`, `12.03`, and `module-12`.
 
-Play in order: `12.01`, `12.02`, `12.03`, then `module-12`.
+The directory keeps its historical “adaptive adversary” name for compatibility. The actual exercise is a **toy bounded dispatcher**: inventory explicitly tells the program which synthetic label to request next. This is not independent vulnerability discovery, agentic research, or a test of a real target.
 
-Outcomes:
+You will learn to:
 
-- define a deterministic baseline before evaluating adaptation;
-- constrain an adaptive policy by probe allowlist, exact argv, action budget, and structured trace;
-- discover randomized weakness classes without external targets or exploit generation;
-- report `not_observed` without claiming security when evidence is absent;
-- package hypothesis, trace, result, limits, and replay command as a Boundary Atlas candidate.
+- compare a fixed schedule with an observation-dependent choice without overstating either result;
+- count every action, preserve its observation, and stop within a small budget;
+- distinguish a witnessed failure, missing evidence, and a complete set of favorable observations;
+- reject malformed evidence rather than silently calling it safe;
+- package known local code and inputs, verify their recorded hashes, and replay from a new directory;
+- explain why reproducibility and checksums do not establish truth, trust, or universal security.
 
-All oracles and observations are synthetic and local. No public, LAN, cloud, employer, or production target is contacted. Prerequisites are Modules 04, 10, and 11.
+The offline evidence-review exercise is the central reasoning task. Its supplied rows stand for observations; they are not new kernel measurements. Return to the earlier modules for actual enforced-control tests. No new external probes, target selection, or exploit generation are part of this chapter.
+
+The final package can be described as a candidate experiment for later review. “Boundary Atlas” is a historical destination label, not a required service, credential, or methodology. Keep all work in the disposable VM with synthetic files.

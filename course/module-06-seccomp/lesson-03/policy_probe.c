@@ -27,6 +27,10 @@ int main(int argc, char **argv) {
             return 1;
         char *nnp = strstr(buffer, "NoNewPrivs:");
         char *seccomp = strstr(buffer, "Seccomp:");
+        if (!nnp || !seccomp) {
+            fprintf(stderr, "required process-state fields are absent\n");
+            return 1;
+        }
         dprintf(STDOUT_FILENO, "%.13s\n%.10s\n", nnp, seccomp);
         return 0;
     }

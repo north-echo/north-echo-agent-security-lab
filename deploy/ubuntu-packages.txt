@@ -6,6 +6,7 @@ iproute2
 libcap2-bin
 libseccomp-dev
 linux-libc-dev
+nano
 pkg-config
 procps
 python3

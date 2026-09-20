@@ -53,12 +53,14 @@ def decode(segment: str) -> bytes:
 def load_policy(path: Path) -> dict:
     raw = json.loads(path.read_text(encoding="utf-8"))
     expected = {"version", "audience", "run_id", "max_ttl", "upstream_socket", "permissions"}
-    if not isinstance(raw, dict) or set(raw) != expected or raw["version"] != 1:
+    if not isinstance(raw, dict) or set(raw) != expected or type(raw["version"]) is not int or raw["version"] != 1:
         raise Denied("invalid policy shape")
     if not all(isinstance(raw[name], str) and 1 <= len(raw[name]) <= 128 for name in ("audience", "run_id")):
         raise Denied("invalid policy identity")
     if type(raw["max_ttl"]) is not int or not 1 <= raw["max_ttl"] <= 300:
         raise Denied("invalid maximum lifetime")
+    if not isinstance(raw["upstream_socket"], str):
+        raise Denied("upstream socket must be a path string")
     upstream = Path(raw["upstream_socket"])
     if not upstream.is_absolute():
         raise Denied("upstream socket must be absolute")
@@ -104,7 +106,7 @@ def verify_token(policy: dict, key: bytes, request: dict) -> str:
     except (json.JSONDecodeError, UnicodeError) as error:
         raise Denied("invalid token payload") from error
     claim_names = {"version", "operation", "resource", "audience", "run_id", "issued_at", "expires_at", "nonce", "input_sha256"}
-    if not isinstance(claims, dict) or set(claims) != claim_names or claims["version"] != 1:
+    if not isinstance(claims, dict) or set(claims) != claim_names or type(claims["version"]) is not int or claims["version"] != 1:
         raise Denied("invalid token claims")
     for name in ("operation", "resource", "audience", "run_id", "nonce", "input_sha256"):
         if not isinstance(claims[name], str):
@@ -165,6 +167,7 @@ def serve(policy: dict, key: bytes, credential: str, socket_path: Path) -> None:
             except TimeoutError:
                 continue
             with peer:
+                peer.settimeout(2)
                 try:
                     request = json.loads(receive_line(peer, MAX_LINE))
                     nonce = verify_token(policy, key, request)
@@ -177,7 +180,10 @@ def serve(policy: dict, key: bytes, credential: str, socket_path: Path) -> None:
                     response = {"ok": True, "result": result}
                 except (Denied, json.JSONDecodeError, UnicodeError, OSError) as error:
                     response = {"ok": False, "error": str(error)}
-                peer.sendall(canonical(response) + b"\n")
+                try:
+                    peer.sendall(canonical(response) + b"\n")
+                except OSError:
+                    pass
     finally:
         listener.close()
         socket_path.unlink(missing_ok=True)
@@ -205,7 +211,7 @@ def main() -> int:
         credential = credential_path.read_text(encoding="utf-8").strip()
         if not 32 <= len(key) <= 128 or not 8 <= len(credential) <= 256:
             raise Denied("invalid broker secret material")
-        if stat.S_IMODE(key_path.stat().st_mode) & 0o077 or stat.S_IMODE(credential_path.stat().st_mode) & 0o077:
+        if stat.S_IMODE(key_path.stat().st_mode) != 0o600 or stat.S_IMODE(credential_path.stat().st_mode) != 0o600:
             raise Denied("broker secret files must be mode 0600")
         serve(policy, key, credential, Path(sys.argv[4]))
     except (Denied, OSError, ValueError, json.JSONDecodeError) as error:

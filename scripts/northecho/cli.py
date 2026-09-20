@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from . import __version__
+from .beginner import prepare as prepare_beginner
 from .catalog import CATALOG, SCAFFOLDS, course_dir_name, normalize_target, target_dir_name, targets_for_scope
 from .cleanup import CleanupPlan, execute_cleanup, plan_cleanup, register_user_unit
 from .fixtures import generate
@@ -68,6 +69,7 @@ def cmd_start(args: argparse.Namespace) -> int:
     try:
         fixture = generate(fixture_dir, target, record["starts"])
         shutil.copytree(_source(root, target), workspace, symlinks=False)
+        prepare_beginner(workspace, target, fixture)
         metadata = {
             "schema": 1,
             "target": target,
@@ -174,7 +176,7 @@ def cmd_grade(args: argparse.Namespace) -> int:
         print(f"[{index}/{len(checks)}] {check.name} {dots} {'PASS' if check.passed else 'FAIL'}")
     print(f"\nRESULT: {'PASSED' if passed else 'NOT PASSED'}")
     if not passed:
-        print("\nFailed security properties:")
+        print("\nFailed properties:")
         for check in checks:
             if not check.passed:
                 print(f"  - {check.name}")
@@ -189,6 +191,7 @@ def cmd_status(args: argparse.Namespace) -> int:
     root = repo_root()
     progress = load(root)
     print(f"{BANNER}\n\nv{__version__} COURSE STATUS")
+    print("Beginner entry: b0.01 -> module-b0 -> b1.01 -> module-b1 -> 01.01; beta learner review pending.")
     print("TARGET   STATE       STARTS  GRADES  LAST     EVER  MODE      TITLE")
     for target in sorted(CATALOG):
         record = progress["targets"].get(target, {})

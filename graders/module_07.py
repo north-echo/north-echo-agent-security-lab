@@ -56,7 +56,7 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
         agent = work / "resource_runner.py"
         shutil.copy2(source, agent); agent.chmod(0o444)
         probe = work / "probe.py"; probe.write_text(PROBE)
-        literal = f"literal {fixture['hostname']} $(not-a-shell)"
+        literal = f"literal {fixture['hostname']} $(not-a-shell) ${{NE_LITERAL_NOT_EXPANDED}}"
         spec = work / "spec.json"; result_path = work / "result.json"
         spec.write_text(json.dumps({"command":[sys.executable,str(probe),"inspect",literal],"memory_max":33554432,"tasks_max":16,"cpu_percent":50}))
         run = _run(agent, spec, result_path, work); result = _result(result_path)
@@ -72,8 +72,10 @@ def grade(workspace: Path, fixture: dict) -> list[Check]:
         bounded = False
         if isinstance(fork_data, dict):
             try:
-                observed = json.loads(fork_data.get("stdout", "")); bounded = observed["created"] < 64 and "max " in observed["events"]
-            except (json.JSONDecodeError, KeyError): pass
+                observed = json.loads(fork_data.get("stdout", ""))
+                events = dict(line.split() for line in observed["events"].splitlines())
+                bounded = 0 < observed["created"] < 64 and int(events["max"]) > 0
+            except (json.JSONDecodeError, KeyError, TypeError, ValueError): pass
 
         fail_spec = work / "fail.json"; fail_result = work / "fail-result.json"
         fail_spec.write_text(json.dumps({"command":[sys.executable,str(probe),"fail"],"memory_max":33554432,"tasks_max":16,"cpu_percent":50}))

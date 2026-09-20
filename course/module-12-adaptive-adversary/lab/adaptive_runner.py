@@ -5,7 +5,7 @@ from pathlib import Path
 
 if len(sys.argv) != 3: raise SystemExit(2)
 spec = json.loads(Path(sys.argv[1]).read_text())
-run = subprocess.run([*spec["oracle_command"], "inventory"], text=True, capture_output=True)
+run = subprocess.run([*spec["oracle_command"], "inventory"], text=True, capture_output=True, timeout=3)
 observation = json.loads(run.stdout)
 Path(sys.argv[2]).write_text(json.dumps({"schema":1,"run_id":spec["run_id"],"budget":spec["budget"],
  "actions_used":1,"status":"not_observed","finding":None,

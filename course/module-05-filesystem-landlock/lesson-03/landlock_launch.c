@@ -45,17 +45,9 @@ static __u64 supported_rights(int abi) {
 }
 
 static int close_inherited(void) {
-    if (syscall(SYS_close_range, 3U, ~0U, CLOSE_RANGE_CLOEXEC) == 0)
-        return 0;
-    if (errno != ENOSYS)
-        return -1;
-    long maximum = sysconf(_SC_OPEN_MAX);
-    for (int fd = 3; fd < maximum; fd++) {
-        int flags = fcntl(fd, F_GETFD);
-        if (flags != -1 && fcntl(fd, F_SETFD, flags | FD_CLOEXEC) == -1)
-            return -1;
-    }
-    return 0;
+    /* Both course baselines support this operation. Do not weaken the
+       descriptor guarantee with a fallback bounded by a mutable soft limit. */
+    return syscall(SYS_close_range, 3U, ~0U, CLOSE_RANGE_CLOEXEC);
 }
 
 int main(int argc, char **argv) {

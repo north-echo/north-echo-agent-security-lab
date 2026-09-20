@@ -36,8 +36,14 @@ int main(int argc, char **argv) {
             return 1;
         }
     }
-    if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) < 0 || seccomp_load(context) < 0) {
-        perror("install seccomp");
+    if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) < 0) {
+        perror("set no_new_privs");
+        seccomp_release(context);
+        return 1;
+    }
+    int loaded = seccomp_load(context);
+    if (loaded < 0) {
+        fprintf(stderr, "install seccomp: %s\n", strerror(-loaded));
         seccomp_release(context);
         return 1;
     }

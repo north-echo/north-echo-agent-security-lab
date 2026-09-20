@@ -1,0 +1,172 @@
+# Fedora 44 ARM64 appliance for Lima 2.2+. Ubuntu remains available separately.
+# Installs the learner-review beta, including B0/B1 and rewritten Modules 01-12.
+# Create a NEW instance; never repurpose an existing student's Ubuntu instance.
+minimumLimaVersion: 2.2.0
+images:
+  - location: https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/aarch64/images/Fedora-Cloud-Base-Generic-44-1.7.aarch64.qcow2
+    arch: aarch64
+    digest: sha256:55c60a3b80d3616a08705afd0459e75fe9f03c54aba7a46e4002a41a72fa0d5b
+cpus: 4
+memory: 6GiB
+disk: 30GiB
+plain: true
+mounts: []
+containerd:
+  system: false
+  user: false
+ssh:
+  forwardAgent: false
+  loadDotSSHPubKeys: false
+param:
+  CourseVersion: v2.0.0-beta.1
+provision:
+  - mode: data
+    file: fedora-packages.txt
+    path: /usr/local/share/north-echo/fedora-packages.txt
+    owner: root:root
+    permissions: 644
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+      [[ "$PARAM_CourseVersion" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-beta\.[1-9][0-9]*)?$ ]]
+      ready_marker="{{.Home}}/.local/state/north-echo-fedora/${PARAM_CourseVersion}.ready"
+      if [[ -f "$ready_marker" ]]; then exit 0; fi
+      test "$(getenforce)" = Enforcing
+      mapfile -t packages < /usr/local/share/north-echo/fedora-packages.txt
+      dnf install -y "${packages[@]}"
+  - mode: user
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+      version="$PARAM_CourseVersion"
+      [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-beta\.[1-9][0-9]*)?$ ]]
+      state_dir="$HOME/.local/state/north-echo-fedora"
+      ready_marker="$state_dir/${version}.ready"
+      course_dir="$HOME/north-echo"
+      evidence_dir="$state_dir/${version}-evidence"
+      evidence_archive="$HOME/north-echo-deployment-evidence.tgz"
+      if [[ -f "$ready_marker" ]]; then exit 0; fi
+      if [[ -e "$course_dir" || -L "$course_dir" ]]; then
+        echo >&2 "North Echo is not ready; refusing to overwrite $course_dir"
+        echo >&2 "Export any work, then recreate this disposable instance."
+        exit 1
+      fi
+      test "$(id -u)" -ne 0
+      test "$(getenforce)" = Enforcing
+      sudo loginctl enable-linger "$(id -un)"
+      systemd-run --user --wait --pipe --collect --quiet -- true
+      unshare --user --map-root-user true
+
+      archive="north-echo-agent-security-lab-${version}.tar.gz"
+      release_base="https://github.com/north-echo/north-echo-agent-security-lab/releases/download/${version}"
+      staging="$(mktemp -d "$HOME/.north-echo-bootstrap.XXXXXX")"
+      trap 'rm -rf -- "$staging"' EXIT
+      curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' \
+        --connect-timeout 20 --max-time 300 --retry 2 \
+        --output "$staging/SHA256SUMS" "$release_base/SHA256SUMS"
+      curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' \
+        --connect-timeout 20 --max-time 300 --retry 2 \
+        --output "$staging/$archive" "$release_base/$archive"
+
+      # Select exactly this artifact; verify before extracting or running it.
+      python3 - "$staging" "$archive" "north-echo-agent-security-lab-${version}" <<'PY'
+      import hashlib
+      from pathlib import Path, PurePosixPath
+      import re
+      import sys
+      import tarfile
+
+      staging, archive, expected_root = sys.argv[1:]
+      staging = Path(staging)
+      matches = []
+      for line in (staging / "SHA256SUMS").read_text().splitlines():
+          fields = line.split()
+          if len(fields) == 2 and fields[1] == archive:
+              matches.append(fields[0])
+      if len(matches) != 1 or not re.fullmatch(r"[0-9a-fA-F]{64}", matches[0]):
+          raise SystemExit("Expected exactly one valid checksum for the course archive")
+      with (staging / archive).open("rb") as stream:
+          digest = hashlib.file_digest(stream, "sha256").hexdigest()
+      if digest != matches[0].lower():
+          raise SystemExit("Course archive checksum mismatch")
+      with tarfile.open(staging / archive, "r:gz") as bundle:
+          members = bundle.getmembers()
+          for member in members:
+              path = PurePosixPath(member.name)
+              if (path.is_absolute() or ".." in path.parts or not path.parts
+                      or path.parts[0] != expected_root
+                      or not (member.isfile() or member.isdir())):
+                  raise SystemExit("Unexpected archive member")
+          bundle.extractall(staging, members=members, filter="data")
+      print("COURSE ARCHIVE CHECKSUM AND EXTRACTION: PASS")
+      PY
+      test -f "$staging/north-echo-agent-security-lab-${version}/.north-echo-root"
+      mv "$staging/north-echo-agent-security-lab-${version}" "$course_dir"
+      mkdir -p "$evidence_dir"
+      {
+        date -u +%Y-%m-%dT%H:%M:%SZ
+        printf 'course_version=%s\n' "$version"
+        printf '%s\n' 'image=Fedora-Cloud-Base-Generic-44-1.7.aarch64.qcow2'
+        printf '%s\n' 'image_sha256=55c60a3b80d3616a08705afd0459e75fe9f03c54aba7a46e4002a41a72fa0d5b'
+        uname -srmo
+        cat /etc/os-release
+        python3 --version
+        cc --version | head -n 1
+        systemctl --version | head -n 1
+        getenforce
+        id -Z
+      } > "$evidence_dir/environment.txt"
+      sha256sum "$staging/$archive" | sed "s|$staging/||" > "$evidence_dir/archive.sha256"
+      mapfile -t packages < /usr/local/share/north-echo/fedora-packages.txt
+      rpm -q "${packages[@]}" > "$evidence_dir/packages.txt"
+      cd "$course_dir"
+      # Earlier published releases do not contain scripts/run_tests.py.
+      python3 - > "$evidence_dir/tests.txt" 2>&1 <<'PY'
+      import sys, unittest
+      result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.discover("tests"))
+      sys.exit(0 if result.wasSuccessful() and not result.skipped and result.testsRun else 1)
+      PY
+      ./scripts/attest-course > "$evidence_dir/attestation.txt" 2>&1
+      python3 scripts/build_field_manual.py --check > "$evidence_dir/manual.txt" 2>&1
+      ./scripts/linux-preflight > "$evidence_dir/preflight.txt" 2>&1
+      cc -std=c11 -Wall -Wextra -Werror -O2 \
+        course/module-05-filesystem-landlock/lesson-03/landlock_launch.c \
+        -o "$evidence_dir/north-echo-landlock-launch"
+      for managed in .student .fixtures .runtime; do
+        test -d "$managed" && test ! -L "$managed"
+      done
+      runtime_entries="$(find .student .fixtures .runtime -mindepth 1 ! -name .gitkeep -print)"
+      test -z "$runtime_entries"
+      printf '%s\n' 'EMPTY MANAGED RUNTIME: PASS' > "$evidence_dir/empty-runtime.txt"
+      test "$(getenforce)" = Enforcing
+      tar -czf "$evidence_archive" -C "$evidence_dir" .
+      {
+        printf 'course_version=%s\n' "$version"
+        printf '%s\n' 'image=Fedora-Cloud-Base-Generic-44-1.7.aarch64.qcow2'
+        printf 'ready_at=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      } > "$ready_marker.pending"
+      mv "$ready_marker.pending" "$ready_marker"
+probes:
+  - mode: readiness
+    description: North Echo Fedora release validation
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+      test -f "$HOME/.local/state/north-echo-fedora/${PARAM_CourseVersion}.ready"
+      test -f "$HOME/north-echo-deployment-evidence.tgz"
+      test "$(getenforce)" = Enforcing
+      cd "$HOME/north-echo"
+      ./scripts/attest-course >/dev/null
+      ./scripts/linux-preflight >/dev/null
+    hint: |
+      Readiness failed. Inspect /var/log/cloud-init-output.log and deployment
+      evidence. Do not disable SELinux or overwrite student work to force a pass.
+      A failed readiness check does not power the VM off; stop it explicitly.
+message: |
+  North Echo {{.Param.CourseVersion}} is ready on Fedora 44 ARM64.
+  Enter: limactl shell {{.Name}}
+  Then:  cd ~/north-echo
+  Export evidence: limactl copy {{.Name}}:~/north-echo-deployment-evidence.tgz .
+  Begin with: ./lab-start b0.01
+  Learner-review beta: automated acceptance is not proof of comprehension.

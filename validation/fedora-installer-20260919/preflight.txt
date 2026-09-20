@@ -1,0 +1,37 @@
+North Echo Linux preflight (non-destructive)
+PASS  Linux kernel detected
+PASS  running as an ordinary non-root user
+PASS  required course tool available: python3
+PASS  required course tool available: cc
+PASS  required course tool available: strace
+PASS  required course tool available: unshare
+PASS  required course tool available: nsenter
+PASS  required course tool available: setpriv
+PASS  required course tool available: capsh
+PASS  required course tool available: getcap
+PASS  required course tool available: setcap
+PASS  required course tool available: ps
+PASS  required course tool available: pkg-config
+PASS  required course tool available: ip
+PASS  required course tool available: systemd-run
+PASS  required course tool available: systemctl
+PASS  openat2 and Landlock userspace headers are available
+PASS  libseccomp development files available: 2.6.1
+PASS  kernel interface available: /proc/self/status
+PASS  kernel interface available: /proc/self/ns/user
+PASS  kernel interface available: /proc/self/ns/uts
+PASS  kernel interface available: /proc/self/ns/pid
+PASS  kernel interface available: /proc/self/ns/mnt
+PASS  kernel interface available: /proc/self/ns/net
+PASS  unprivileged user namespace creation works
+PASS  unprivileged network namespace creation works
+PASS  NoNewPrivs state is exposed in /proc/self/status
+PASS  capability state is exposed in /proc/self/status
+
+Additional environment readiness (informational)
+INFO  available future tool: nft
+INFO  future tool not installed yet: jq
+INFO  Module 07 cgroup v2 controllers are visible
+INFO  Module 07 delegated systemd user manager is reachable
+
+SUMMARY: 28 required checks passed; 0 required checks failed

@@ -6,6 +6,13 @@ the observed effect, and the limits of that evidence. No AI service is required.
 
 ## Entry diagnostic
 
+New learners should start with the [beginner chapters](BEGINNER_FIELD_MANUAL.md):
+B0 offers a basics/test-out path, and B1 develops one small environment boundary.
+Then continue through Modules 01-12 and the capstone, pausing at each checkpoint.
+This beta needs your walkthrough; expanded explanations and passing tests do not
+by themselves establish good pacing. The diagnostic below prepares the transition
+from B1 to the numbered technical track, not a test you must already pass to begin.
+
 Use the validated disposable VM. Start `./lab-start 01.01` and enter
 `.student/01.01`; all scratch files below stay in that resettable workspace.
 Try the following without consulting the expected observations, then compare.
@@ -62,7 +69,7 @@ for an explanation.
 | 07 | Change a bounded CPU quota and predict cpu.max; compare configured values with observed values. |
 | 08 | Explain which authority the local broker retains and which authority the isolated client lacks. |
 | 09 | Given a capability's audience, expiry and run identity, identify the evidence needed to accept an operation. |
-| 10 | Plan two independent jobs before launch; predict ordered success/failure records and exact collection. |
+| 10 | Complete the practiced 0/7/0 single-job sequence with different observed memory ceilings; design whole-batch validation before any launch. |
 | 11 | Classify a mixed synthetic evidence row without looking at its variant label; preserve useful-work requirements. |
 | 12 | Classify incomplete observations without the oracle's next_probe hint; state the smallest missing observation. |
 

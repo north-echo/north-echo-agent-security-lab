@@ -4,10 +4,32 @@
 
 Install one observable deny rule, compare recoverable `EPERM` with process termination, then bypass a single-syscall blacklist through a related kernel interface.
 
+## Concepts and preparation
+
+Complete 06.01 first. A filter has a default action plus rules for selected calls. **Default allow** permits anything not explicitly denied; **default deny** denies anything not explicitly allowed. These are policy structures, not synonyms for good and bad applications.
+
+For a selected denied call, an **errno action** returns an error to the program without performing the call. A **kill action** terminates the process instead. The program's subsequent error-handling code can run in the first case but not the second. We use only local Unix-domain socket creation in this synthetic observation; no external address or service is contacted.
+
+The **libseccomp** library translates named rules into the kernel's filter format. `pkg-config` supplies build flags for the installed library; it is a build helper, not an enforcement mechanism. Predict whether a rule naming `socket` automatically covers the separate `socketpair` interface.
+
+From the course root inside the Linux VM:
+
+```bash
+./lab-start 06.02
+cd .student/06.02
+pwd
+ls -l socket_probe.c deny_socket.c
+cat socket_probe.c
+cat deny_socket.c
+```
+
+The commands prepare and enter the student workspace, confirm filenames, and display every supplied source before execution. C sources are text, not executable programs yet. Use the compile commands below to create binaries. For an edit, run `nano FILENAME` with the actual source name, save with `Ctrl-O`, `Enter`, and leave with `Ctrl-X`; then rebuild. Keep all experiments in this disposable VM and leave SELinux enforcing on Fedora.
+
 ## Exercise 1 - Build the probe and filter launcher
 
 Complete probe source:
 
+<!-- source: course/module-06-seccomp/lesson-02/socket_probe.c format=code -->
 ```c
 #include <errno.h>
 #include <stdio.h>
@@ -34,6 +56,7 @@ int main(int argc, char **argv) {
     return result == -1 ? 1 : 0;
 }
 ```
+<!-- /source -->
 
 ### Source, line by line
 
@@ -44,6 +67,7 @@ int main(int argc, char **argv) {
 
 Complete launcher source:
 
+<!-- source: course/module-06-seccomp/lesson-02/deny_socket.c format=code -->
 ```c
 #include <errno.h>
 #include <seccomp.h>
@@ -52,7 +76,7 @@ Complete launcher source:
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-    if (argc < 3) {
+    if (argc < 3 || (strcmp(argv[1], "errno") != 0 && strcmp(argv[1], "kill") != 0)) {
         fprintf(stderr, "usage: %s errno|kill COMMAND [ARG...]\n", argv[0]);
         return 2;
     }
@@ -71,6 +95,7 @@ int main(int argc, char **argv) {
     return 1;
 }
 ```
+<!-- /source -->
 
 ### Source, line by line
 
@@ -79,6 +104,12 @@ int main(int argc, char **argv) {
 - Every libseccomp operation is checked. Failure cannot fall through to an unfiltered `execv`.
 - `seccomp_load` installs the filter on the launcher; seccomp then persists across `exec` into the probe.
 - `seccomp_release` frees userspace policy memory, not the loaded kernel filter.
+
+The ternary expression `condition ? first : second` chooses the action. `SCMP_SYS(socket)` asks the library for the named call, avoiding a hard-coded architecture-specific integer. The final `0` in `seccomp_rule_add` means no argument comparisons: the rule covers every invocation of that syscall in this filter. It does not inspect a destination or a pathname.
+
+The context is an opaque library handle. `!context` detects allocation failure; the `||` chain short-circuits into the same error return if adding or loading the rule fails. By default libseccomp arranges the no-new-privileges requirement for an unprivileged load. Lesson 06.03 sets that bit explicitly so the ordering is visible in the launcher source.
+
+Use only the documented modes here. A spelling error must not silently select a different failure policy; the argument guard checks `errno` or `kill` before choosing the action.
 
 ```bash
 cc -std=c11 -Wall -Wextra -Werror -O2 -static socket_probe.c -o socket-probe
@@ -91,19 +122,17 @@ The first binary is static so its runtime does not complicate this one-rule obse
 
 ```bash
 ./deny-socket errno ./socket-probe socket || test "$?" -eq 1
-set +e
-./deny-socket kill ./socket-probe socket
-status=$?
-set -e
+status=0
+./deny-socket kill ./socket-probe socket || status=$?
 printf 'kill_status=%s\n' "$status"
 ```
 
 ### Line by line
 
 - Errno mode lets the probe continue: expect `result=-1 errno=1` and status 1.
-- `set +e` permits the shell to observe an expected fatal signal rather than aborting a scripted session.
+- `status=0` initializes the result; the `||` branch immediately saves the expected nonzero status. This works without changing your interactive shell's error-handling options.
 - Kill mode prevents the probe from printing its post-call result. A shell commonly reports `Bad system call`; status is normally 128 plus `SIGSYS`.
-- `set -e` restores fail-fast behavior. The status proves termination but does not identify a complete policy.
+- The status proves termination but does not identify a complete policy. A compile failure or nonexistent binary also produces a nonzero status, so confirm that the errno case worked and the kill case reports `SIGSYS`-related termination rather than treating any failure as the desired outcome.
 
 Errno is useful for compatibility and diagnostics; kill is useful when continuing would be unsafe. Policy intent decides, not a blanket rule.
 
@@ -128,6 +157,12 @@ Repair the design in Lesson 06.03 with a default-deny policy whose allowlist is 
 ./deny-socket errno ./socket-probe socketpair
 ```
 
-- If `seccomp.h` or `libseccomp.pc` is absent, install the documented `libseccomp-dev` and `pkg-config` packages in the disposable VM.
+- If `seccomp.h` or `libseccomp.pc` is absent, repair the documented VM provisioning: Fedora uses `libseccomp-devel` and `pkgconf-pkg-config`; Ubuntu uses `libseccomp-dev` and `pkg-config`. Do not guess include paths or disable filtering to get a pass.
 - If kill mode emits no probe line, that is expected: the kernel terminates at the denied syscall.
 - Checkpoint: explain why both observed actions enforce the same rule but have different failure semantics, and why neither blocks `socketpair`.
+
+## Replay and source truth
+
+From this workspace, `cd ../..` then `./lab-reset 06.02` discards this lesson's generated work after confirmation. A filter installed in a child does not modify your parent shell or global kernel policy; do not attempt a host-wide "seccomp reset."
+
+The kernel's [seccomp filter documentation](https://docs.kernel.org/userspace-api/seccomp_filter.html) defines return actions and filter inheritance. The library's [seccomp_init manual](https://github.com/seccomp/libseccomp/blob/main/doc/man/man3/seccomp_init.3) defines the default action/context.

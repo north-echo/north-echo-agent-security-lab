@@ -33,6 +33,16 @@ class Module10GraderTests(unittest.TestCase):
             checks = module_10.grade(workspace, self.fixture)
         self.assertTrue(all(check.passed for check in checks), json.dumps([(c.name, c.passed) for c in checks]))
 
+    def test_systemd_environment_expansion_is_not_literal_argv(self):
+        with tempfile.TemporaryDirectory() as raw:
+            workspace = Path(raw)
+            source = (SOURCE / "course/module-10-complete-runtime/lesson-03/complete_runtime.py").read_text()
+            source = source.replace('"--expand-environment=no", ', '')
+            (workspace / "complete_runtime.py").write_text(source)
+            checks = module_10.grade(workspace, self.fixture)
+        literal = next(c for c in checks if c.name == "Literal paths are preserved without shell evaluation")
+        self.assertFalse(literal.passed)
+
 
 if __name__ == "__main__":
     unittest.main()

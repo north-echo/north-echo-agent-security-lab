@@ -64,7 +64,7 @@ def _grade(workspace: Path, fixture: dict) -> list[Check]:
     labels = {
         "valid": "Results are structured", "preserve": "Run identity and input are preserved",
         "budget": "Observed oracle calls respect the two-action budget",
-        "discover": "All synthetic classes are discovered",
+        "discover": "Every supplied synthetic hint is followed within budget",
         "allowed": "Only allowlisted oracle calls are observed",
         "trace": "Trace exactly matches independently recorded observations",
         "calibrated": "Non-discovery is explicitly not a security claim",

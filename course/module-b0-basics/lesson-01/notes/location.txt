@@ -1,0 +1,2 @@
+You are reading a file inside the notes directory.
+The delivery reports are one directory above this one.

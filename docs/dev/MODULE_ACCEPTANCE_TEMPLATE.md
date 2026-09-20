@@ -13,6 +13,8 @@ Copy this checklist into the validation record for every new module. A scaffold 
 ## Guided lessons
 
 - [ ] Every action block has exact commands or a complete, small source listing.
+- [ ] Every supplied program has a named working directory and explicit locate/read instructions before its listing; the learner knows whether to read, edit, or execute it.
+- [ ] Editing instructions identify the file, editor entry/exit/save steps, and a saved-file check; prerequisite tools and shell syntax are introduced before use.
 - [ ] Every meaningful line, flag, operator, variable, and security-sensitive call is explained immediately after the block.
 - [ ] Expected output is described as a stable pattern, with variable fields identified.
 - [ ] The explanation states what the observation proves and what it does not prove.
@@ -51,6 +53,9 @@ Copy this checklist into the validation record for every new module. A scaffold 
 - [ ] The field-manual chapter contains the complete guided commands and source, line-by-line teaching, expected observations, security meaning, failure/repair, troubleshooting, checkpoints, and independent-lab contract.
 - [ ] The manual and canonical files agree on names, paths, commands, flags, expected behavior, and prerequisites.
 - [ ] Optional references are clearly optional and do not carry required teaching.
+- [ ] Substantive technical claims map to primary documentation with relevant versions/sections; links are inspected, not merely appended as a bibliography.
+- [ ] Documented behavior, course policy/example choices, and baseline-specific observations are distinguished, including untested cases and teaching simplifications.
+- [ ] Concept explanations cover purpose, mechanism, expected observations, common mistakes, and limits; source listings or line counts alone are not accepted as sufficient teaching.
 - [ ] Setup, status output, and the prerequisites matrix name any new package, kernel feature, or privilege requirement.
 
 ## Verification evidence

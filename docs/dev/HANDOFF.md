@@ -10,12 +10,16 @@ The next task should work in this repository rather than regenerate it from a sp
 
 ## Current checkpoint
 
-**Active beta.2 release (user authorized option 1, 2026-09-20):** package the
-existing installer correction, update version/setup/manual references, and
-validate the exact published archive in a fresh Fedora ARM64 VM. No curriculum
-rewrite or expanded platform matrix. Preserve beta.1 and the original learner
-VM. Gate/results: `validation/beta2-20260920/RESULTS.md`. Human review is still
-required before stable v2.0.0. The beta.1 checkpoints below are historical.
+**Beta.2 published and technically accepted (2026-09-20):** release commit
+`545004918872194864be7f382ed0195fff187d87`, corrected installer and synchronized
+setup/manual versions, unchanged canonical curriculum. The exact published
+archive passed fresh Fedora ARM64 installation: 135 tests without skips,
+33 preflight checks, compile/integrity/manual/cleanup, restart preservation,
+negative readiness/restoration and plain-mode evidence export. Both Ubuntu CI
+architectures passed. Record: `validation/beta2-20260920/RESULTS.md`.
+Beta.1 and the original learner VM remain unchanged. Next: learner walkthrough,
+independent practice and delayed replay before stable v2.0.0, not more features
+or an expanded platform matrix. The beta.1 checkpoints below are historical.
 
 **Post-publication correction:** beta.1 was published at `63defa2`, with both
 architecture CI jobs passing, but its actual fresh Fedora install failed on
@@ -24,8 +28,8 @@ unchanged and the release page warns about the defect. Corrected templates use
 the file-backed strict runner through the learner's user manager, preserving
 SELinux enforcement. Fresh installation of the unchanged beta.1 archive passes;
 the separate fix candidate passes 135 tests. See
-`validation/beta-20260920/POST_PUBLICATION.md`. Publication as beta.2 awaits the
-user's answer; never retag beta.1. The prepublication checkpoint below is history.
+`validation/beta-20260920/POST_PUBLICATION.md`. Beta.2 supersedes this installer;
+never retag beta.1. The prepublication checkpoint below is history.
 
 **User-authorized v2.0.0-beta.1 learner-review release (2026-09-20).**
 The full rewrite supersedes the historical B0/B1-only restriction below.

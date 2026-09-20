@@ -21,16 +21,19 @@ offensive workflow.
 
 ## Completion ledger
 
-**Active: v2.0.0-beta.2.** The user authorized the narrow installer-correction
-release and exact-artifact Fedora acceptance on 2026-09-20. Current gates and
-results live in `validation/beta2-20260920/RESULTS.md`. No new curriculum or
-platform support is included. The following beta.1 ledger is historical.
+**Published and technically accepted: v2.0.0-beta.2.** The narrow installer
+correction passed exact-artifact fresh Fedora acceptance on 2026-09-20:
+135 tests without skips, 33 preflight checks, compile/integrity/manual/cleanup,
+restart preservation, negative readiness/restoration and plain-mode export.
+Both Ubuntu CI architectures passed. Results and artifact hashes live in
+`validation/beta2-20260920/RESULTS.md`. No new curriculum or platform support
+is included. Human learner review remains open. The beta.1 ledger below is historical.
 
 Post-publication status supersedes the prepublication rows: beta.1 and PDF are
 published with green dual-architecture CI, but its original fresh Fedora install
 failed. Corrected templates pass fresh installation of the unchanged archive;
 the fix candidate passes 135 tests. See `validation/beta-20260920/POST_PUBLICATION.md`.
-The release page warns about the defect; beta.2 publication awaits user direction.
+The release page warns about the defect; beta.2 now supplies the corrected installer.
 
 | Area | State |
 | --- | --- |

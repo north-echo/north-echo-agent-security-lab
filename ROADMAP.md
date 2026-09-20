@@ -12,10 +12,12 @@
 
 ## Post-1.0.2
 
-### Active v2.0.0-beta.2 installer correction
+### Published v2.0.0-beta.2 installer correction
 
-User authorized the narrow follow-up: corrected installer and strict runner,
-consistent beta.2 instructions/manuals, and exact-release fresh Fedora acceptance.
+Completed the narrow follow-up: corrected installer and strict runner,
+consistent beta.2 instructions/manuals, and exact-release fresh Fedora acceptance
+(135 tests, no skips; 33 preflight checks; lifecycle and evidence-export checks).
+Dual-architecture Ubuntu CI passed for the release commit.
 See `validation/beta2-20260920/RESULTS.md`. Preserve beta.1's tag and existing
 learner VMs. Independent learner review remains the next gate, not a new feature
 tranche or an expanded OS matrix.
@@ -24,8 +26,8 @@ tranche or an expanded OS matrix.
 
 Published beta.1 has a documented installer defect, with a corrected template
 validated separately against the unchanged archive. See
-`validation/beta-20260920/POST_PUBLICATION.md`; replacement beta.2 is pending
-user direction. Do not mistake green source CI for fresh-install acceptance.
+`validation/beta-20260920/POST_PUBLICATION.md`; beta.2 now supersedes that
+installer. Do not mistake green source CI for fresh-install acceptance.
 
 The user authorized the full rewrite and chose a learner-review beta on
 2026-09-19, superseding the earlier B0/B1-only scope below. Fedora 44 ARM64 is

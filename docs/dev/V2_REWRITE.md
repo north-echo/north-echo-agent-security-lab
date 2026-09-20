@@ -21,6 +21,12 @@ offensive workflow.
 
 ## Completion ledger
 
+Post-publication status supersedes the prepublication rows: beta.1 and PDF are
+published with green dual-architecture CI, but its original fresh Fedora install
+failed. Corrected templates pass fresh installation of the unchanged archive;
+the fix candidate passes 135 tests. See `validation/beta-20260920/POST_PUBLICATION.md`.
+The release page warns about the defect; beta.2 publication awaits user direction.
+
 | Area | State |
 | --- | --- |
 | Fedora release installer | v1.0.2 bootstrap passed clean install, restart preservation, negative readiness, plain-mode evidence export; beta archive retest pending |

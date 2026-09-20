@@ -6,6 +6,8 @@ The v2 curriculum begins with terminal/program basics and one small environment-
 
 **Release target: v2.0.0-beta.1, for learner review.** Automated validation is not evidence of beginner comprehension. Review pacing, missing connective steps, and delayed recall before calling this a stable teaching release.
 
+> **Beta.1 deployment erratum:** the tagged Fedora installer fails fresh provisioning because its test invocation inherits cloud-init's SELinux context and uses an unimportable stdin entry point. Do not force readiness or disable SELinux. The corrected templates on `main` have passed a fresh install of the unchanged beta.1 archive; a replacement prerelease is pending. For that corrected installer, use `--branch main` instead of the beta.1 checkout below. See [actual release acceptance](validation/beta-20260920/POST_PUBLICATION.md). Existing beta.1 PDFs retain the original tagged setup commands.
+
 No LLM, API key, external target, or production credential is required. This course covers the runtime boundary, not prompt injection or general model-side security. Later synthetic evidence models are explicitly distinguished from real kernel measurements.
 
 ## Start here

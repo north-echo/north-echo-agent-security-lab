@@ -14,6 +14,11 @@
 
 ### Active v2.0.0-beta.1 rewrite
 
+Published beta.1 has a documented installer defect, with a corrected template
+validated separately against the unchanged archive. See
+`validation/beta-20260920/POST_PUBLICATION.md`; replacement beta.2 is pending
+user direction. Do not mistake green source CI for fresh-install acceptance.
+
 The user authorized the full rewrite and chose a learner-review beta on
 2026-09-19, superseding the earlier B0/B1-only scope below. Fedora 44 ARM64 is
 the preferred new-install beta baseline; preserve the existing Ubuntu VM.

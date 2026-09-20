@@ -123,6 +123,19 @@ class FedoraTemplateTests(unittest.TestCase):
         self.assertEqual(script.split("<<'PY'\n", 1)[1].split("\nPY\n", 1)[0], VERIFIER)
         self.assertIn('if [[ -e "$course_dir" || -L "$course_dir" ]]', script)
 
+    def test_validation_uses_importable_runner_in_user_manager_context(self):
+        for name in ("north-echo-fedora.yaml", "north-echo.yaml"):
+            with self.subTest(template=name):
+                content = (ROOT / "deploy" / name).read_text()
+                self.assertNotIn('python3 - > "$evidence_dir/tests.txt"', content)
+                self.assertIn('test -f scripts/run_tests.py', content)
+                self.assertIn('systemd-run --user --wait --pipe --collect --quiet --service-type=exec', content)
+                self.assertIn('--property="WorkingDirectory=$course_dir"', content)
+                self.assertIn('--property=RuntimeMaxSec=600s --property=TimeoutStopSec=5s', content)
+                self.assertIn('-- /usr/bin/python3 "$course_dir/scripts/run_tests.py" --require-no-skips', content)
+                self.assertNotIn('setenforce 0', content)
+                self.assertNotIn('runcon ', content)
+
     def test_empty_runtime_check_rejects_missing_paths_content_and_find_errors(self):
         begin = USER_SCRIPT.index("for managed in .student .fixtures .runtime; do")
         end = USER_SCRIPT.index("printf '%s\\n' 'EMPTY MANAGED RUNTIME: PASS'")

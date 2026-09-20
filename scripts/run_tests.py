@@ -13,6 +13,9 @@ def main():
     args = parser.parse_args()
     suite = unittest.defaultTestLoader.discover(str(root / "tests"))
     result = unittest.TextTestRunner(verbosity=2).run(suite)
+    if args.require_no_skips and not result.testsRun:
+        print("VALIDATION FAILED: no tests were discovered", file=sys.stderr)
+        return 1
     if args.require_no_skips and result.skipped:
         print("VALIDATION FAILED: required tests were skipped", file=sys.stderr)
         return 1

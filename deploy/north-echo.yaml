@@ -150,12 +150,16 @@ provision:
         > "$evidence_dir/packages.tsv"
 
       cd "$course_dir"
-      # Use the standard library so the template also supports earlier tagged releases.
-      python3 - > "$evidence_dir/tests.txt" 2>&1 <<'PY'
-      import sys, unittest
-      result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.discover("tests"))
-      sys.exit(0 if result.wasSuccessful() and not result.skipped and result.testsRun else 1)
-      PY
+      # Run the importable entry point in the learner's user-manager context.
+      # cloud-init's SELinux domain is not an interactive learner session.
+      test -f scripts/run_tests.py
+      systemd-run --user --wait --pipe --collect --quiet --service-type=exec \
+        --expand-environment=no --unit="north-echo-validation-$(id -u)-${version}.service" \
+        --description="North Echo release validation ${version}" \
+        --property="WorkingDirectory=$course_dir" \
+        --property=RuntimeMaxSec=600s --property=TimeoutStopSec=5s \
+        -- /usr/bin/python3 "$course_dir/scripts/run_tests.py" --require-no-skips \
+        > "$evidence_dir/tests.txt" 2>&1
       ./scripts/attest-course > "$evidence_dir/attestation.txt" 2>&1
       python3 scripts/build_field_manual.py --check > "$evidence_dir/manual.txt" 2>&1
       ./scripts/linux-preflight > "$evidence_dir/preflight.txt" 2>&1

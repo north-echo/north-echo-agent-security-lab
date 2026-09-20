@@ -10,6 +10,16 @@ The next task should work in this repository rather than regenerate it from a sp
 
 ## Current checkpoint
 
+**Post-publication correction:** beta.1 was published at `63defa2`, with both
+architecture CI jobs passing, but its actual fresh Fedora install failed on
+stdin multiprocessing and cloud-init SELinux context. The tag/artifacts remain
+unchanged and the release page warns about the defect. Corrected templates use
+the file-backed strict runner through the learner's user manager, preserving
+SELinux enforcement. Fresh installation of the unchanged beta.1 archive passes;
+the separate fix candidate passes 135 tests. See
+`validation/beta-20260920/POST_PUBLICATION.md`. Publication as beta.2 awaits the
+user's answer; never retag beta.1. The prepublication checkpoint below is history.
+
 **User-authorized v2.0.0-beta.1 learner-review release (2026-09-20).**
 The full rewrite supersedes the historical B0/B1-only restriction below.
 Fedora 44 ARM64 is the preferred new-install baseline; Ubuntu remains available.

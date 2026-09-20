@@ -12,7 +12,15 @@
 
 ## Post-1.0.2
 
-### Active v2.0.0-beta.1 rewrite
+### Active v2.0.0-beta.2 installer correction
+
+User authorized the narrow follow-up: corrected installer and strict runner,
+consistent beta.2 instructions/manuals, and exact-release fresh Fedora acceptance.
+See `validation/beta2-20260920/RESULTS.md`. Preserve beta.1's tag and existing
+learner VMs. Independent learner review remains the next gate, not a new feature
+tranche or an expanded OS matrix.
+
+### Historical v2.0.0-beta.1 rewrite
 
 Published beta.1 has a documented installer defect, with a corrected template
 validated separately against the unchanged archive. See

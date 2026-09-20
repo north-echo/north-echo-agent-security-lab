@@ -18,7 +18,7 @@ ssh:
   forwardAgent: false
   loadDotSSHPubKeys: false
 param:
-  CourseVersion: v2.0.0-beta.1
+  CourseVersion: v2.0.0-beta.2
 provision:
   - mode: data
     file: fedora-packages.txt

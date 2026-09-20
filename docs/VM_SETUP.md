@@ -15,11 +15,15 @@ Use 4 CPUs, 6 GiB memory, and 30 GiB disk. No real credentials, production data,
 Install Lima 2.2 or newer using its official installation instructions, then check `limactl --version`. These are **Mac host** commands. Choose a new name; do not reuse or delete your existing `north-echo` learner VM.
 
 ```bash
-git clone --branch v2.0.0-beta.1 --depth 1 https://github.com/north-echo/north-echo-agent-security-lab.git north-echo-beta-source
-cd north-echo-beta-source
-limactl start --name north-echo-beta deploy/north-echo-fedora.yaml
-limactl shell north-echo-beta
+git clone --branch v2.0.0-beta.2 --depth 1 \
+  https://github.com/north-echo/north-echo-agent-security-lab.git \
+  north-echo-beta2-source
+cd north-echo-beta2-source
+limactl start --name north-echo-beta2 deploy/north-echo-fedora.yaml
+limactl shell north-echo-beta2
 ```
+
+Beta.2 includes the corrected file-backed validation runner in the learner's user-manager context. Keep SELinux enforcing; no policy relaxation is needed. Use a new instance rather than restarting a failed beta.1 installation.
 
 The tagged checkout contains the template and its companion package list. Run the start command from that checkout. Fedora installation downloads the pinned image and release; first boot takes longer than a restart. Successful readiness is required before beginning.
 
@@ -43,7 +47,7 @@ If you already know the B0 material, return to the guest course root and try `./
 
 The Fedora image is `Fedora-Cloud-Base-Generic-44-1.7.aarch64.qcow2`, with SHA-256 `55c60a3b80d3616a08705afd0459e75fe9f03c54aba7a46e4002a41a72fa0d5b`. The template contains its full release URL. Ubuntu's template separately pins dated images for both supported architectures.
 
-The course version is `v2.0.0-beta.1`. Provisioning downloads its archive and `SHA256SUMS`, checks the selected artifact, and validates the installed course before writing readiness. Checksums obtained from the same release detect mismatches, not compromise of the release publisher.
+The course version is `v2.0.0-beta.2`. Provisioning downloads its archive and `SHA256SUMS`, checks the selected artifact, and validates the installed course before writing readiness. Checksums obtained from the same release detect mismatches, not compromise of the release publisher.
 
 Package repositories still deliver current package revisions; an image digest does not freeze later package installation. Deployment evidence records exact installed versions. Fedora consumes `deploy/fedora-packages.txt`; Ubuntu and GitHub Actions consume `deploy/ubuntu-packages.txt`. They are distinct distro package names, not interchangeable lists. CI's Ubuntu jobs do not substitute for a booted Fedora validation run.
 
@@ -54,9 +58,9 @@ Both templates use Lima plain mode without host mounts, guest agent, dynamic por
 Exit the guest shell with `exit`. These commands run on the **Mac host**:
 
 ```bash
-limactl stop north-echo-beta
-limactl start north-echo-beta
-limactl shell north-echo-beta
+limactl stop north-echo-beta2
+limactl start north-echo-beta2
+limactl shell north-echo-beta2
 ```
 
 A readiness marker makes normal restarts idempotent: they do not reinstall over your source or re-extract over student work. Restarting an old release does not upgrade it. To review another version, use another instance or separately validated directory.
@@ -64,7 +68,7 @@ A readiness marker makes normal restarts idempotent: they do not reinstall over 
 Export the synthetic first-install evidence from the **host**:
 
 ```bash
-limactl copy north-echo-beta:~/north-echo-deployment-evidence.tgz .
+limactl copy north-echo-beta2:~/north-echo-deployment-evidence.tgz .
 ```
 
 This is not a backup of your solutions. To save work, run inside the **guest course root**:
@@ -76,16 +80,18 @@ tar -czf ~/north-echo-student-work.tgz .student .state
 Then copy it from the **host**:
 
 ```bash
-limactl copy north-echo-beta:~/north-echo-student-work.tgz .
+limactl copy north-echo-beta2:~/north-echo-student-work.tgz .
 ```
 
 Keep the work archive private: it contains solutions and notes. Verify it reached the host before deleting anything.
 
+<!-- PAGEBREAK -->
+
 Deleting/recreating is the factory reset, and destroys **all unexported work in that exact VM**. Only after export and only if you want a clean instance:
 
 ```bash
-limactl delete -f north-echo-beta
-limactl start --name north-echo-beta deploy/north-echo-fedora.yaml
+limactl delete -f north-echo-beta2
+limactl start --name north-echo-beta2 deploy/north-echo-fedora.yaml
 ```
 
 No deletion is needed for an ordinary restart or a single lesson reset.
@@ -95,8 +101,8 @@ No deletion is needed for an ordinary restart or a single lesson reset.
 Use a different new instance name on the **host**:
 
 ```bash
-limactl start --name north-echo-beta-ubuntu deploy/north-echo.yaml
-limactl shell north-echo-beta-ubuntu
+limactl start --name north-echo-beta2-ubuntu deploy/north-echo.yaml
+limactl shell north-echo-beta2-ubuntu
 ```
 
 Then follow the same guest course-root and B0 steps. Do not use the Fedora package list with apt. The Ubuntu installer applies the narrow course AppArmor profile only if the ordinary user-namespace check requires it; it does not disable AppArmor globally.
@@ -107,7 +113,9 @@ First create an ordinary account and log in as that account. These are **guest**
 
 ```bash
 sudo dnf install -y git ca-certificates
-git clone --branch v2.0.0-beta.1 --depth 1 https://github.com/north-echo/north-echo-agent-security-lab.git north-echo
+git clone --branch v2.0.0-beta.2 --depth 1 \
+  https://github.com/north-echo/north-echo-agent-security-lab.git \
+  north-echo
 cd north-echo
 xargs sudo dnf install -y < deploy/fedora-packages.txt
 test "$(getenforce)" = Enforcing
@@ -118,7 +126,9 @@ For Ubuntu, use this alternative, not both blocks:
 ```bash
 sudo apt-get update
 sudo apt-get install -y git ca-certificates
-git clone --branch v2.0.0-beta.1 --depth 1 https://github.com/north-echo/north-echo-agent-security-lab.git north-echo
+git clone --branch v2.0.0-beta.2 --depth 1 \
+  https://github.com/north-echo/north-echo-agent-security-lab.git \
+  north-echo
 cd north-echo
 xargs sudo apt-get install -y < deploy/ubuntu-packages.txt
 if ! unshare --user --map-root-user true; then

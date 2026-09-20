@@ -1,4 +1,4 @@
-# North Echo v2.0.0-beta.1 disposable Ubuntu appliance for Lima 2.2 or newer.
+# North Echo v2.0.0-beta.2 disposable Ubuntu appliance for Lima 2.2 or newer.
 #
 # Create:  limactl start --name north-echo deploy/north-echo.yaml
 # Enter:   limactl shell north-echo
@@ -31,7 +31,7 @@ ssh:
   loadDotSSHPubKeys: false
 
 param:
-  CourseVersion: v2.0.0-beta.1
+  CourseVersion: v2.0.0-beta.2
 
 provision:
   - mode: data

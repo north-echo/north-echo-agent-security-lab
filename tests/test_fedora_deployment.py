@@ -102,7 +102,7 @@ class FedoraTemplateTests(unittest.TestCase):
                             ("north-echo.yaml", "north-echo")):
             with self.subTest(template=name), tempfile.TemporaryDirectory() as raw:
                 guest = Path(raw)
-                version = "v2.0.0-beta.1"
+                version = "v" + (ROOT / "VERSION").read_text().strip()
                 marker = guest / ".local/state" / state / (version + ".ready")
                 marker.parent.mkdir(parents=True)
                 marker.write_text("ready")

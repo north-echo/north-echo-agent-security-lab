@@ -4,9 +4,9 @@ A hands-on Linux course on **runtime containment for agent workloads**: what a p
 
 The v2 curriculum begins with terminal/program basics and one small environment-handoff problem, then develops twelve technical modules and an independent batch-runtime capstone. Lessons provide file-access instructions, complete small sources, local explanations, predictions, deliberate failures, repairs, checkpoints, and scoped reset. Independent labs withhold complete implementations, not the interface or prerequisites.
 
-**Release target: v2.0.0-beta.1, for learner review.** Automated validation is not evidence of beginner comprehension. Review pacing, missing connective steps, and delayed recall before calling this a stable teaching release.
+**Release target: v2.0.0-beta.2, for learner review.** Automated validation is not evidence of beginner comprehension. Review pacing, missing connective steps, and delayed recall before calling this a stable teaching release.
 
-> **Beta.1 deployment erratum:** the tagged Fedora installer fails fresh provisioning because its test invocation inherits cloud-init's SELinux context and uses an unimportable stdin entry point. Do not force readiness or disable SELinux. The corrected templates on `main` have passed a fresh install of the unchanged beta.1 archive; a replacement prerelease is pending. For that corrected installer, use `--branch main` instead of the beta.1 checkout below. See [actual release acceptance](validation/beta-20260920/POST_PUBLICATION.md). Existing beta.1 PDFs retain the original tagged setup commands.
+> **Beta.2 installer correction:** use this release's tagged setup below. Beta.1 remains unchanged with its documented provisioning defect; do not mix its installer or PDF setup commands with beta.2. See [release validation](validation/beta2-20260920/RESULTS.md).
 
 No LLM, API key, external target, or production credential is required. This course covers the runtime boundary, not prompt injection or general model-side security. Later synthetic evidence models are explicitly distinguished from real kernel measurements.
 
@@ -17,10 +17,12 @@ Use a disposable Linux VM, not your Mac's terminal for exercises. Fedora 44 ARM6
 On the **Mac host**, with Lima 2.2 or newer:
 
 ```bash
-git clone --branch v2.0.0-beta.1 --depth 1 https://github.com/north-echo/north-echo-agent-security-lab.git north-echo-beta-source
-cd north-echo-beta-source
-limactl start --name north-echo-beta deploy/north-echo-fedora.yaml
-limactl shell north-echo-beta
+git clone --branch v2.0.0-beta.2 --depth 1 \
+  https://github.com/north-echo/north-echo-agent-security-lab.git \
+  north-echo-beta2-source
+cd north-echo-beta2-source
+limactl start --name north-echo-beta2 deploy/north-echo-fedora.yaml
+limactl shell north-echo-beta2
 ```
 
 Use a new instance name. This does not migrate or overwrite an existing `north-echo` VM.

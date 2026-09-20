@@ -21,6 +21,11 @@ offensive workflow.
 
 ## Completion ledger
 
+**Active: v2.0.0-beta.2.** The user authorized the narrow installer-correction
+release and exact-artifact Fedora acceptance on 2026-09-20. Current gates and
+results live in `validation/beta2-20260920/RESULTS.md`. No new curriculum or
+platform support is included. The following beta.1 ledger is historical.
+
 Post-publication status supersedes the prepublication rows: beta.1 and PDF are
 published with green dual-architecture CI, but its original fresh Fedora install
 failed. Corrected templates pass fresh installation of the unchanged archive;

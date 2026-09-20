@@ -10,6 +10,13 @@ The next task should work in this repository rather than regenerate it from a sp
 
 ## Current checkpoint
 
+**Active beta.2 release (user authorized option 1, 2026-09-20):** package the
+existing installer correction, update version/setup/manual references, and
+validate the exact published archive in a fresh Fedora ARM64 VM. No curriculum
+rewrite or expanded platform matrix. Preserve beta.1 and the original learner
+VM. Gate/results: `validation/beta2-20260920/RESULTS.md`. Human review is still
+required before stable v2.0.0. The beta.1 checkpoints below are historical.
+
 **Post-publication correction:** beta.1 was published at `63defa2`, with both
 architecture CI jobs passing, but its actual fresh Fedora install failed on
 stdin multiprocessing and cloud-init SELinux context. The tag/artifacts remain

@@ -12,6 +12,14 @@
 
 ## Post-1.0.2
 
+### Unreleased licensing transition
+
+Apache-2.0 for software/embedded examples; CC BY-SA 4.0 for teaching material.
+`LICENSING.md` defines the boundary and preserves prior MIT permissions.
+Manual sources carry complete license texts and notices. No published tag or
+asset is replaced; the next release needs an explicit transition note and
+rendered review of the licensing appendix.
+
 ### Published v2.0.0-beta.2 installer correction
 
 Completed the narrow follow-up: corrected installer and strict runner,

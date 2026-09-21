@@ -22,6 +22,8 @@ HEADER = f"""# North Echo Agent Security Lab - Complete Field Manual v{VERSION}
 
 Learner-review beta: setup, source/version notes, beginner entry chapters, learning path, twelve rewritten technical modules, and an independent capstone. Use only a disposable Linux VM with synthetic data. Complete source listings and local explanations support guided practice; independent labs withhold implementations. Automated validation does not establish beginner comprehension or production security. See the release's validation records for exact scope.
 
+Licensing transition after beta.2: teaching materials are CC BY-SA 4.0; code examples are Apache-2.0. Previously published material retains its MIT permissions. See the Licensing appendix for scope, attribution, notices and complete license texts. This working-tree manual is not the unchanged published beta.2 artifact.
+
 <!-- PAGEBREAK -->"""
 
 
@@ -50,8 +52,27 @@ def synchronized_chapter(path: Path, ancestors: tuple[Path, ...] = ()) -> str:
     return INCLUDE.sub(expand, path.read_text(encoding="utf-8"))
 
 
+def licensing_appendix() -> str:
+    """Keep standalone Markdown/PDF manuals self-contained for redistribution."""
+    policy = (ROOT / "LICENSING.md").read_text(encoding="utf-8").rstrip()
+    # LICENSING.md lives at the repository root; the assembled manual is in docs/.
+    policy = re.sub(r"(\]\()((?:LICENSES/[^)]+|LICENSE|NOTICE|CONTRIBUTING\.md))(\))",
+                    r"\1../\2\3", policy)
+    sections = ["<!-- PAGEBREAK -->", policy]
+    for title, relative in (
+        ("Distribution notice", "NOTICE"),
+        ("Apache License 2.0 - software", "LICENSE"),
+        ("CC BY-SA 4.0 - teaching materials", "LICENSES/CC-BY-SA-4.0.txt"),
+        ("Retained MIT license - previously published material", "LICENSES/MIT.txt"),
+    ):
+        text = (ROOT / relative).read_text(encoding="utf-8").rstrip()
+        sections.append(f"## {title}\n\n```text\n{text}\n```")
+    return "\n\n".join(sections)
+
+
 def render() -> str:
-    sections = [HEADER, *(synchronized_chapter(path).rstrip() for path in SOURCES)]
+    sections = [HEADER, *(synchronized_chapter(path).rstrip() for path in SOURCES),
+                licensing_appendix()]
     return "\n\n".join(sections) + "\n"
 
 

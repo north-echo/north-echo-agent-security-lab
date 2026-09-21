@@ -103,3 +103,12 @@ python3 scripts/build_field_manual.py --check
 Run the strict suite in the supported Linux VM. macOS can check control-plane behavior but cannot validate Linux containment. Ubuntu CI and Fedora VM runs have distinct scopes. [Validation records](validation/) identify exact candidate archives and baselines; [the active beta ledger](docs/dev/V2_REWRITE.md) records outstanding release gates. Historical passes are not silently applied to new code.
 
 This independent project was authored with AI coding assistance, primarily OpenAI Codex and review from Anthropic Claude/Fable, under Christopher Lusk's direction. It contains no employer-internal material. Its teaching quality must be judged through actual learner work, not the authorship method or test count.
+
+## License
+
+Software and embedded code examples: **Apache-2.0**. Teaching prose, diagrams
+and manuals: **CC BY-SA 4.0**. Commercial reuse is allowed under those terms.
+The split applies after beta.2; previously published material retains its MIT
+permissions, and existing release assets are unchanged. See the
+[licensing scope and exceptions](LICENSING.md), [notices](NOTICE), and
+[contribution terms](CONTRIBUTING.md).

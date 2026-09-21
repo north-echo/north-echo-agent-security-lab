@@ -10,6 +10,19 @@ The next task should work in this repository rather than regenerate it from a sp
 
 ## Current checkpoint
 
+**Unreleased licensing transition (2026-09-20):** user approved Apache-2.0 for
+software and embedded examples, CC BY-SA 4.0 for teaching materials. Scope and
+historical MIT permissions are explicit in `LICENSING.md`; complete texts and
+notices are embedded by the manual builder. Published beta.2 and earlier assets
+remain unchanged. No canonical course change or new release is part of this
+transition. Render and inspect the changed manual before the next PDF release;
+the prior 271-page PDF review does not cover the new licensing appendix.
+Verification on macOS: 139 tests discovered, 99 passed and 40 Linux-only skips
+(51.239s); this includes four new licensing/distribution regressions. Course
+attestation and manual synchronization passed; canonical `course/` has no diff.
+Linux preflight correctly rejected the macOS kernel. No new Linux or rendered
+PDF validation is claimed for this documentation/build-only change.
+
 **Beta.2 published and technically accepted (2026-09-20):** release commit
 `545004918872194864be7f382ed0195fff187d87`, corrected installer and synchronized
 setup/manual versions, unchanged canonical curriculum. The exact published
